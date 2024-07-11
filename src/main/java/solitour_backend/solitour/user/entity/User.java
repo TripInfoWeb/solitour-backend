@@ -9,7 +9,7 @@ import solitour_backend.solitour.user.user_status.UserStatus;
 import solitour_backend.solitour.user.user_status.UserStatusConverter;
 
 import java.time.LocalDateTime;
-import solitour_backend.solitour.user_image.UserImage;
+import solitour_backend.solitour.user_image.entity.UserImage;
 
 @Entity
 @Getter
@@ -33,8 +33,8 @@ public class User {
     @Column(name = "provider")
     private String provider;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_image_id",referencedColumnName = "user_image_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_image_id")
     private UserImage userImage;
 
     @Column(name = "user_nickname")

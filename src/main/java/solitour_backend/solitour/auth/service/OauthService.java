@@ -2,7 +2,6 @@ package solitour_backend.solitour.auth.service;
 
 
 import jakarta.servlet.http.Cookie;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +21,8 @@ import solitour_backend.solitour.auth.support.kakao.dto.KakaoUserResponse;
 import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.user.entity.UserRepository;
 import solitour_backend.solitour.user.user_status.UserStatus;
-import solitour_backend.solitour.user_image.UserImage;
-import solitour_backend.solitour.user_image.UserImageRepository;
+import solitour_backend.solitour.user_image.entity.UserImage;
+import solitour_backend.solitour.user_image.service.UserImageService;
 
 @RequiredArgsConstructor
 @Service
@@ -36,7 +35,8 @@ public class OauthService {
   private final KakaoProvider kakaoProvider;
   private final GoogleConnector googleConnector;
   private final GoogleProvider googleProvider;
-  private final UserImageRepository userImageRepository;
+  private final UserImageService userImageService;
+
 
   public OauthLinkResponse generateAuthUrl(String type, String redirectUrl) {
     String oauthLink = getAuthLink(type, redirectUrl);
@@ -83,6 +83,7 @@ public class OauthService {
       throw new RuntimeException("지원하지 않는 oauth 타입입니다.");
     }
   }
+
   private User saveGoogleUser(GoogleUserResponse response) {
     User user = User.builder()
         .userStatus(UserStatus.ACTIVATE)
@@ -98,8 +99,8 @@ public class OauthService {
   }
 
   private User saveKakaoUser(KakaoUserResponse response) {
-    String userImage = getUserImage(response);
-    UserImage savedUserImage = userImageRepository.save(new UserImage(userImage, LocalDate.now()));
+    String imageUrl = getUserImage(response);
+    UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
 
     User user = User.builder()
         .userStatus(UserStatus.ACTIVATE)
