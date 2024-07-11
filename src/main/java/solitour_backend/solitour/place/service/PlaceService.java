@@ -48,8 +48,8 @@ public class PlaceService {
 
         savedPlace.setSearchId(placeModifyRequest.getSearchId());
         savedPlace.setName(placeModifyRequest.getName());
-        savedPlace.setXAxis(placeModifyRequest.getXAxis());
-        savedPlace.setYAxis(placeModifyRequest.getYAxis());
+        savedPlace.setXaxis(placeModifyRequest.getXAxis());
+        savedPlace.setYaxis(placeModifyRequest.getYAxis());
         savedPlace.setAddress(placeModifyRequest.getAddress());
 
         return placeMapper.mapToPlaceResponse(savedPlace);

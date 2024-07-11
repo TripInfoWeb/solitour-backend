@@ -19,8 +19,6 @@ public class InformationResponse {
     private String content;
     private String tip;
 
-//    private UserResponse userResponse;
-
     private Place place;
     private Category category;
     private ZoneCategory zoneCategory;

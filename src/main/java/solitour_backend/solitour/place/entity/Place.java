@@ -28,19 +28,19 @@ public class Place {
     private String name;
 
     @Column(name = "place_x_axis")
-    private BigDecimal xAxis;
+    private BigDecimal xaxis;
 
     @Column(name = "place_y_axis")
-    private BigDecimal yAxis;
+    private BigDecimal yaxis;
 
     @Column(name = "place_address")
     private String address;
 
-    public Place(String searchId, String name, BigDecimal xAxis, BigDecimal yAxis, String address) {
+    public Place(String searchId, String name, BigDecimal xaxis, BigDecimal yaxis, String address) {
         this.searchId = searchId;
         this.name = name;
-        this.xAxis = xAxis;
-        this.yAxis = yAxis;
+        this.xaxis = xaxis;
+        this.yaxis = yaxis;
         this.address = address;
     }
 }

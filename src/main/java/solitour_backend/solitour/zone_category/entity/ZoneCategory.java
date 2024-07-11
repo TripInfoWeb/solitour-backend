@@ -19,7 +19,7 @@ public class ZoneCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "parent_zone_category_id")
     private ZoneCategory parentZoneCategory;
 
