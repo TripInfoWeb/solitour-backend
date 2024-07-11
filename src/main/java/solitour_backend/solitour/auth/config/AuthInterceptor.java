@@ -1,7 +1,7 @@
 package solitour_backend.solitour.auth.config;
 
 
-import jakarta.security.auth.message.AuthException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.lang.annotation.Annotation;
@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import solitour_backend.solitour.auth.support.AuthorizationExtractor;
+import solitour_backend.solitour.auth.support.CookieExtractor;
 import solitour_backend.solitour.auth.support.JwtTokenProvider;
 
 @RequiredArgsConstructor
@@ -40,9 +40,10 @@ public class AuthInterceptor implements HandlerInterceptor {
   }
 
   private void validateToken(HttpServletRequest request) {
-    String token = AuthorizationExtractor.extract(request);
+    String token = CookieExtractor.findToken(request.getCookies());
     if (jwtTokenProvider.validateTokenNotUsable(token)) {
       throw new RuntimeException("토큰이 유효하지 않습니다.");
     }
   }
+
 }

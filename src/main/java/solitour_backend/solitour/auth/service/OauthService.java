@@ -143,7 +143,9 @@ public class OauthService {
       throw new RuntimeException("유효하지 않은 토큰입니다.");
     }
     String accessToken = jwtTokenProvider.createAccessToken(userId);
-    return new AccessTokenResponse(accessToken);
+    Cookie accessCookie = createCookie("access_token", accessToken,60*60*24);
+
+    return new AccessTokenResponse(accessCookie);
   }
 
   @Transactional

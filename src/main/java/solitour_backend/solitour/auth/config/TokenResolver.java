@@ -1,5 +1,6 @@
 package solitour_backend.solitour.auth.config;
 
+import jakarta.servlet.http.Cookie;
 import java.util.Objects;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,7 +13,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 import lombok.RequiredArgsConstructor;
 
-import solitour_backend.solitour.auth.support.AuthorizationExtractor;
+import solitour_backend.solitour.auth.support.CookieExtractor;
 import solitour_backend.solitour.auth.support.JwtTokenProvider;
 
 @RequiredArgsConstructor
@@ -29,8 +30,9 @@ public class TokenResolver implements HandlerMethodArgumentResolver {
   public Long resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
       NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
     HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
-    String token = AuthorizationExtractor.extract(Objects.requireNonNull(request));
+    String token = CookieExtractor.findToken(request.getCookies());
 
     return jwtTokenProvider.getPayload(token);
   }
+
 }
