@@ -7,6 +7,7 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.security.auth.message.AuthException;
 import java.nio.charset.StandardCharsets;
@@ -25,7 +26,7 @@ public class JwtTokenProvider {
     public JwtTokenProvider(@Value("${security.jwt.token.secret-key}") final String secretKey,
         @Value("${security.jwt.token.access-token-expire-length}") final long accessTokenValidityInMilliseconds,
         @Value("${security.jwt.token.refresh-token-expire-length}") final long refreshTokenValidityInMilliseconds) {
-        this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        this.key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secretKey));
         this.accessTokenValidityInMilliseconds = accessTokenValidityInMilliseconds;
         this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
     }
@@ -46,7 +47,7 @@ public class JwtTokenProvider {
             .subject(Long.toString(payload))
             .issuedAt(new Date())
             .expiration(validity)
-            .signWith(key, SignatureAlgorithm.HS256)
+            .signWith(key)
             .compact();
     }
 

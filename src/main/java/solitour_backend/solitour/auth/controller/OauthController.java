@@ -22,36 +22,40 @@ import solitour_backend.solitour.auth.service.dto.response.OauthLinkResponse;
 @RestController
 public class OauthController {
 
-    private final OauthService oauthService;
+  private final OauthService oauthService;
 
-    @GetMapping(value = "/login", params = {"type", "redirectUrl"})
-    public ResponseEntity<OauthLinkResponse> access(@RequestParam String type,@RequestParam String redirectUrl) {
-        OauthLinkResponse response = oauthService.generateAuthUrl(type,redirectUrl);
-        return ResponseEntity.ok(response);
-    }
+  @GetMapping(value = "/login", params = {"type", "redirectUrl"})
+  public ResponseEntity<OauthLinkResponse> access(@RequestParam String type,
+      @RequestParam String redirectUrl) {
+    OauthLinkResponse response = oauthService.generateAuthUrl(type, redirectUrl);
+    return ResponseEntity.ok(response);
+  }
 
-    @GetMapping(value = "/login", params = {"type", "code", "redirectUrl"})
-    public ResponseEntity<LoginResponse> login(HttpServletResponse response,@RequestParam String type, @RequestParam String code, @RequestParam String redirectUrl) {
-        LoginResponse loginResponse = oauthService.requestAccessToken(type, code, redirectUrl);
+  @GetMapping(value = "/login", params = {"type", "code", "redirectUrl"})
+  public ResponseEntity<LoginResponse> login(HttpServletResponse response,
+      @RequestParam String type, @RequestParam String code, @RequestParam String redirectUrl) {
+    LoginResponse loginResponse = oauthService.requestAccessToken(type, code, redirectUrl);
 
-        response.addCookie(loginResponse.getAccessToken());
-        response.addCookie(loginResponse.getRefreshToken());
+    response.addCookie(loginResponse.getAccessToken());
+    response.addCookie(loginResponse.getRefreshToken());
 
-        return ResponseEntity.ok().build();
-    }
+    return ResponseEntity.ok().build();
+  }
 
-    @Authenticated
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@AuthenticationPrincipal Long memberId) {
-        oauthService.logout(memberId);
+  @Authenticated
+  @PostMapping("/logout")
+  public ResponseEntity<Void> logout(@AuthenticationPrincipal Long memberId) {
+    oauthService.logout(memberId);
 
-        return ResponseEntity.ok().build();
-    }
+    return ResponseEntity.ok().build();
+  }
 
-    @PostMapping("/token/refresh")
-    public ResponseEntity<AccessTokenResponse> reissueAccessToken(@AuthenticationPrincipal Long memberId) {
-        AccessTokenResponse response = oauthService.reissueAccessToken(memberId);
+  @PostMapping("/token/refresh")
+  public ResponseEntity<Void> reissueAccessToken(HttpServletResponse response,
+      @AuthenticationPrincipal Long memberId) {
+    AccessTokenResponse accessToken = oauthService.reissueAccessToken(memberId);
+    response.addCookie(accessToken.getAccessToken());
 
-        return ResponseEntity.ok(response);
-    }
+    return ResponseEntity.ok().build();
+  }
 }
