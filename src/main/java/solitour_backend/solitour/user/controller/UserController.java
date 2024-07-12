@@ -11,7 +11,7 @@ import solitour_backend.solitour.user.service.dto.response.UserInfoResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 public class UserController {
 
   private final UserService service;

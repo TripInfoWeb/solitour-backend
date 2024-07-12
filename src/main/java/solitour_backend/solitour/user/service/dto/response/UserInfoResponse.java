@@ -9,7 +9,7 @@ import solitour_backend.solitour.user_image.entity.UserImage;
 public class UserInfoResponse {
 
   private final Long id;
-  private final UserStatus userStatus;
+  private final String userStatus;
   private final UserImage userImage;
   private final String nickname;
   private final Integer age;
@@ -20,7 +20,7 @@ public class UserInfoResponse {
 
   public UserInfoResponse(User user) {
     this.id = user.getId();
-    this.userStatus = user.getUserStatus();
+    this.userStatus = user.getUserStatus().getName();
     this.userImage = user.getUserImage();
     this.nickname = user.getNickname();
     this.age = user.getAge();
