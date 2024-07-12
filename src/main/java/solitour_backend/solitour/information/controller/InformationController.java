@@ -19,28 +19,32 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/informations")
 public class InformationController {
-    private final InformationService informationService;
 
-    @PostMapping
-    public ResponseEntity<InformationResponse> createInformation(@Valid @RequestPart("request") InformationRegisterRequest informationRegisterRequest,
-                                                                 @RequestPart("thumbNailImage") MultipartFile thumbnail,
-                                                                 @RequestPart("contentImages") List<MultipartFile> contentImages,
-                                                                 BindingResult bindingResult) {
-        Utils.validationRequest(bindingResult);
-        InformationResponse informationResponse = informationService.registerInformation(informationRegisterRequest, thumbnail, contentImages);
+  private final InformationService informationService;
 
+  @PostMapping
+  public ResponseEntity<InformationResponse> createInformation(
+      @Valid @RequestPart("request") InformationRegisterRequest informationRegisterRequest,
+      @RequestPart("thumbNailImage") MultipartFile thumbnail,
+      @RequestPart("contentImages") List<MultipartFile> contentImages,
+      BindingResult bindingResult) {
+    Utils.validationRequest(bindingResult);
+    InformationResponse informationResponse = informationService.registerInformation(
+        informationRegisterRequest, thumbnail, contentImages);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(informationResponse);
-    }
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(informationResponse);
+  }
 
-    @GetMapping("/{informationId}")
-    public ResponseEntity<InformationDetailResponse> getDetailInformation(@PathVariable Long informationId) {
-        InformationDetailResponse informationDetailResponse = informationService.getDetailInformation(informationId);
+  @GetMapping("/{informationId}")
+  public ResponseEntity<InformationDetailResponse> getDetailInformation(
+      @PathVariable Long informationId) {
+    InformationDetailResponse informationDetailResponse = informationService.getDetailInformation(
+        informationId);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(informationDetailResponse);
-    }
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(informationDetailResponse);
+  }
 }

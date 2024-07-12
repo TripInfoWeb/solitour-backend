@@ -46,14 +46,14 @@ public class OauthService {
   @Transactional
   public LoginResponse requestAccessToken(String type, String code, String redirectUrl) {
     User user = checkAndSaveUser(type, code, redirectUrl);
-    
+
     String token = jwtTokenProvider.createAccessToken(user.getId());
     String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
 
     tokenService.synchronizeRefreshToken(user, refreshToken);
 
-    Cookie accessCookie = createCookie("access_token", token,60*60*24);
-    Cookie refreshCookie = createCookie("refresh_token", refreshToken,60*60*24*10);
+    Cookie accessCookie = createCookie("access_token", token, 60 * 60 * 24);
+    Cookie refreshCookie = createCookie("refresh_token", refreshToken, 60 * 60 * 24 * 10);
 
     return new LoginResponse(accessCookie, refreshCookie);
   }
@@ -67,19 +67,19 @@ public class OauthService {
   }
 
   private User checkAndSaveUser(String type, String code, String redirectUrl) {
-    if(Objects.equals(type, "kakao")){
+    if (Objects.equals(type, "kakao")) {
       KakaoUserResponse response = kakaoConnector.requestKakaoUserInfo(code, redirectUrl).getBody();
       String nickname = response.getKakaoAccount().getProfile().getNickName();
       return userRepository.findByNickname(nickname)
           .orElseGet(() -> saveKakaoUser(response));
     }
-    if(Objects.equals(type, "google")){
-      GoogleUserResponse response = googleConnector.requestGoogleUserInfo(code, redirectUrl).getBody();
+    if (Objects.equals(type, "google")) {
+      GoogleUserResponse response = googleConnector.requestGoogleUserInfo(code, redirectUrl)
+          .getBody();
       String email = response.getEmail();
       return userRepository.findByEmail(email)
           .orElseGet(() -> saveGoogleUser(response));
-    }
-    else{
+    } else {
       throw new RuntimeException("지원하지 않는 oauth 타입입니다.");
     }
   }
@@ -121,10 +121,10 @@ public class OauthService {
   private String getUserImage(KakaoUserResponse response) {
     String gender = response.getKakaoAccount().getGender();
     String userProfile = response.getKakaoAccount().getProfile().getProfileImageUrl();
-    if(Objects.equals(gender, "male")){
+    if (Objects.equals(gender, "male")) {
       return "male";
     }
-    if(Objects.equals(gender, "female")){
+    if (Objects.equals(gender, "female")) {
       return "female";
     }
     return userProfile;
@@ -144,7 +144,7 @@ public class OauthService {
       throw new RuntimeException("유효하지 않은 토큰입니다.");
     }
     String accessToken = jwtTokenProvider.createAccessToken(userId);
-    Cookie accessCookie = createCookie("access_token", accessToken,60*60*24);
+    Cookie accessCookie = createCookie("access_token", accessToken, 60 * 60 * 24);
 
     return new AccessTokenResponse(accessCookie);
   }

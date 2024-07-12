@@ -15,55 +15,58 @@ import java.time.LocalDateTime;
 @Table(name = "information")
 @NoArgsConstructor
 public class Information {
-    @Id
-    @Column(name = "information_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
+  @Id
+  @Column(name = "information_id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "zone_category_id")
-    private ZoneCategory zoneCategory;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "category_id")
+  private Category category;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "zone_category_id")
+  private ZoneCategory zoneCategory;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_id")
-    private Place place;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id")
+  private User user;
 
-    @Column(name = "information_title")
-    private String title;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "place_id")
+  private Place place;
 
-    @Column(name = "information_address")
-    private String address;
+  @Column(name = "information_title")
+  private String title;
 
-    @Column(name = "information_created_date")
-    private LocalDateTime createdDate;
+  @Column(name = "information_address")
+  private String address;
 
-    @Column(name = "information_view_count")
-    private Integer viewCount;
+  @Column(name = "information_created_date")
+  private LocalDateTime createdDate;
 
-    @Column(name = "information_content")
-    private String content;
+  @Column(name = "information_view_count")
+  private Integer viewCount;
 
-    @Column(name = "information_tip")
-    private String tip;
+  @Column(name = "information_content")
+  private String content;
 
-    public Information(Category category, ZoneCategory zoneCategory, User user, Place place, String title, String address, LocalDateTime createdDate, Integer viewCount, String content, String tip) {
-        this.category = category;
-        this.zoneCategory = zoneCategory;
-        this.user = user;
-        this.place = place;
-        this.title = title;
-        this.address = address;
-        this.createdDate = createdDate;
-        this.viewCount = viewCount;
-        this.content = content;
-        this.tip = tip;
-    }
+  @Column(name = "information_tip")
+  private String tip;
+
+  public Information(Category category, ZoneCategory zoneCategory, User user, Place place,
+      String title, String address, LocalDateTime createdDate, Integer viewCount, String content,
+      String tip) {
+    this.category = category;
+    this.zoneCategory = zoneCategory;
+    this.user = user;
+    this.place = place;
+    this.title = title;
+    this.address = address;
+    this.createdDate = createdDate;
+    this.viewCount = viewCount;
+    this.content = content;
+    this.tip = tip;
+  }
 }

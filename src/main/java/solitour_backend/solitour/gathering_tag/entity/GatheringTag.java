@@ -12,21 +12,21 @@ import solitour_backend.solitour.tag.entity.Tag;
 @NoArgsConstructor
 public class GatheringTag {
 
-    @Id
-    @Column(name = "gathering_tag_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @Column(name = "gathering_tag_id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id")
-    private Tag tag;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "tag_id")
+  private Tag tag;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gathering_id")
-    private Gathering gathering;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "gathering_id")
+  private Gathering gathering;
 
-    public GatheringTag(Tag tag, Gathering gathering) {
-        this.tag = tag;
-        this.gathering = gathering;
-    }
+  public GatheringTag(Tag tag, Gathering gathering) {
+    this.tag = tag;
+    this.gathering = gathering;
+  }
 }

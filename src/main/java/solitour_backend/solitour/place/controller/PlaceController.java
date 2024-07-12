@@ -16,38 +16,41 @@ import solitour_backend.solitour.place.service.PlaceService;
 @RequiredArgsConstructor
 @RequestMapping("/api/places")
 public class PlaceController {
-    private final PlaceService placeService;
+
+  private final PlaceService placeService;
 
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PlaceResponse> getPlace(@PathVariable("id") Long id) {
-        PlaceResponse placeResponse = placeService.getPlace(id);
+  @GetMapping("/{id}")
+  public ResponseEntity<PlaceResponse> getPlace(@PathVariable("id") Long id) {
+    PlaceResponse placeResponse = placeService.getPlace(id);
 
-        return ResponseEntity.status(HttpStatus.OK).body(placeResponse);
-    }
+    return ResponseEntity.status(HttpStatus.OK).body(placeResponse);
+  }
 
-    @PostMapping
-    public ResponseEntity<PlaceResponse> registerPlace(@Valid @RequestBody PlaceRegisterRequest placeRegisterRequest, BindingResult bindingResult) {
-        Utils.validationRequest(bindingResult);
-        PlaceResponse placeResponse = placeService.savePlace(placeRegisterRequest);
+  @PostMapping
+  public ResponseEntity<PlaceResponse> registerPlace(
+      @Valid @RequestBody PlaceRegisterRequest placeRegisterRequest, BindingResult bindingResult) {
+    Utils.validationRequest(bindingResult);
+    PlaceResponse placeResponse = placeService.savePlace(placeRegisterRequest);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(placeResponse);
-    }
+    return ResponseEntity.status(HttpStatus.CREATED).body(placeResponse);
+  }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PlaceResponse> modifyPlace(@PathVariable("id") Long id, @Valid @RequestBody PlaceModifyRequest placeModifyRequest, BindingResult bindingResult) {
-        Utils.validationRequest(bindingResult);
-        PlaceResponse placeResponse = placeService.updatePlace(id, placeModifyRequest);
+  @PutMapping("/{id}")
+  public ResponseEntity<PlaceResponse> modifyPlace(@PathVariable("id") Long id,
+      @Valid @RequestBody PlaceModifyRequest placeModifyRequest, BindingResult bindingResult) {
+    Utils.validationRequest(bindingResult);
+    PlaceResponse placeResponse = placeService.updatePlace(id, placeModifyRequest);
 
-        return ResponseEntity.status(HttpStatus.OK).body(placeResponse);
-    }
+    return ResponseEntity.status(HttpStatus.OK).body(placeResponse);
+  }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePlace(@PathVariable("id") Long id) {
-        placeService.deletePlace(id);
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deletePlace(@PathVariable("id") Long id) {
+    placeService.deletePlace(id);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
-    }
+    return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+  }
 
 
 }

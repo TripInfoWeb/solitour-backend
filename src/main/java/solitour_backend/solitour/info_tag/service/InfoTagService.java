@@ -9,6 +9,7 @@ import solitour_backend.solitour.info_tag.repository.InfoTagRepository;
 @Transactional
 @RequiredArgsConstructor
 public class InfoTagService {
-    private final InfoTagRepository infoTagRepository;
+
+  private final InfoTagRepository infoTagRepository;
 
 }

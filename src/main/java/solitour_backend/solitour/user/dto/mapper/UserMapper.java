@@ -7,5 +7,6 @@ import solitour_backend.solitour.user.entity.User;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface UserMapper {
-    UserPostingResponse mapToUserPostingResponse(User user);
+
+  UserPostingResponse mapToUserPostingResponse(User user);
 }

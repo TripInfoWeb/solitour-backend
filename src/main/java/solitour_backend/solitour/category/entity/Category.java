@@ -11,20 +11,21 @@ import lombok.Setter;
 @Table(name = "category")
 @NoArgsConstructor
 public class Category {
-    @Id
-    @Column(name = "category_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_category_id")
-    private Category parentCategory;
+  @Id
+  @Column(name = "category_id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(name = "category_name")
-    private String name;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "parent_category_id")
+  private Category parentCategory;
 
-    public Category(Category parentCategory, String name) {
-        this.parentCategory = parentCategory;
-        this.name = name;
-    }
+  @Column(name = "category_name")
+  private String name;
+
+  public Category(Category parentCategory, String name) {
+    this.parentCategory = parentCategory;
+    this.name = name;
+  }
 }

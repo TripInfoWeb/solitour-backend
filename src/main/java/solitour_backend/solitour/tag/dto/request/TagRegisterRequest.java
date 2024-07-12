@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 public class TagRegisterRequest {
-    @NotBlank
-    @Size(min = 1, max = 40)
-    private String name;
+
+  @NotBlank
+  @Size(min = 1, max = 40)
+  private String name;
 }

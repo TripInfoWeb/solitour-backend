@@ -11,16 +11,17 @@ import solitour_backend.solitour.user.entity.User;
 @Table(name = "great_information")
 @NoArgsConstructor
 public class GreatInformation {
-    @Id
-    @Column(name = "great_information_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+  @Id
+  @Column(name = "great_information_id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "information_id")
-    private Information information;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id")
+  private User user;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "information_id")
+  private Information information;
 }

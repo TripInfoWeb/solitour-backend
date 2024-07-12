@@ -11,16 +11,17 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 public class InformationResponse {
-    private Long id;
-    private String title;
-    private String address;
-    private LocalDateTime createdDate;
-    private Integer viewCount;
-    private String content;
-    private String tip;
 
-    private Place place;
-    private Category category;
-    private ZoneCategory zoneCategory;
+  private Long id;
+  private String title;
+  private String address;
+  private LocalDateTime createdDate;
+  private Integer viewCount;
+  private String content;
+  private String tip;
+
+  private Place place;
+  private Category category;
+  private ZoneCategory zoneCategory;
 
 }

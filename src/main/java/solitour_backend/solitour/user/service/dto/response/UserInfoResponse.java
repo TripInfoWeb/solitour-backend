@@ -2,7 +2,6 @@ package solitour_backend.solitour.user.service.dto.response;
 
 import lombok.Getter;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.user_status.UserStatus;
 import solitour_backend.solitour.user_image.entity.UserImage;
 
 @Getter
@@ -25,7 +24,7 @@ public class UserInfoResponse {
     this.nickname = user.getNickname();
     this.age = user.getAge();
     this.sex = user.getSex();
-    this.email= user.getEmail();
+    this.email = user.getEmail();
     this.phoneNumber = user.getPhoneNumber();
     this.isAdmin = user.getIsAdmin();
   }

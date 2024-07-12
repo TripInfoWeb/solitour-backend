@@ -15,39 +15,40 @@ import java.math.BigDecimal;
 @Getter
 @NoArgsConstructor
 public class PlaceModifyRequest {
-    @Nullable
-    @Size(min = 1, max = 30)
-    private String searchId;
 
-    @NotBlank
-    @Size(min = 1, max = 30)
-    private String name;
+  @Nullable
+  @Size(min = 1, max = 30)
+  private String searchId;
 
-    @Nullable
-    @Digits(integer = 10, fraction = 6)
-    private BigDecimal xAxis;
+  @NotBlank
+  @Size(min = 1, max = 30)
+  private String name;
 
-    @Nullable
-    @Digits(integer = 10, fraction = 6)
-    private BigDecimal yAxis;
+  @Nullable
+  @Digits(integer = 10, fraction = 6)
+  private BigDecimal xAxis;
 
-    @NotBlank
-    @Size(min = 1, max = 50)
-    private String address;
+  @Nullable
+  @Digits(integer = 10, fraction = 6)
+  private BigDecimal yAxis;
 
-    public boolean validate() {
-        boolean searchIdIsNull = this.searchId == null;
-        boolean xAxisIsNull = this.xAxis == null;
-        boolean yAxisIsNull = this.yAxis == null;
+  @NotBlank
+  @Size(min = 1, max = 50)
+  private String address;
 
-        if (searchIdIsNull && (xAxisIsNull || yAxisIsNull)) {
-            return true;
-        }
+  public boolean validate() {
+    boolean searchIdIsNull = this.searchId == null;
+    boolean xAxisIsNull = this.xAxis == null;
+    boolean yAxisIsNull = this.yAxis == null;
 
-        if (!searchIdIsNull && (!xAxisIsNull || !yAxisIsNull)) {
-            return true;
-        }
-
-        return false;
+    if (searchIdIsNull && (xAxisIsNull || yAxisIsNull)) {
+      return true;
     }
+
+    if (!searchIdIsNull && (!xAxisIsNull || !yAxisIsNull)) {
+      return true;
+    }
+
+    return false;
+  }
 }

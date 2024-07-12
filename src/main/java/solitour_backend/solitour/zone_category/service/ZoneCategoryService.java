@@ -17,61 +17,64 @@ import java.util.Objects;
 @Transactional
 @RequiredArgsConstructor
 public class ZoneCategoryService {
-    private final ZoneCategoryRepository zoneCategoryRepository;
-    private final ZoneCategoryMapper zoneCategoryMapper;
 
-    @Transactional(readOnly = true)
-    public ZoneCategoryResponse getZoneCategoryById(Long id) {
-        ZoneCategory zoneCategory = zoneCategoryRepository.findById(id)
-                .orElseThrow(
-                        () -> new ZoneCategoryNotExistsException("해당 하는 id의 ZoneCategory가 존재하지 않습니다"));
-        return zoneCategoryMapper.mapToZoneCategoryResponse(zoneCategory);
+  private final ZoneCategoryRepository zoneCategoryRepository;
+  private final ZoneCategoryMapper zoneCategoryMapper;
+
+  @Transactional(readOnly = true)
+  public ZoneCategoryResponse getZoneCategoryById(Long id) {
+    ZoneCategory zoneCategory = zoneCategoryRepository.findById(id)
+        .orElseThrow(
+            () -> new ZoneCategoryNotExistsException("해당 하는 id의 ZoneCategory가 존재하지 않습니다"));
+    return zoneCategoryMapper.mapToZoneCategoryResponse(zoneCategory);
+  }
+
+  public ZoneCategoryResponse registerZoneCategory(
+      ZoneCategoryRegisterRequest zoneCategoryRegisterRequest) {
+    ZoneCategory parentZoneCategory;
+    if (Objects.isNull(zoneCategoryRegisterRequest.getParentId())) {
+      parentZoneCategory = null;
+    } else {
+      parentZoneCategory =
+          zoneCategoryRepository.findById(zoneCategoryRegisterRequest.getParentId())
+              .orElseThrow(
+                  () -> new ZoneCategoryNotExistsException("해당 하는 id의 ZoneCategory가 존재하지 않습니다"));
     }
 
-    public ZoneCategoryResponse registerZoneCategory(ZoneCategoryRegisterRequest zoneCategoryRegisterRequest) {
-        ZoneCategory parentZoneCategory;
-        if (Objects.isNull(zoneCategoryRegisterRequest.getParentId())) {
-            parentZoneCategory = null;
-        } else {
-            parentZoneCategory =
-                    zoneCategoryRepository.findById(zoneCategoryRegisterRequest.getParentId())
-                            .orElseThrow(
-                                    () -> new ZoneCategoryNotExistsException("해당 하는 id의 ZoneCategory가 존재하지 않습니다"));
-        }
+    ZoneCategory zoneCategory = new ZoneCategory(parentZoneCategory,
+        zoneCategoryRegisterRequest.getName());
+    ZoneCategory savedZoneCategory = zoneCategoryRepository.save(zoneCategory);
 
-        ZoneCategory zoneCategory = new ZoneCategory(parentZoneCategory, zoneCategoryRegisterRequest.getName());
-        ZoneCategory savedZoneCategory = zoneCategoryRepository.save(zoneCategory);
+    return zoneCategoryMapper.mapToZoneCategoryResponse(savedZoneCategory);
+  }
 
-        return zoneCategoryMapper.mapToZoneCategoryResponse(savedZoneCategory);
+  public ZoneCategoryResponse modifyZoneCategory(Long id,
+      ZoneCategoryModifyRequest zoneCategoryModifyRequest) {
+    ZoneCategory zoneCategory = zoneCategoryRepository.findById(id)
+        .orElseThrow(
+            () -> new ZoneCategoryNotExistsException("해당 하는 id의 ZoneCategory가 존재하지 않습니다"));
+
+    ZoneCategory parentZoneCategory;
+    if (Objects.isNull(zoneCategoryModifyRequest.getParentId())) {
+      parentZoneCategory = null;
+    } else {
+      parentZoneCategory =
+          zoneCategoryRepository.findById(zoneCategoryModifyRequest.getParentId())
+              .orElseThrow(
+                  () -> new ZoneCategoryNotExistsException("해당 하는 id의 ZoneCategory가 존재하지 않습니다"));
     }
 
-    public ZoneCategoryResponse modifyZoneCategory(Long id, ZoneCategoryModifyRequest zoneCategoryModifyRequest) {
-        ZoneCategory zoneCategory = zoneCategoryRepository.findById(id)
-                .orElseThrow(
-                        () -> new ZoneCategoryNotExistsException("해당 하는 id의 ZoneCategory가 존재하지 않습니다"));
+    zoneCategory.setName(zoneCategoryModifyRequest.getName());
+    zoneCategory.setParentZoneCategory(parentZoneCategory);
 
-        ZoneCategory parentZoneCategory;
-        if (Objects.isNull(zoneCategoryModifyRequest.getParentId())) {
-            parentZoneCategory = null;
-        } else {
-            parentZoneCategory =
-                    zoneCategoryRepository.findById(zoneCategoryModifyRequest.getParentId())
-                            .orElseThrow(
-                                    () -> new ZoneCategoryNotExistsException("해당 하는 id의 ZoneCategory가 존재하지 않습니다"));
-        }
+    return zoneCategoryMapper.mapToZoneCategoryResponse(zoneCategory);
+  }
 
-        zoneCategory.setName(zoneCategoryModifyRequest.getName());
-        zoneCategory.setParentZoneCategory(parentZoneCategory);
-
-
-        return zoneCategoryMapper.mapToZoneCategoryResponse(zoneCategory);
+  public void deleteZoneCategory(Long id) {
+    if (zoneCategoryRepository.existsById(id)) {
+      zoneCategoryRepository.deleteById(id);
+    } else {
+      throw new ZoneCategoryNotExistsException("해당 하는 id의 ZoneCategory가 존재하지 않습니다");
     }
-
-    public void deleteZoneCategory(Long id) {
-        if (zoneCategoryRepository.existsById(id)) {
-            zoneCategoryRepository.deleteById(id);
-        } else {
-            throw new ZoneCategoryNotExistsException("해당 하는 id의 ZoneCategory가 존재하지 않습니다");
-        }
-    }
+  }
 }
