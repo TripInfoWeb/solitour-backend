@@ -4,6 +4,7 @@ package solitour_backend.solitour.auth.service;
 import jakarta.servlet.http.Cookie;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,7 +77,7 @@ public class OauthService {
     if (Objects.equals(type, "google")) {
       GoogleUserResponse response = googleConnector.requestGoogleUserInfo(code, redirectUrl)
           .getBody();
-      String email = response.getEmail();
+      String email = response.getEmailAddresses().get(0).getValue();
       return userRepository.findByEmail(email)
           .orElseGet(() -> saveGoogleUser(response));
     } else {
@@ -85,21 +86,39 @@ public class OauthService {
   }
 
   private User saveGoogleUser(GoogleUserResponse response) {
+    String imageUrl = getGoogleUserImage(response);
+    UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
+
     User user = User.builder()
         .userStatus(UserStatus.ACTIVATE)
-        .oauthId(response.getId())
+        .oauthId(response.getResourceName())
         .provider("google")
         .isAdmin(false)
+        .userImage(savedUserImage)
         .nickname(RandomNickName.generateRandomNickname())
-        .name(response.getName())
-        .email(response.getEmail())
+        .name(response.getNames().get(0).getDisplayName())
+        .age(response.getBirthdays().get(0).getDate().getYear())
+        .sex(response.getGenders().get(0).getValue())
+        .email(response.getEmailAddresses().get(0).getValue())
         .createdAt(LocalDateTime.now())
         .build();
+
     return userRepository.save(user);
   }
 
+  private String getGoogleUserImage(GoogleUserResponse response) {
+    String gender = response.getGenders().get(0).getValue();
+    if (Objects.equals(gender, "male")) {
+      return "male";
+    }
+    if (Objects.equals(gender, "female")) {
+      return "female";
+    }
+    return null;
+  }
+
   private User saveKakaoUser(KakaoUserResponse response) {
-    String imageUrl = getUserImage(response);
+    String imageUrl = getKakaoUserImage(response);
     UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
 
     User user = User.builder()
@@ -118,16 +137,15 @@ public class OauthService {
     return userRepository.save(user);
   }
 
-  private String getUserImage(KakaoUserResponse response) {
+  private String getKakaoUserImage(KakaoUserResponse response) {
     String gender = response.getKakaoAccount().getGender();
-    String userProfile = response.getKakaoAccount().getProfile().getProfileImageUrl();
     if (Objects.equals(gender, "male")) {
       return "male";
     }
     if (Objects.equals(gender, "female")) {
       return "female";
     }
-    return userProfile;
+    return null;
   }
 
   private String getAuthLink(String type, String redirectUrl) {
