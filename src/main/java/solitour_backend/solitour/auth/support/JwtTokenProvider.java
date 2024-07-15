@@ -6,11 +6,9 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.security.auth.message.AuthException;
-import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,14 +51,14 @@ public class JwtTokenProvider {
 
   public Long getPayload(String token) {
     return Long.valueOf(
-        getClaims(token).getBody().getSubject());
+        getClaims(token).getPayload().getSubject());
   }
 
   public boolean validateTokenNotUsable(String token) {
     try {
       Jws<Claims> claims = getClaims(token);
 
-      return claims.getBody().getExpiration().before(new Date());
+      return claims.getPayload().getExpiration().before(new Date());
     } catch (ExpiredJwtException e) {
       throw new RuntimeException("토큰이 만료되었습니다.");
     } catch (JwtException | IllegalArgumentException e) {
@@ -69,6 +67,7 @@ public class JwtTokenProvider {
   }
 
   private Jws<Claims> getClaims(String token) {
-    return Jwts.parser().verifyWith(key).build().parseClaimsJws(token);
+    int clockSkewSeconds = 3 * 60;
+    return Jwts.parser().clockSkewSeconds(clockSkewSeconds).verifyWith(key).build().parseSignedClaims(token);
   }
 }
