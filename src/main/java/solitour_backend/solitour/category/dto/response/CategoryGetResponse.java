@@ -8,7 +8,8 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 public class CategoryGetResponse {
-    private Long id;
-    private String name;
-    private List<CategoryResponse> childrenCategories;
+
+  private Long id;
+  private String name;
+  private List<CategoryResponse> childrenCategories;
 }

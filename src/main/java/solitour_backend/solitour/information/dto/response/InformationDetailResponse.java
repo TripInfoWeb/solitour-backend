@@ -14,18 +14,20 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class InformationDetailResponse {
-    private String title;
-    private String address;
-    private LocalDateTime createdDate;
-    private Integer viewCount;
-    private String content;
-    private String tip;
 
-    private UserPostingResponse userPostingResponse;
-    private List<TagResponse> tagResponses;
+  private String title;
+  private String address;
+  private LocalDateTime createdDate;
+  private Integer viewCount;
+  private String content;
+  private String tip;
 
-    private PlaceResponse placeResponse;
-    private ZoneCategoryResponse zoneCategoryResponse;
+  private UserPostingResponse userPostingResponse;
+  private List<TagResponse> tagResponses;
 
-    private List<ImageResponse> imageResponses;
+  private PlaceResponse placeResponse;
+  private ZoneCategoryResponse zoneCategoryResponse;
+
+  private List<ImageResponse> imageResponses;
+  private int likeCount;
 }

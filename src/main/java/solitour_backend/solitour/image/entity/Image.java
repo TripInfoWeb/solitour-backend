@@ -14,29 +14,31 @@ import java.time.LocalDate;
 @Table(name = "image")
 @NoArgsConstructor
 public class Image {
-    @Id
-    @Column(name = "image_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @Column(name = "image_status_id")
-    @Convert(converter = ImageStatusConverter.class)
-    private ImageStatus imageStatus;
+  @Id
+  @Column(name = "image_id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "information_id")
-    private Information information;
+  @Column(name = "image_status_id")
+  @Convert(converter = ImageStatusConverter.class)
+  private ImageStatus imageStatus;
 
-    @Column(name = "image_address")
-    private String address;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "information_id")
+  private Information information;
 
-    @Column(name = "image_created_date")
-    private LocalDate createdDate;
+  @Column(name = "image_address")
+  private String address;
 
-    public Image(ImageStatus imageStatus, Information information, String address, LocalDate createdDate) {
-        this.imageStatus = imageStatus;
-        this.information = information;
-        this.address = address;
-        this.createdDate = createdDate;
-    }
+  @Column(name = "image_created_date")
+  private LocalDate createdDate;
+
+  public Image(ImageStatus imageStatus, Information information, String address,
+      LocalDate createdDate) {
+    this.imageStatus = imageStatus;
+    this.information = information;
+    this.address = address;
+    this.createdDate = createdDate;
+  }
 }

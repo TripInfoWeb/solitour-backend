@@ -10,11 +10,12 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class ZoneCategoryModifyRequest {
-    @Nullable
-    @Min(1)
-    private Long parentId;
 
-    @NotBlank
-    @Size(max = 20)
-    private String name;
+  @Nullable
+  @Min(1)
+  private Long parentId;
+
+  @NotBlank
+  @Size(max = 20)
+  private String name;
 }

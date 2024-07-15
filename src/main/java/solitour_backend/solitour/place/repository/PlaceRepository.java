@@ -5,4 +5,5 @@ import solitour_backend.solitour.place.entity.Place;
 
 
 public interface PlaceRepository extends JpaRepository<Place, Long> {
+
 }

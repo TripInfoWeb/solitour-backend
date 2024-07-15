@@ -6,13 +6,13 @@ import jakarta.persistence.Converter;
 @Converter(autoApply = true)
 public class UserStatusConverter implements AttributeConverter<UserStatus, String> {
 
-    @Override
-    public String convertToDatabaseColumn(UserStatus userStatus) {
-        return userStatus.getName();
-    }
+  @Override
+  public String convertToDatabaseColumn(UserStatus userStatus) {
+    return userStatus.getName();
+  }
 
-    @Override
-    public UserStatus convertToEntityAttribute(String dbData) {
-        return UserStatus.fromName(dbData);
-    }
+  @Override
+  public UserStatus convertToEntityAttribute(String dbData) {
+    return UserStatus.fromName(dbData);
+  }
 }

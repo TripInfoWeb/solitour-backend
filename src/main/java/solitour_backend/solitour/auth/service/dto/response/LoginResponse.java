@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginResponse {
 
-    private Cookie accessToken;
-    private Cookie refreshToken;
+  private Cookie accessToken;
+  private Cookie refreshToken;
 }

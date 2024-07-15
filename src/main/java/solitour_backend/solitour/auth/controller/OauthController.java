@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import solitour_backend.solitour.auth.config.Authenticated;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
+import solitour_backend.solitour.auth.config.AuthenticationRefreshPrincipal;
 import solitour_backend.solitour.auth.service.OauthService;
 import solitour_backend.solitour.auth.service.dto.response.AccessTokenResponse;
 import solitour_backend.solitour.auth.service.dto.response.LoginResponse;
@@ -50,9 +51,10 @@ public class OauthController {
     return ResponseEntity.ok().build();
   }
 
+
   @PostMapping("/token/refresh")
   public ResponseEntity<Void> reissueAccessToken(HttpServletResponse response,
-      @AuthenticationPrincipal Long memberId) {
+      @AuthenticationRefreshPrincipal Long memberId) {
     AccessTokenResponse accessToken = oauthService.reissueAccessToken(memberId);
     response.addCookie(accessToken.getAccessToken());
 

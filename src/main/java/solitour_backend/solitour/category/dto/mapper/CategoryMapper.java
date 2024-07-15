@@ -9,7 +9,8 @@ import java.util.List;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface CategoryMapper {
-    CategoryResponse mapToCategoryResponse(Category category);
 
-    List<CategoryResponse> mapToCategoryResponses(List<Category> categories);
+  CategoryResponse mapToCategoryResponse(Category category);
+
+  List<CategoryResponse> mapToCategoryResponses(List<Category> categories);
 }

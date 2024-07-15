@@ -11,15 +11,16 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 public class Tag {
-    @Id
-    @Column(name = "tag_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long tagId;
 
-    @Column(name = "tag_name")
-    private String name;
+  @Id
+  @Column(name = "tag_id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long tagId;
 
-    public Tag(String name) {
-        this.name = name;
-    }
+  @Column(name = "tag_name")
+  private String name;
+
+  public Tag(String name) {
+    this.name = name;
+  }
 }

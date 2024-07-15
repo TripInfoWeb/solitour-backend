@@ -17,7 +17,6 @@ public interface TagMapper {
 
     List<Tag> mapToTags(List<TagRegisterRequest> tagRegisterRequests);
 
-    @Mapping(source = "tagId", target = "id")
     TagResponse mapToTagResponse(Tag tag);
 
     List<TagResponse> mapToTagResponses(List<Tag> tags);
