@@ -30,7 +30,7 @@ public class TokenResolver implements HandlerMethodArgumentResolver {
   public Long resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
       NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
     HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
-    String token = CookieExtractor.findToken(request.getCookies());
+    String token = CookieExtractor.findToken("access_token",request.getCookies());
 
     return jwtTokenProvider.getPayload(token);
   }

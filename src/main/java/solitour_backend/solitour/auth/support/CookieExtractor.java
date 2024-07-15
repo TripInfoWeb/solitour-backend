@@ -4,10 +4,10 @@ import jakarta.servlet.http.Cookie;
 
 public class CookieExtractor {
 
-  public static String findToken(Cookie[] cookies) {
+  public static String findToken(String token, Cookie[] cookies) {
     String value = null;
     for (Cookie cookie : cookies) {
-      if ("access_token".equals(cookie.getName())) {
+      if (token.equals(cookie.getName())) {
         value = cookie.getValue();
         break;
       }
