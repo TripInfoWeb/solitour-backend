@@ -29,4 +29,5 @@ public class InformationDetailResponse {
   private ZoneCategoryResponse zoneCategoryResponse;
 
   private List<ImageResponse> imageResponses;
+  private int likeCount;
 }
