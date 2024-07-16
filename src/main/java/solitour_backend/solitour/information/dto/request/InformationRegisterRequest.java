@@ -14,6 +14,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class InformationRegisterRequest {
+
   @NotBlank
   @Size(min = 1, max = 50)
   private String informationTitle;

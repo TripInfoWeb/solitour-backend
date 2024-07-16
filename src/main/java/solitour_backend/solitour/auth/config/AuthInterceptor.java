@@ -38,7 +38,7 @@ public class AuthInterceptor implements HandlerInterceptor {
   }
 
   private void validateToken(HttpServletRequest request) {
-    String token = CookieExtractor.findToken("access_token",request.getCookies());
+    String token = CookieExtractor.findToken("access_token", request.getCookies());
     if (jwtTokenProvider.validateTokenNotUsable(token)) {
       throw new RuntimeException("토큰이 유효하지 않습니다.");
     }

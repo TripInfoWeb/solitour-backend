@@ -19,21 +19,21 @@ public class TokenResolver implements HandlerMethodArgumentResolver {
   public boolean supportsParameter(MethodParameter parameter) {
     if (parameter.hasParameterAnnotation(AuthenticationPrincipal.class)) {
       return true;
-    }
-    else
+    } else {
       return parameter.hasParameterAnnotation(AuthenticationRefreshPrincipal.class);
+    }
   }
 
   @Override
   public Long resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
       NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-    String token="";
+    String token = "";
     HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
-    if(parameter.hasParameterAnnotation(AuthenticationPrincipal.class)){
-      token = CookieExtractor.findToken("access_token",request.getCookies());
-    }
-    else{
-      token = CookieExtractor.findToken("refresh_token",request.getCookies());
+
+    if (parameter.hasParameterAnnotation(AuthenticationPrincipal.class)) {
+      token = CookieExtractor.findToken("access_token", request.getCookies());
+    } else {
+      token = CookieExtractor.findToken("refresh_token", request.getCookies());
     }
 
     return jwtTokenProvider.getPayload(token);

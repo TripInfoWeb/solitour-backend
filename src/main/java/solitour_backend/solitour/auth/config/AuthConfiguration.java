@@ -40,8 +40,11 @@ public class AuthConfiguration implements WebMvcConfigurer {
 
   @Override
   public void addCorsMappings(CorsRegistry registry) {
+    final String LOCAL_URL = "http://localhost:3000";
+    final String ALLOWED_URL = "https://solitour.ssssksss.xyz";
+
     registry.addMapping("/*")
-        .allowedOrigins("http://localhost:3000")
+        .allowedOrigins(LOCAL_URL, ALLOWED_URL)
         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
         .allowedHeaders("")
         .allowCredentials(true);

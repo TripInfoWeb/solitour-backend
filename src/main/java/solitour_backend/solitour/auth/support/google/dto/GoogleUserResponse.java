@@ -18,6 +18,7 @@ public class GoogleUserResponse {
 
   @Data
   public static class Name {
+
     @JsonProperty("displayName")
     private String displayName;
 
@@ -30,6 +31,7 @@ public class GoogleUserResponse {
 
   @Data
   public static class EmailAddress {
+
     @JsonProperty("value")
     private String value;
 
@@ -39,6 +41,7 @@ public class GoogleUserResponse {
 
   @Data
   public static class PhoneNumber {
+
     @JsonProperty("value")
     private String value;
 
@@ -48,17 +51,20 @@ public class GoogleUserResponse {
 
   @Data
   public static class Gender {
+
     @JsonProperty("value")
     private String value;
   }
 
   @Data
   public static class Birthday {
+
     @JsonProperty("date")
     private Date date;
 
     @Data
     public static class Date {
+
       @JsonProperty("year")
       private int year;
 
@@ -85,7 +91,6 @@ public class GoogleUserResponse {
   @JsonProperty("birthdays")
   private List<Birthday> birthdays;
 
-  // Helper method to get mobile phone number
   public PhoneNumber getMobilePhoneNumber() {
     if (phoneNumbers != null) {
       for (PhoneNumber phoneNumber : phoneNumbers) {

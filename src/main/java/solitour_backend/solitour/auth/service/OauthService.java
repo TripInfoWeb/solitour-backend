@@ -4,7 +4,7 @@ package solitour_backend.solitour.auth.service;
 import jakarta.servlet.http.Cookie;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +37,8 @@ public class OauthService {
   private final GoogleConnector googleConnector;
   private final GoogleProvider googleProvider;
   private final UserImageService userImageService;
+  private final String USER_PROFILE_MALE = "https://s3.ap-northeast-2.amazonaws.com/solitour-bucket/user/2/3e6f9c1b-5f3d-4744-9c8b-dfd2c0e2455f.svg";
+  private final String USER_PROFILE_FEMALE = "https://s3.ap-northeast-2.amazonaws.com/solitour-bucket/user/3/96cb196b-35db-4b51-86fa-f661ae731db9.svg";
 
 
   public OauthLinkResponse generateAuthUrl(String type, String redirectUrl) {
@@ -47,14 +49,16 @@ public class OauthService {
   @Transactional
   public LoginResponse requestAccessToken(String type, String code, String redirectUrl) {
     User user = checkAndSaveUser(type, code, redirectUrl);
+    final int ACCESS_COOKIE_AGE = (int) TimeUnit.MINUTES.toSeconds(15);
+    final int REFRESH_COOKIE_AGE = (int) TimeUnit.DAYS.toSeconds(30);
 
     String token = jwtTokenProvider.createAccessToken(user.getId());
     String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
 
     tokenService.synchronizeRefreshToken(user, refreshToken);
 
-    Cookie accessCookie = createCookie("access_token", token, 60 * 60 * 24);
-    Cookie refreshCookie = createCookie("refresh_token", refreshToken, 60 * 60 * 24 * 10);
+    Cookie accessCookie = createCookie("access_token", token, ACCESS_COOKIE_AGE);
+    Cookie refreshCookie = createCookie("refresh_token", refreshToken, REFRESH_COOKIE_AGE);
 
     return new LoginResponse(accessCookie, refreshCookie);
   }
@@ -102,19 +106,18 @@ public class OauthService {
         .email(response.getEmailAddresses().get(0).getValue())
         .createdAt(LocalDateTime.now())
         .build();
-
     return userRepository.save(user);
   }
 
   private String getGoogleUserImage(GoogleUserResponse response) {
     String gender = response.getGenders().get(0).getValue();
     if (Objects.equals(gender, "male")) {
-      return "male";
+      return USER_PROFILE_MALE;
     }
     if (Objects.equals(gender, "female")) {
-      return "female";
+      return USER_PROFILE_FEMALE;
     }
-    return null;
+    return "none";
   }
 
   private User saveKakaoUser(KakaoUserResponse response) {
@@ -140,12 +143,12 @@ public class OauthService {
   private String getKakaoUserImage(KakaoUserResponse response) {
     String gender = response.getKakaoAccount().getGender();
     if (Objects.equals(gender, "male")) {
-      return "male";
+      return USER_PROFILE_MALE;
     }
     if (Objects.equals(gender, "female")) {
-      return "female";
+      return USER_PROFILE_FEMALE;
     }
-    return null;
+    return "none";
   }
 
   private String getAuthLink(String type, String redirectUrl) {
