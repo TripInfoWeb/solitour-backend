@@ -1,5 +1,6 @@
 package solitour_backend.solitour.book_mark_information.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,8 +37,11 @@ public class BookMarkInformationService {
     bookMarkInformationRepository.save(bookMarkInformation);
   }
 
-  public void deleteUserBookmark(Long bookMarkId) {
-    bookMarkInformationRepository.deleteById(bookMarkId);
+  public void deleteUserBookmark(Long userId, Long bookMarkId) {
+    BookMarkInformation bookmark = bookMarkInformationRepository.findByIdAndUserId(bookMarkId, userId)
+        .orElseThrow(() -> new EntityNotFoundException("해당하는 북마크가 없습니다"));
+
+    bookMarkInformationRepository.delete(bookmark);
   }
 
 }

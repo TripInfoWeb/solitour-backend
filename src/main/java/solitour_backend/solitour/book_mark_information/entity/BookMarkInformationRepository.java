@@ -1,5 +1,6 @@
 package solitour_backend.solitour.book_mark_information.entity;
 
+import java.awt.print.Book;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +9,8 @@ import solitour_backend.solitour.user.entity.User;
 
 public interface BookMarkInformationRepository extends JpaRepository<BookMarkInformation, Long> {
 
-//  @Query("SELECT b FROM BookMarkInformation b JOIN FETCH b.user JOIN FETCH b.information WHERE b.id = :userId")
+  @Query("SELECT b FROM BookMarkInformation b JOIN FETCH b.user u JOIN FETCH b.information i WHERE u.id = :userId")
   List<BookMarkInformation> findByUserId(Long userId);
+
+  Optional<BookMarkInformation> findByIdAndUserId(Long bookMarkId, Long userId);
 }

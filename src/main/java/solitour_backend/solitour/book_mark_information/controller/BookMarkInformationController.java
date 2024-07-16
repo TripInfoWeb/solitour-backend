@@ -36,10 +36,11 @@ public class BookMarkInformationController {
     return ResponseEntity.ok().build();
   }
 
+
   @DeleteMapping()
   public ResponseEntity<Void> deleteUserBookmark(@AuthenticationPrincipal Long userId,
       @RequestParam Long bookMarkId) {
-    service.deleteUserBookmark(bookMarkId);
+    service.deleteUserBookmark(userId,bookMarkId);
 
     return ResponseEntity.ok().build();
   }

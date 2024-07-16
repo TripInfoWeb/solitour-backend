@@ -1,6 +1,5 @@
 package solitour_backend.solitour.auth.support;
 
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
