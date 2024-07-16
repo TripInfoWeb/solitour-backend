@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 @Getter
 @AllArgsConstructor
 public class PlaceResponse {
+
   private String searchId;
   private String name;
   private BigDecimal xaxis;

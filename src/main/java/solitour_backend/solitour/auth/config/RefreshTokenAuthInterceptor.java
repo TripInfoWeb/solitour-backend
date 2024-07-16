@@ -20,7 +20,7 @@ public class RefreshTokenAuthInterceptor implements HandlerInterceptor {
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
       Object handler) {
-    String refreshToken = CookieExtractor.findToken("refresh_token",request.getCookies());
+    String refreshToken = CookieExtractor.findToken("refresh_token", request.getCookies());
 
     if (jwtTokenProvider.validateTokenNotUsable(refreshToken)) {
       throw new RuntimeException("토큰이 유효하지 않습니다.");
