@@ -1,5 +1,6 @@
 package solitour_backend.solitour.image.dto.mapper;
 
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -7,8 +8,6 @@ import org.mapstruct.ReportingPolicy;
 import solitour_backend.solitour.image.dto.response.ImageResponse;
 import solitour_backend.solitour.image.entity.Image;
 import solitour_backend.solitour.image.image_status.ImageStatus;
-
-import java.util.List;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ImageMapper {

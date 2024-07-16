@@ -1,14 +1,22 @@
 package solitour_backend.solitour.user.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solitour_backend.solitour.user.user_status.UserStatus;
 import solitour_backend.solitour.user.user_status.UserStatusConverter;
-
-import java.time.LocalDateTime;
 import solitour_backend.solitour.user_image.entity.UserImage;
 
 @Entity

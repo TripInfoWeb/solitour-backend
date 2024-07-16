@@ -1,6 +1,5 @@
 package solitour_backend.solitour.user.entity;
 
-import io.jsonwebtoken.security.Password;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

@@ -3,14 +3,10 @@ package solitour_backend.solitour.place.dto.request;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.validation.BindingResult;
-import solitour_backend.solitour.error.exception.RequestValidationFailedException;
-
-import java.math.BigDecimal;
 
 @Getter
 @NoArgsConstructor

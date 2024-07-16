@@ -1,9 +1,8 @@
 package solitour_backend.solitour.zone_category.repository;
 
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import solitour_backend.solitour.zone_category.entity.ZoneCategory;
-
-import java.util.Optional;
 
 public interface ZoneCategoryRepository extends JpaRepository<ZoneCategory, Long> {
 
