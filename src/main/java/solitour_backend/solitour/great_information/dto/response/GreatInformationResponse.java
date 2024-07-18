@@ -1,0 +1,15 @@
+package solitour_backend.solitour.great_information.dto.response;
+
+import java.util.List;
+import lombok.Getter;
+import solitour_backend.solitour.great_information.entity.GreatInformation;
+
+@Getter
+public class GreatInformationResponse {
+
+  private final int greatInformationCount;
+
+  public GreatInformationResponse(int greatInformationCount) {
+    this.greatInformationCount = greatInformationCount;
+  }
+}
