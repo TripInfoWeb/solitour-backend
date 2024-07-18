@@ -1,8 +1,7 @@
 package solitour_backend.solitour.image.image_status;
 
-import lombok.Getter;
-
 import java.util.Arrays;
+import lombok.Getter;
 
 @Getter
 public enum ImageStatus {

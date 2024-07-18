@@ -23,22 +23,24 @@ public class BookMarkInformationService {
   private final InformationRepository informationRepository;
 
   public BookMarkInformationResponse getUserBookmark(Long userId) {
-    List<BookMarkInformation> bookMarkInformation = bookMarkInformationRepository.findByUserId(userId);
+    List<BookMarkInformation> bookMarkInformation = bookMarkInformationRepository.findByUserId(
+        userId);
 
     return new BookMarkInformationResponse(bookMarkInformation);
   }
 
-  public void createUserBookmark(Long userId,Long infoId) {
+  public void createUserBookmark(Long userId, Long infoId) {
     User user = userRepository.findByUserId(userId);
     Information information = informationRepository.findById(infoId)
         .orElseThrow(() -> new IllegalArgumentException("해당 정보가 없습니다."));
-    BookMarkInformation bookMarkInformation = new BookMarkInformation(user,information);
+    BookMarkInformation bookMarkInformation = new BookMarkInformation(user, information);
 
     bookMarkInformationRepository.save(bookMarkInformation);
   }
 
   public void deleteUserBookmark(Long userId, Long bookMarkId) {
-    BookMarkInformation bookmark = bookMarkInformationRepository.findByIdAndUserId(bookMarkId, userId)
+    BookMarkInformation bookmark = bookMarkInformationRepository.findByIdAndUserId(bookMarkId,
+            userId)
         .orElseThrow(() -> new EntityNotFoundException("해당하는 북마크가 없습니다"));
 
     bookMarkInformationRepository.delete(bookmark);
