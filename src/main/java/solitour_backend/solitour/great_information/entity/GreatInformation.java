@@ -32,4 +32,9 @@ public class GreatInformation {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "information_id")
   private Information information;
+
+  public GreatInformation(User user, Information information) {
+    this.user = user;
+    this.information = information;
+  }
 }
