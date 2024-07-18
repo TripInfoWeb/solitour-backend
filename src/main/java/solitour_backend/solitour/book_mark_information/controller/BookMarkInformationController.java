@@ -2,10 +2,10 @@ package solitour_backend.solitour.book_mark_information.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,6 +28,7 @@ public class BookMarkInformationController {
     return ResponseEntity.ok(response);
   }
 
+  @Transactional
   @PostMapping()
   public ResponseEntity<BookMarkInformationResponse> createUserBookmark(
       @AuthenticationPrincipal Long userId, @RequestParam Long infoId) {
@@ -36,11 +37,11 @@ public class BookMarkInformationController {
     return ResponseEntity.ok().build();
   }
 
-
+  @Transactional
   @DeleteMapping()
   public ResponseEntity<Void> deleteUserBookmark(@AuthenticationPrincipal Long userId,
       @RequestParam Long bookMarkId) {
-    service.deleteUserBookmark(userId,bookMarkId);
+    service.deleteUserBookmark(userId, bookMarkId);
 
     return ResponseEntity.ok().build();
   }

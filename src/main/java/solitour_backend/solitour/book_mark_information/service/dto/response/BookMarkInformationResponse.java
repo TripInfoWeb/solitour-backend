@@ -7,9 +7,23 @@ import solitour_backend.solitour.book_mark_information.entity.BookMarkInformatio
 @Getter
 public class BookMarkInformationResponse {
 
-  private final List<BookMarkInformation> bookMarkInformation;
+  private final BookMarkDto bookMarkInformation;
 
   public BookMarkInformationResponse(List<BookMarkInformation> bookMarkInformation) {
-    this.bookMarkInformation = bookMarkInformation;
+    this.bookMarkInformation = new BookMarkDto(bookMarkInformation);
+  }
+
+  @Getter
+  private static class BookMarkDto {
+
+    private final List<BookMarkInfo> bookMarkInfoList;
+
+    private BookMarkDto(List<BookMarkInformation> bookMarkInformation) {
+      this.bookMarkInfoList = bookMarkInformation.stream().map(bookMark -> {
+        Long bookMarkId = bookMark.getInformation().getId();
+        return new BookMarkInfo(bookMarkId);
+      }).toList();
+    }
+
   }
 }
