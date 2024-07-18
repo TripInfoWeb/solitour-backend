@@ -16,6 +16,7 @@ import solitour_backend.solitour.great_information.service.GreatInformationServi
 @RequiredArgsConstructor
 @RequestMapping("/api/information/great")
 public class GreatInformationController {
+
   private final GreatInformationService service;
 
   @GetMapping()
@@ -37,7 +38,7 @@ public class GreatInformationController {
   @DeleteMapping()
   public ResponseEntity<Void> deleteInformationGreat(@AuthenticationPrincipal Long userId,
       @RequestParam Long greatId) {
-    service.deleteInformationGreat(userId,greatId);
+    service.deleteInformationGreat(userId, greatId);
 
     return ResponseEntity.ok().build();
   }
