@@ -51,7 +51,7 @@ import solitour_backend.solitour.tag.repository.TagRepository;
 import solitour_backend.solitour.user.dto.UserPostingResponse;
 import solitour_backend.solitour.user.dto.mapper.UserMapper;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.entity.UserRepository;
+import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.user.exception.UserNotExistsException;
 import solitour_backend.solitour.zone_category.dto.mapper.ZoneCategoryMapper;
 import solitour_backend.solitour.zone_category.dto.response.ZoneCategoryResponse;
@@ -414,6 +414,25 @@ public class InformationService {
                 userId, zoneCategoryId);
     }
 
+    public Page<InformationBriefResponse> getBriefInformationPageByParentCategoryFilterTag(Pageable pageable, Long parentCategoryId, Long userId, String tag) {
+        if (!categoryRepository.existsById(parentCategoryId)) {
+            throw new CategoryNotExistsException("해당하는 id의 category는 없습니다");
+        }
+
+        return informationRepository.getInformationByParentCategoryFilterTag(pageable,
+                parentCategoryId, userId, tag);
+    }
+
+    public Page<InformationBriefResponse> getBriefInformationPageByChildCategoryFilterTag(Pageable pageable, Long childCategoryId, Long userId, String tag) {
+        if (!categoryRepository.existsById(childCategoryId)) {
+            throw new CategoryNotExistsException("해당하는 id의 category는 없습니다");
+        }
+
+        return informationRepository.getInformationByChildCategoryFilterTag(pageable,
+                childCategoryId, userId, tag);
+    }
+
+
     public List<InformationRankResponse> getRankInformation() {
         return informationRepository.getInformationRank();
     }
@@ -421,4 +440,6 @@ public class InformationService {
     public List<InformationMainResponse> getMainPageInformation(Long userId) {
         return informationRepository.getInformationLikeCountFromCreatedIn3(userId);
     }
+
+
 }

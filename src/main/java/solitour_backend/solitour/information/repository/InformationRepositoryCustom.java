@@ -45,4 +45,9 @@ public interface InformationRepositoryCustom {
     List<InformationMainResponse> getInformationLikeCountFromCreatedIn3(Long userId);
 
     List<InformationBriefResponse> getInformationRecommend(Long informationId, Long childCategoryId, Long userId);
+
+    Page<InformationBriefResponse> getInformationByParentCategoryFilterTag(Pageable pageable, Long parentCategoryId, Long userId, String tag);
+
+    Page<InformationBriefResponse> getInformationByChildCategoryFilterTag(Pageable pageable, Long childCategoryId, Long userId, String tag);
+
 }

@@ -3,6 +3,7 @@ package solitour_backend.solitour.information.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -199,6 +200,41 @@ public class InformationController {
                 .body(briefInformationPage);
     }
 
+    @GetMapping("/parent-category/{parentCategoryId}/tag")
+    public ResponseEntity<Page<InformationBriefResponse>> pageInformationByParentCategoryFilterZoneCategoryTag(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false, name = "tagName") String tag,
+            @PathVariable("parentCategoryId") Long categoryId,
+            HttpServletRequest request) {
+        byte[] decodedBytes = Base64.getDecoder().decode(tag);
+        String decodedTag = new String(decodedBytes);
+
+        Long userId = findUser(request);
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<InformationBriefResponse> briefInformationPage = informationService.getBriefInformationPageByParentCategoryFilterTag(
+                pageable, categoryId, userId, decodedTag);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(briefInformationPage);
+    }
+
+    @GetMapping("/child-category/{childCategoryId}/tag")
+    public ResponseEntity<Page<InformationBriefResponse>> pageInformationByChildCategoryFilterZoneCategoryTag(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false, name = "tagName") String tag,
+            @PathVariable("childCategoryId") Long categoryId,
+            HttpServletRequest request) {
+        byte[] decodedBytes = Base64.getDecoder().decode(tag);
+        String decodedTag = new String(decodedBytes);
+
+        Long userId = findUser(request);
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<InformationBriefResponse> briefInformationPage = informationService.getBriefInformationPageByChildCategoryFilterTag(
+                pageable, categoryId, userId, decodedTag);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(briefInformationPage);
+    }
 
     @GetMapping("/ranks")
     public ResponseEntity<List<InformationRankResponse>> rankInformation() {
