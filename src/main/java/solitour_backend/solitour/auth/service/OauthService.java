@@ -2,6 +2,7 @@ package solitour_backend.solitour.auth.service;
 
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -51,7 +52,7 @@ public class OauthService {
     @Transactional
     public LoginResponse requestAccessToken(String type, String code, String redirectUrl) {
         User user = checkAndSaveUser(type, code, redirectUrl);
-        final int ACCESS_COOKIE_AGE = (int) TimeUnit.MINUTES.toSeconds(15);
+        final int ACCESS_COOKIE_AGE = (int) TimeUnit.MINUTES.toSeconds(30);
         final int REFRESH_COOKIE_AGE = (int) TimeUnit.DAYS.toSeconds(30);
 
         String token = jwtTokenProvider.createAccessToken(user.getId());
@@ -165,7 +166,7 @@ public class OauthService {
 
     public AccessTokenResponse reissueAccessToken(Long userId) {
         boolean isExistMember = userRepository.existsById(userId);
-        int ACCESS_COOKIE_AGE = (int) TimeUnit.MINUTES.toSeconds(15);
+        int ACCESS_COOKIE_AGE = (int) TimeUnit.MINUTES.toSeconds(30);
         if (!isExistMember) {
             throw new RuntimeException("유효하지 않은 토큰입니다.");
         }
@@ -176,8 +177,17 @@ public class OauthService {
     }
 
     @Transactional
-    public void logout(Long userId) {
+    public void logout(HttpServletResponse response, Long userId) {
         tokenService.deleteByMemberId(userId);
+        deleteCookie("access_token", "",response);
+        deleteCookie("refresh_token", "",response);
+    }
+
+    private void deleteCookie(String name, String value,HttpServletResponse response) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
     }
 
     public void revokeToken(String type, String token) throws IOException {

@@ -1,5 +1,6 @@
 package solitour_backend.solitour.user.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -74,14 +75,14 @@ public class UserController {
 
     @Authenticated
     @DeleteMapping()
-    public ResponseEntity<String> deleteUser(@AuthenticationPrincipal Long id, @RequestParam String type,
+    public ResponseEntity<String> deleteUser(HttpServletResponse response, @AuthenticationPrincipal Long id, @RequestParam String type,
                                              @RequestParam String code, @RequestParam String redirectUrl) {
         String token = getOauthAccessToken(type, code, redirectUrl);
 
         try {
             oauthservice.revokeToken(type, token);
 
-            oauthservice.logout(id);
+            oauthservice.logout(response,id);
             userService.deleteUser(id);
 
             return ResponseEntity.ok("User deleted successfully");
