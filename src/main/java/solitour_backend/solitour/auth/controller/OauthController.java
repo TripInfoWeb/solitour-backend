@@ -47,7 +47,7 @@ public class OauthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletResponse response, @AuthenticationPrincipal Long memberId) {
-        oauthService.logout(response,memberId);
+        oauthService.logout(response, memberId);
 
         return ResponseEntity.ok().build();
     }

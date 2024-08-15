@@ -179,11 +179,11 @@ public class OauthService {
     @Transactional
     public void logout(HttpServletResponse response, Long userId) {
         tokenService.deleteByMemberId(userId);
-        deleteCookie("access_token", "",response);
-        deleteCookie("refresh_token", "",response);
+        deleteCookie("access_token", "", response);
+        deleteCookie("refresh_token", "", response);
     }
 
-    private void deleteCookie(String name, String value,HttpServletResponse response) {
+    private void deleteCookie(String name, String value, HttpServletResponse response) {
         Cookie cookie = new Cookie(name, value);
         cookie.setMaxAge(0);
         cookie.setPath("/");

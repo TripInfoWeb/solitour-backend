@@ -75,14 +75,15 @@ public class UserController {
 
     @Authenticated
     @DeleteMapping()
-    public ResponseEntity<String> deleteUser(HttpServletResponse response, @AuthenticationPrincipal Long id, @RequestParam String type,
+    public ResponseEntity<String> deleteUser(HttpServletResponse response, @AuthenticationPrincipal Long id,
+                                             @RequestParam String type,
                                              @RequestParam String code, @RequestParam String redirectUrl) {
         String token = getOauthAccessToken(type, code, redirectUrl);
 
         try {
             oauthservice.revokeToken(type, token);
 
-            oauthservice.logout(response,id);
+            oauthservice.logout(response, id);
             userService.deleteUser(id);
 
             return ResponseEntity.ok("User deleted successfully");

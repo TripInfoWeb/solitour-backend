@@ -6,7 +6,7 @@ public class CookieExtractor {
 
     public static String findToken(String token, Cookie[] cookies) {
         String value = null;
-        if(cookies == null) {
+        if (cookies == null) {
             return null;
         }
         for (Cookie cookie : cookies) {
