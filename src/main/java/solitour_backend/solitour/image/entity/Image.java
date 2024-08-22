@@ -48,4 +48,10 @@ public class Image {
         this.address = address;
         this.createdDate = createdDate;
     }
+
+    public Image(ImageStatus imageStatus, String imageUrl, LocalDate now) {
+        this.imageStatus = imageStatus;
+        this.address = imageUrl;
+        this.createdDate = now;
+    }
 }
