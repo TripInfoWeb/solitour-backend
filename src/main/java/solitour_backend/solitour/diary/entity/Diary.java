@@ -58,6 +58,9 @@ public class Diary {
     @Column(name = "diary_title")
     private String title;
 
+    @Column(name = "diary_title_image")
+    private String titleImage;
+
     @Column(name = "diary_start_date")
     private LocalDateTime startDatetime;
 
@@ -77,6 +80,7 @@ public class Diary {
 
     public void updateDiary(DiaryRequest request) {
         this.title = request.getTitle();
+        this.titleImage = request.getTitleImage();
         this.startDatetime = request.getStartDatetime();
         this.endDatetime = request.getEndDatetime();
     }

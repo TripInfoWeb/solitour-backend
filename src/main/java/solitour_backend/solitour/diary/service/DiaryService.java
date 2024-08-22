@@ -31,6 +31,7 @@ public class DiaryService {
         Diary diary = Diary.builder()
                 .user(user)
                 .title(request.getTitle())
+                .titleImage(request.getTitleImage())
                 .startDatetime(request.getStartDatetime())
                 .endDatetime(request.getEndDatetime())
                 .createdAt(LocalDateTime.now())

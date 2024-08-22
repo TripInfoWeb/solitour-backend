@@ -9,6 +9,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class DiaryRequest {
     private String title;
+    private String titleImage;
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
     private List<DiaryDayRequest> diaryDayRequests;
@@ -19,6 +20,5 @@ public class DiaryRequest {
         private String content;
         private String feelingStatus;
         private String place;
-
     }
 }
