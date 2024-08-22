@@ -2,10 +2,12 @@ package solitour_backend.solitour.gathering.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import solitour_backend.solitour.gathering.entity.AllowedSex;
 import solitour_backend.solitour.gathering_applicants.dto.response.GatheringApplicantsResponse;
+import solitour_backend.solitour.gathering_category.dto.response.GatheringCategoryResponse;
 import solitour_backend.solitour.place.dto.response.PlaceResponse;
 import solitour_backend.solitour.tag.dto.response.TagResponse;
 import solitour_backend.solitour.user.dto.UserPostingResponse;
@@ -34,9 +36,12 @@ public class GatheringDetailResponse {
     private UserPostingResponse userPostingResponse;
     private PlaceResponse placeResponse;
     private ZoneCategoryResponse zoneCategoryResponse;
+    private GatheringCategoryResponse gatheringCategoryResponse;
 
     private Integer likeCount;
     private Integer nowPersonCount;
+
+    private Boolean isLike;
 
     private List<GatheringApplicantsResponse> gatheringApplicantsResponses;
 

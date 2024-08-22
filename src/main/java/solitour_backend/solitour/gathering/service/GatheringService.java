@@ -24,9 +24,12 @@ import solitour_backend.solitour.gathering.exception.GatheringNotExistsException
 import solitour_backend.solitour.gathering.repository.GatheringRepository;
 import solitour_backend.solitour.gathering_applicants.dto.mapper.GatheringApplicantsMapper;
 import solitour_backend.solitour.gathering_applicants.dto.response.GatheringApplicantsResponse;
+import solitour_backend.solitour.gathering_applicants.entity.GatheringApplicants;
 import solitour_backend.solitour.gathering_applicants.entity.GatheringStatus;
 import solitour_backend.solitour.gathering_applicants.exception.GatheringNotManagerException;
 import solitour_backend.solitour.gathering_applicants.repository.GatheringApplicantsRepository;
+import solitour_backend.solitour.gathering_category.dto.mapper.GatheringCategoryMapper;
+import solitour_backend.solitour.gathering_category.dto.response.GatheringCategoryResponse;
 import solitour_backend.solitour.gathering_category.entity.GatheringCategory;
 import solitour_backend.solitour.gathering_category.repository.GatheringCategoryRepository;
 import solitour_backend.solitour.gathering_tag.entity.GatheringTag;
@@ -76,6 +79,7 @@ public class GatheringService {
     private final GreatGatheringRepository greatGatheringRepository;
     private final GatheringApplicantsRepository gatheringApplicantsRepository;
     private final GatheringApplicantsMapper gatheringApplicantsMapper;
+    private final GatheringCategoryMapper gatheringCategoryMapper;
 
 
     public GatheringDetailResponse getGatheringDetail(Long userId, Long gatheringId) {
@@ -94,19 +98,21 @@ public class GatheringService {
                             tagMapper.mapToTagResponse(data.getTag()))
                     .toList();
         }
+        GatheringCategory gatheringCategory = gathering.getGatheringCategory();
+
+        GatheringCategoryResponse gatheringCategoryResponse = gatheringCategoryMapper.mapToCategoryResponse(gatheringCategory);
 
         PlaceResponse placeResponse = placeMapper.mapToPlaceResponse(gathering.getPlace());
 
-        ZoneCategoryResponse zoneCategoryResponse = zoneCategoryMapper.mapToZoneCategoryResponse(
-                gathering.getZoneCategory());
+        ZoneCategoryResponse zoneCategoryResponse = zoneCategoryMapper.mapToZoneCategoryResponse(gathering.getZoneCategory());
 
         int likeCount = greatGatheringRepository.countByGatheringId(gathering.getId());
 
-        List<GatheringApplicantsResponse> gatheringApplicantsResponses = gatheringApplicantsMapper.mapToGatheringApplicantsResponses(
-                gatheringApplicantsRepository.findAllByGathering_Id(gathering.getId()));
+        List<GatheringApplicantsResponse> gatheringApplicantsResponses = gatheringApplicantsMapper.mapToGatheringApplicantsResponses(gatheringApplicantsRepository.findAllByGathering_IdAndUserIdNot(gathering.getId(), gathering.getUser().getId()));
 
-        int nowPersonCount = gatheringApplicantsRepository.countAllByGathering_IdAndGatheringStatus(gathering.getId(),
-                GatheringStatus.CONSENT);
+        int nowPersonCount = gatheringApplicantsRepository.countAllByGathering_IdAndGatheringStatus(gathering.getId(), GatheringStatus.CONSENT);
+
+        boolean isLike = greatGatheringRepository.existsByGatheringIdAndUserIdAndIsDeletedFalse(gathering.getId(), userId);
 
         List<GatheringBriefResponse> gatheringRecommend = gatheringRepository.getGatheringRecommend(gathering.getId(),
                 gathering.getGatheringCategory().getId(), userId);
@@ -128,8 +134,10 @@ public class GatheringService {
                 userPostingResponse,
                 placeResponse,
                 zoneCategoryResponse,
+                gatheringCategoryResponse,
                 likeCount,
                 nowPersonCount,
+                isLike,
                 gatheringApplicantsResponses,
                 gatheringRecommend
         );
@@ -150,19 +158,16 @@ public class GatheringService {
         User user = userRepository.findById(userId)
                 .orElseThrow(
                         () -> new UserNotExistsException("해당하는 id의 User 가 없습니다"));
-        GatheringCategory gatheringCategory = gatheringCategoryRepository.findById(
-                        gatheringRegisterRequest.getGatheringCategoryId())
+        GatheringCategory gatheringCategory = gatheringCategoryRepository.findById(gatheringRegisterRequest.getGatheringCategoryId())
                 .orElseThrow(
                         () -> new GatheringCategoryNotExistsException("해당하는 id의 category 가 없습니다"));
 
-        ZoneCategory parentZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(
-                        null, gatheringRegisterRequest.getZoneCategoryNameParent())
+        ZoneCategory parentZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(null, gatheringRegisterRequest.getZoneCategoryNameParent())
                 .orElseThrow(
                         () ->
                                 new ZoneCategoryNotExistsException("해당하는 name의 ZoneCategory 없습니다"));
 
-        ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(
-                        parentZoneCategory.getId(), gatheringRegisterRequest.getZoneCategoryNameChild())
+        ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(parentZoneCategory.getId(), gatheringRegisterRequest.getZoneCategoryNameChild())
                 .orElseThrow(
                         () -> new ZoneCategoryNotExistsException("해당하는 name의 ZoneCategory 없습니다"));
 
@@ -188,6 +193,8 @@ public class GatheringService {
 
         List<Tag> tags = tagMapper.mapToTags(gatheringRegisterRequest.getTagRegisterRequests());
         List<Tag> saveTags = tagRepository.saveAll(tags);
+
+        new GatheringApplicants(gathering, user, GatheringStatus.CONSENT);
 
         for (Tag tag : saveTags) {
             gatheringTagRepository.save(new GatheringTag(tag, saveGathering));

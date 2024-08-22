@@ -1,4 +1,4 @@
-package solitour_backend.solitour.admin.dto.mapper;
+package solitour_backend.solitour.gathering_category.dto.mapper;
 
 import java.util.List;
 

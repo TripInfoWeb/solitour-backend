@@ -1,13 +1,11 @@
 package solitour_backend.solitour.gathering_category.service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import solitour_backend.solitour.admin.dto.mapper.GatheringCategoryMapper;
+import solitour_backend.solitour.gathering_category.dto.mapper.GatheringCategoryMapper;
 import solitour_backend.solitour.category.dto.request.CategoryRegisterRequest;
 import solitour_backend.solitour.category.exception.CategoryNotExistsException;
 import solitour_backend.solitour.gathering_category.dto.request.GatheringCategoryModifyRequest;

@@ -9,10 +9,16 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -30,8 +36,19 @@ import solitour_backend.solitour.great_gathering.entity.QGreatGathering;
 import solitour_backend.solitour.zone_category.entity.QZoneCategory;
 
 public class GatheringRepositoryImpl extends QuerydslRepositorySupport implements GatheringRepositoryCustom {
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    private JPAQueryFactory queryFactory;
+
     public GatheringRepositoryImpl() {
         super(Gathering.class);
+    }
+
+    @PostConstruct
+    private void init() {
+        this.queryFactory = new JPAQueryFactory(entityManager);
     }
 
 
@@ -106,18 +123,18 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
 
         NumberExpression<Integer> countGreatGathering = countGreatGatheringByGatheringById();
 
-        List<GatheringBriefResponse> content = from(gathering)
+        JPAQuery<Long> countQuery = queryFactory
+                .select(gathering.id.count())
+                .from(gathering)
                 .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
                 .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
                 .leftJoin(bookMarkGathering).on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
                 .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id))
-                .where(booleanBuilder)
-                .groupBy(gathering.id, zoneCategoryChild.id, zoneCategoryParent.id, category.id,
-                        gathering.title, gathering.viewCount, gathering.user.name,
-                        gathering.scheduleStartDate, gathering.scheduleEndDate,
-                        gathering.deadline, gathering.allowedSex,
-                        gathering.startAge, gathering.endAge, gathering.personCount)
-                .orderBy(orderSpecifier)
+                .where(booleanBuilder);
+
+        long total = Optional.ofNullable(countQuery.fetchOne()).orElse(0L);
+
+        List<GatheringBriefResponse> content = queryFactory
                 .select(Projections.constructor(
                         GatheringBriefResponse.class,
                         gathering.id,
@@ -145,11 +162,22 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                                         .exists())
                                 .then(true)
                                 .otherwise(false)
-                )).offset(pageable.getOffset())
+                ))
+                .from(gathering)
+                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
+                .leftJoin(bookMarkGathering).on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
+                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id))
+                .where(booleanBuilder)
+                .groupBy(gathering.id, zoneCategoryChild.id, zoneCategoryParent.id, category.id,
+                        gathering.title, gathering.viewCount, gathering.user.name,
+                        gathering.scheduleStartDate, gathering.scheduleEndDate,
+                        gathering.deadline, gathering.allowedSex,
+                        gathering.startAge, gathering.endAge, gathering.personCount)
+                .orderBy(orderSpecifier)
+                .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
-
-        long total = content.size();
 
         return new PageImpl<>(content, pageable, total);
     }

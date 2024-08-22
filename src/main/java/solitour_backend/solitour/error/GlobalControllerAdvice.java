@@ -8,10 +8,7 @@ import solitour_backend.solitour.category.exception.CategoryNotExistsException;
 import solitour_backend.solitour.error.exception.RequestValidationFailedException;
 import solitour_backend.solitour.gathering.exception.GatheringCategoryNotExistsException;
 import solitour_backend.solitour.gathering.exception.GatheringNotExistsException;
-import solitour_backend.solitour.gathering_applicants.exception.GatheringApplicantsAlreadyExistsException;
-import solitour_backend.solitour.gathering_applicants.exception.GatheringApplicantsAlreadyFullPeopleException;
-import solitour_backend.solitour.gathering_applicants.exception.GatheringApplicantsNotExistsException;
-import solitour_backend.solitour.gathering_applicants.exception.GatheringNotManagerException;
+import solitour_backend.solitour.gathering_applicants.exception.*;
 import solitour_backend.solitour.image.exception.ImageAlreadyExistsException;
 import solitour_backend.solitour.image.exception.ImageNotExistsException;
 import solitour_backend.solitour.image.exception.ImageRequestValidationFailedException;
@@ -23,7 +20,7 @@ import solitour_backend.solitour.zone_category.exception.ZoneCategoryNotExistsEx
 @RestControllerAdvice
 public class GlobalControllerAdvice {
 
-    @ExceptionHandler({RequestValidationFailedException.class, ImageRequestValidationFailedException.class})
+    @ExceptionHandler({RequestValidationFailedException.class, ImageRequestValidationFailedException.class, GatheringApplicantsManagerException.class})
     public ResponseEntity<String> validationException(Exception exception) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
