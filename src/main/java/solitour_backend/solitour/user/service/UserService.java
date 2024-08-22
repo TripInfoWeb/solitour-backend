@@ -7,6 +7,7 @@ import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.user.entity.UserRepository;
 import solitour_backend.solitour.user.exception.NicknameAlreadyExistsException;
 import solitour_backend.solitour.user.service.dto.response.UserInfoResponse;
+import solitour_backend.solitour.user_image.entity.UserImage;
 
 @Service
 @RequiredArgsConstructor
@@ -41,5 +42,12 @@ public class UserService {
     public void deleteUser(Long userId) {
         User user = userRepository.findByUserId(userId);
         user.deleteUser(userId);
+    }
+
+    @Transactional
+    public void updateUserImage(Long userId, String updateImage) {
+        User user = userRepository.findByUserId(userId);
+        UserImage userImage = user.getUserImage();
+        userImage.updateUserImage(updateImage);
     }
 }

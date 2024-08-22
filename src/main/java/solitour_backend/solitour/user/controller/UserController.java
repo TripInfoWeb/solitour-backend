@@ -74,6 +74,20 @@ public class UserController {
     }
 
     @Authenticated
+    @PutMapping("/image")
+    public ResponseEntity<String> updateUserImage(@AuthenticationPrincipal Long userId,
+                                                  @RequestParam String userImage) {
+        try {
+            userService.updateUserImage(userId, userImage);
+            return ResponseEntity.ok("UserImage updated successfully");
+        } catch (UserNotExistsException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An internal error occurred");
+        }
+    }
+
+    @Authenticated
     @DeleteMapping()
     public ResponseEntity<String> deleteUser(HttpServletResponse response, @AuthenticationPrincipal Long id,
                                              @RequestParam String type,
