@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solitour_backend.solitour.diary.diary_day_content.DiaryDayContent;
+import solitour_backend.solitour.diary.dto.DiaryListResponse;
 import solitour_backend.solitour.diary.dto.DiaryRequest;
 import solitour_backend.solitour.diary.dto.DiaryRequest.DiaryDayRequest;
 import solitour_backend.solitour.diary.dto.DiaryResponse;
@@ -26,7 +27,7 @@ public class DiaryService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void createDiary(Long userId, DiaryRequest request) {
+    public Long createDiary(Long userId, DiaryRequest request) {
         User user = userRepository.findByUserId(userId);
         Diary diary = Diary.builder()
                 .user(user)
@@ -40,6 +41,8 @@ public class DiaryService {
         Diary savedDiary = diaryRepository.save(diary);
 
         saveDiaryDayContent(savedDiary, request);
+
+        return savedDiary.getId();
     }
 
 
@@ -55,16 +58,28 @@ public class DiaryService {
         }
     }
 
-    public DiaryResponse getDiary(Long userId) {
+    public DiaryListResponse getAllDiary(Long userId) {
         List<Diary> diaries = diaryRepository.findByUserId(userId);
-        return new DiaryResponse(diaries);
+        return new DiaryListResponse(diaries);
+    }
+
+
+    public DiaryResponse getDiary(Long userId, Long diaryId) {
+        Diary diary = diaryRepository.findById(diaryId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 일기가 존재하지 않습니다."));
+
+        if(!diary.getUser().getId().equals(userId)){
+            throw new IllegalArgumentException("해당 일기에 대한 권한이 없습니다.");
+        }
+
+        return new DiaryResponse(diary);
     }
 
     @Transactional
     public void deleteDiary(Long userId, Long diaryId) {
         Diary diary = diaryRepository.findById(diaryId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 일기가 존재하지 않습니다."));
-        if(!diary.getUser().getId().equals(userId)) {
+        if (!diary.getUser().getId().equals(userId)) {
             throw new IllegalArgumentException("해당 일기에 대한 권한이 없습니다.");
         }
         diaryRepository.deleteById(diaryId);
@@ -77,13 +92,14 @@ public class DiaryService {
         if (!diary.getUser().getId().equals(userId)) {
             throw new IllegalArgumentException("해당 일기에 대한 권한이 없습니다.");
         }
-        updateDiary(diaryId,request);
+        updateDiary(diaryId, request);
     }
 
-    private void updateDiary(Long diaryId,DiaryRequest request) {
+    private void updateDiary(Long diaryId, DiaryRequest request) {
         Diary diary = diaryRepository.findById(diaryId).orElseThrow(() -> new RuntimeException("Diary not found"));
         diary.getDiaryDayContent().clear();
         diary.updateDiary(request);
         saveDiaryDayContent(diary, request);
     }
+
 }

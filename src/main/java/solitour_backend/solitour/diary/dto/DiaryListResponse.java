@@ -9,19 +9,21 @@ import solitour_backend.solitour.diary.diary_day_content.DiaryDayContent;
 import solitour_backend.solitour.diary.entity.Diary;
 
 @Getter
-public class DiaryResponse {
-    private final DiaryContent diaryContentResponse;
+public class DiaryListResponse {
+    private final List<DiaryContent> diaryContentResponse;
 
-    public DiaryResponse(Diary diary) {
+    public DiaryListResponse(List<Diary> diaries) {
 
-        diaryContentResponse= DiaryContent.builder()
-                .diaryId(diary.getId())
-                .title(diary.getTitle())
-                .titleImage(diary.getTitleImage())
-                .startDatetime(diary.getStartDatetime())
-                .endDatetime(diary.getEndDatetime())
-                .diaryDayContentResponses(new DiaryDayContentResponse(diary.getDiaryDayContent()))
-                .build();
+        diaryContentResponse=  diaries.stream().map(
+                    diary -> DiaryContent.builder()
+                            .diaryId(diary.getId())
+                            .title(diary.getTitle())
+                            .titleImage(diary.getTitleImage())
+                            .startDatetime(diary.getStartDatetime())
+                            .endDatetime(diary.getEndDatetime())
+                            .diaryDayContentResponses(new DiaryDayContentResponse(diary.getDiaryDayContent())).build()
+                            ).collect(Collectors.toList());
+
     }
 
     @Getter
