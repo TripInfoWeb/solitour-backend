@@ -123,6 +123,17 @@ public class GatheringController {
                 .body(gatheringRankOrderByLikes);
     }
 
+    @GetMapping("/home")
+    public ResponseEntity<List<GatheringBriefResponse>> getHomeGathering(HttpServletRequest request) {
+        Long userId = findUser(request);
+
+        List<GatheringBriefResponse> gatheringOrderByLikesFilterByCreate3After = gatheringService.getGatheringOrderByLikesFilterByCreate3After(userId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(gatheringOrderByLikesFilterByCreate3After);
+    }
+
 
     private Long findUser(HttpServletRequest request) {
         String token = CookieExtractor.findToken("access_token", request.getCookies());

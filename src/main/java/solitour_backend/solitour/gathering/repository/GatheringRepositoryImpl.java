@@ -196,6 +196,53 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 )).fetch();
     }
 
+    @Override
+    public List<GatheringBriefResponse> getGatheringLikeCountFromCreatedIn3(Long userId) {
+        NumberExpression<Integer> likeCount = countGreatGatheringByGatheringById();
+        return from(gathering)
+                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
+                .leftJoin(bookMarkGathering)
+                .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
+                .leftJoin(category).on(category.id.eq(gathering.gatheringCategory.id))
+                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id))
+                .where(gathering.isFinish.eq(Boolean.FALSE).and(gathering.createdAt.after(LocalDateTime.now().minusMonths(3))))
+                .groupBy(gathering.id, zoneCategoryChild.id, zoneCategoryParent.id, category.id,
+                        gathering.title, gathering.viewCount, gathering.user.name,
+                        gathering.scheduleStartDate, gathering.scheduleEndDate,
+                        gathering.deadline, gathering.allowedSex,
+                        gathering.startAge, gathering.endAge, gathering.personCount)
+                .orderBy(likeCount.desc())
+                .select(Projections.constructor(
+                        GatheringBriefResponse.class,
+                        gathering.id,
+                        gathering.title,
+                        zoneCategoryParent.name,
+                        zoneCategoryChild.name,
+                        gathering.viewCount,
+                        bookMarkGathering.user.id.isNotNull(),
+                        likeCount,
+                        category.name,
+                        gathering.user.name,
+                        gathering.scheduleStartDate,
+                        gathering.scheduleEndDate,
+                        gathering.deadline,
+                        gathering.allowedSex,
+                        gathering.startAge,
+                        gathering.endAge,
+                        gathering.personCount,
+                        gatheringApplicants.count().coalesce(0L).intValue(),
+                        new CaseBuilder()
+                                .when(JPAExpressions.selectOne()
+                                        .from(greatGathering)
+                                        .where(greatGathering.gathering.id.eq(gathering.id)
+                                                .and(greatGathering.user.id.eq(userId)))
+                                        .exists())
+                                .then(true)
+                                .otherwise(false)
+                )).limit(6).fetch();
+    }
+
 
     //where 절
     private BooleanBuilder makeWhereSQL(GatheringPageRequest gatheringPageRequest) {
@@ -226,8 +273,8 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                     .and(gathering.scheduleEndDate.loe(gatheringPageRequest.getEndDate().atTime(LocalTime.MAX)));
         }
 
-        if (Objects.nonNull(gatheringPageRequest.getIsExclude())) {
-            whereClause.and(gathering.isFinish.eq(gatheringPageRequest.getIsExclude()));
+        if (Objects.isNull(gatheringPageRequest.getIsExclude())) {
+            whereClause.and(gathering.isFinish.eq(false));
         }
 
         return whereClause;

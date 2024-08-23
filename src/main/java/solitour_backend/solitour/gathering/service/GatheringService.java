@@ -273,6 +273,10 @@ public class GatheringService {
         return gatheringRepository.getGatheringRankList();
     }
 
+    public List<GatheringBriefResponse> getGatheringOrderByLikesFilterByCreate3After(Long userId) {
+        return gatheringRepository.getGatheringLikeCountFromCreatedIn3(userId);
+    }
+
 
     private void validateGatheringPageRequest(GatheringPageRequest gatheringPageRequest) {
         // Category 검증
