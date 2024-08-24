@@ -20,6 +20,7 @@ import solitour_backend.solitour.gathering.dto.response.GatheringRankResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringResponse;
 import solitour_backend.solitour.gathering.entity.Gathering;
 import solitour_backend.solitour.gathering.exception.GatheringCategoryNotExistsException;
+import solitour_backend.solitour.gathering.exception.GatheringDeleteException;
 import solitour_backend.solitour.gathering.exception.GatheringNotExistsException;
 import solitour_backend.solitour.gathering.repository.GatheringRepository;
 import solitour_backend.solitour.gathering_applicants.dto.mapper.GatheringApplicantsMapper;
@@ -86,6 +87,11 @@ public class GatheringService {
         Gathering gathering = gatheringRepository.findById(gatheringId)
                 .orElseThrow(
                         () -> new GatheringNotExistsException("해당하는 id의 gathering 이 존재 하지 않습니다"));
+
+        if (gathering.getIsDeleted()) {
+            throw new GatheringDeleteException("해당하는 모임은 삭제가 되었습니다");
+        }
+
         UserPostingResponse userPostingResponse = userMapper.mapToUserPostingResponse(gathering.getUser());
 
         List<GatheringTag> gatheringTags = gatheringTagRepository.findAllByGathering_Id(gathering.getId());
@@ -213,16 +219,26 @@ public class GatheringService {
                 .orElseThrow(
                         () -> new GatheringNotExistsException("해당하는 id의 gathering 이 존재 하지 않습니다"));
 
+        if (gathering.getIsDeleted()) {
+            throw new GatheringDeleteException("해당하는 모임은 삭제가 되었습니다");
+        }
+
         if (!Objects.equals(user, gathering.getUser())) {
             throw new GatheringNotManagerException("해당 유저는 권한이 없습니다");
         }
 
-        GatheringCategory gatheringCategory = gatheringCategoryRepository.findById(
-                gatheringModifyRequest.getGatheringCategoryId()).orElseThrow();
-        ZoneCategory parentZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(null,
-                gatheringModifyRequest.getZoneCategoryNameParent()).orElseThrow();
-        ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(
-                parentZoneCategory.getId(), gatheringModifyRequest.getZoneCategoryNameChild()).orElseThrow();
+        GatheringCategory gatheringCategory = gatheringCategoryRepository.findById(gatheringModifyRequest.getGatheringCategoryId())
+                .orElseThrow(
+                        () -> new GatheringCategoryNotExistsException("모임 카테고리가 존재 하지 않습니다")
+                );
+        ZoneCategory parentZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(null, gatheringModifyRequest.getZoneCategoryNameParent())
+                .orElseThrow(
+                        () -> new ZoneCategoryNotExistsException("부모 지역 카테고리가 존재 하지 않습니다")
+                );
+        ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(parentZoneCategory.getId(), gatheringModifyRequest.getZoneCategoryNameChild())
+                .orElseThrow(
+                        () -> new ZoneCategoryNotExistsException("자식 지역 카테고리가 존재 하지 않습니다")
+                );
 
         Place place = gathering.getPlace();
         PlaceModifyRequest placeModifyRequest = gatheringModifyRequest.getPlaceModifyRequest();
@@ -261,6 +277,28 @@ public class GatheringService {
         }
 
         return gatheringMapper.mapToGatheringResponse(gathering);
+    }
+
+    @Transactional
+    public void deleteGathering(Long gatheringId, Long userId) {
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(
+                        () -> new GatheringNotExistsException("해당하는 id의 gathering 이 존재 하지 않습니다"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(
+                        () -> new UserNotExistsException("해당하는 id의 User 가 없습니다"));
+
+        if (!Objects.equals(user, gathering.getUser())) {
+            throw new GatheringNotManagerException("해당 유저는 권한이 없습니다");
+        }
+
+        if (gathering.getIsDeleted()) {
+            return;
+        }
+
+        gathering.setIsDeleted(true);
+
     }
 
     public Page<GatheringBriefResponse> getPageGathering(Pageable pageable, GatheringPageRequest gatheringPageRequest, Long userId) {

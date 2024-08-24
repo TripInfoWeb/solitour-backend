@@ -34,6 +34,8 @@ public class GatheringPageRequest {
 
     private String sort;
 
+    private String search;
+
     @JsonFormat(pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;

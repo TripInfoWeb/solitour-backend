@@ -97,6 +97,17 @@ public class GatheringController {
                 .body(gatheringResponse);
     }
 
+    @DeleteMapping("/{gatheringId}")
+    public ResponseEntity<Void> deleteGathering(@PathVariable Long gatheringId, HttpServletRequest request) {
+        Long userId = findUser(request);
+
+        gatheringService.deleteGathering(gatheringId, userId);
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
+    }
+
 
     @GetMapping
     public ResponseEntity<Page<GatheringBriefResponse>> pageGatheringSortAndFilter(@RequestParam(defaultValue = "0") int page,

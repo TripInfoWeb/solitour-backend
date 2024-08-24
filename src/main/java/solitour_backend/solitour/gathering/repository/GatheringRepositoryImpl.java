@@ -75,6 +75,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 .where(gathering.isFinish.eq(Boolean.FALSE)
                         .and(gathering.gatheringCategory.id.eq(gatheringCategoryId))
                         .and(gathering.id.ne(gatheringId))
+                        .and(gathering.isDeleted.eq(Boolean.FALSE))
                         .and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)
                                 .or(gatheringApplicants.gatheringStatus.isNull()))
                 )
@@ -187,7 +188,8 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
         return from(gathering)
                 .orderBy(countGreatGatheringByGatheringById().desc())
                 .groupBy(gathering.id, gathering.title)
-                .where(gathering.isFinish.eq(Boolean.FALSE))
+                .where(gathering.isFinish.eq(Boolean.FALSE)
+                        .and(gathering.isDeleted.eq(Boolean.FALSE)))
                 .limit(5)
                 .select(Projections.constructor(
                         GatheringRankResponse.class,
@@ -206,7 +208,9 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
                 .leftJoin(category).on(category.id.eq(gathering.gatheringCategory.id))
                 .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id))
-                .where(gathering.isFinish.eq(Boolean.FALSE).and(gathering.createdAt.after(LocalDateTime.now().minusMonths(3))))
+                .where(gathering.isFinish.eq(Boolean.FALSE)
+                        .and(gathering.isDeleted.eq(Boolean.FALSE))
+                        .and(gathering.createdAt.after(LocalDateTime.now().minusMonths(3))))
                 .groupBy(gathering.id, zoneCategoryChild.id, zoneCategoryParent.id, category.id,
                         gathering.title, gathering.viewCount, gathering.user.name,
                         gathering.scheduleStartDate, gathering.scheduleEndDate,
@@ -248,6 +252,8 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
     private BooleanBuilder makeWhereSQL(GatheringPageRequest gatheringPageRequest) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
+        whereClause.and(gathering.isDeleted.eq(Boolean.FALSE));
+
         if (Objects.nonNull(gatheringPageRequest.getCategory())) {
             whereClause.and(gathering.gatheringCategory.id.eq(gatheringPageRequest.getCategory()));
         }
@@ -275,6 +281,11 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
 
         if (Objects.isNull(gatheringPageRequest.getIsExclude())) {
             whereClause.and(gathering.isFinish.eq(false));
+        }
+
+        if (Objects.nonNull(gatheringPageRequest.getSearch())) {
+            String searchKeyword = gatheringPageRequest.getSearch().trim();
+            whereClause.and(gathering.title.trim().containsIgnoreCase(searchKeyword));
         }
 
         return whereClause;

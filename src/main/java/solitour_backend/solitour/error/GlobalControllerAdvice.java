@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import solitour_backend.solitour.category.exception.CategoryNotExistsException;
 import solitour_backend.solitour.error.exception.RequestValidationFailedException;
 import solitour_backend.solitour.gathering.exception.GatheringCategoryNotExistsException;
+import solitour_backend.solitour.gathering.exception.GatheringDeleteException;
 import solitour_backend.solitour.gathering.exception.GatheringNotExistsException;
 import solitour_backend.solitour.gathering_applicants.exception.*;
 import solitour_backend.solitour.image.exception.ImageAlreadyExistsException;
@@ -20,7 +21,11 @@ import solitour_backend.solitour.zone_category.exception.ZoneCategoryNotExistsEx
 @RestControllerAdvice
 public class GlobalControllerAdvice {
 
-    @ExceptionHandler({RequestValidationFailedException.class, ImageRequestValidationFailedException.class, GatheringApplicantsManagerException.class})
+    @ExceptionHandler({
+            RequestValidationFailedException.class,
+            ImageRequestValidationFailedException.class,
+            GatheringApplicantsManagerException.class
+    })
     public ResponseEntity<String> validationException(Exception exception) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -47,7 +52,8 @@ public class GlobalControllerAdvice {
             UserNotExistsException.class,
             GatheringCategoryNotExistsException.class,
             GatheringNotExistsException.class,
-            GatheringApplicantsNotExistsException.class
+            GatheringApplicantsNotExistsException.class,
+            GatheringDeleteException.class,
     })
     public ResponseEntity<String> notFoundException(Exception exception) {
         return ResponseEntity
