@@ -20,17 +20,20 @@ import solitour_backend.solitour.user.entity.User;
 @NoArgsConstructor
 public class BookMarkGathering {
 
-  @Id
-  @Column(name = "book_mark_gathering_id")
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @Column(name = "book_mark_gathering_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id")
-  private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "gathering_id")
-  private Gathering gathering;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "gathering_id")
+    private Gathering gathering;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
 }

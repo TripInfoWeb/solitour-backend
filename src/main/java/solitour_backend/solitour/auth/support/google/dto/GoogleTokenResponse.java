@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GoogleTokenResponse {
 
-  private String accessToken;
+    private String accessToken;
 }

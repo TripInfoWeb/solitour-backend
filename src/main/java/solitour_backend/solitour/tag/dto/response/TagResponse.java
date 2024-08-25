@@ -7,5 +7,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class TagResponse {
 
-  private String name;
+    private String name;
 }

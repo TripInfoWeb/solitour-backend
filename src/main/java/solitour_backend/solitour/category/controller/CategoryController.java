@@ -25,53 +25,56 @@ import solitour_backend.solitour.error.exception.RequestValidationFailedExceptio
 @RequestMapping("/api/categories")
 public class CategoryController {
 
-  private final CategoryService categoryService;
+    private final CategoryService categoryService;
 
-  @GetMapping
-  public ResponseEntity<List<CategoryGetResponse>> getAllCategories() {
-    List<CategoryGetResponse> parentCategories = categoryService.getParentCategories();
+    @GetMapping
+    public ResponseEntity<List<CategoryGetResponse>> getAllCategories() {
+        List<CategoryGetResponse> parentCategories = categoryService.getParentCategories();
 
-    return ResponseEntity
-        .status(HttpStatus.OK)
-        .body(parentCategories);
-  }
-
-  @GetMapping("/{id}")
-  public ResponseEntity<CategoryResponse> getCategory(@PathVariable Long id) {
-    CategoryResponse category = categoryService.getCategory(id);
-
-    return ResponseEntity
-        .status(HttpStatus.OK)
-        .body(category);
-  }
-
-  @PostMapping
-  public ResponseEntity<CategoryResponse> registerCategory(
-      @Valid @RequestBody CategoryRegisterRequest categoryRegisterRequest,
-      BindingResult bindingResult) {
-    if (bindingResult.hasErrors()) {
-      throw new RequestValidationFailedException(bindingResult);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(parentCategories);
     }
-    CategoryResponse categoryResponse = categoryService.registerCategory(categoryRegisterRequest);
-    return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .body(categoryResponse);
 
-  }
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoryResponse> getCategory(@PathVariable Long id) {
+        CategoryResponse category = categoryService.getCategory(id);
 
-  @PutMapping("/{id}")
-  public ResponseEntity<CategoryResponse> modifyCategory(
-      @Valid @RequestBody CategoryModifyRequest categoryModifyRequest, BindingResult bindingResult,
-      @PathVariable Long id) {
-    if (bindingResult.hasErrors()) {
-      throw new RequestValidationFailedException(bindingResult);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(category);
     }
-    CategoryResponse categoryResponse = categoryService.modifyCategory(id, categoryModifyRequest);
 
-    return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .body(categoryResponse);
-  }
+    @PostMapping
+    public ResponseEntity<CategoryResponse> registerCategory(
+            @Valid @RequestBody CategoryRegisterRequest categoryRegisterRequest,
+            BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new RequestValidationFailedException(bindingResult);
+        }
+        CategoryResponse categoryResponse = categoryService.registerCategory(
+                categoryRegisterRequest);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(categoryResponse);
+
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryResponse> modifyCategory(
+            @Valid @RequestBody CategoryModifyRequest categoryModifyRequest,
+            BindingResult bindingResult,
+            @PathVariable Long id) {
+        if (bindingResult.hasErrors()) {
+            throw new RequestValidationFailedException(bindingResult);
+        }
+        CategoryResponse categoryResponse = categoryService.modifyCategory(id,
+                categoryModifyRequest);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(categoryResponse);
+    }
 
 
 }

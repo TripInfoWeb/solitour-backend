@@ -4,6 +4,6 @@ import org.springframework.data.repository.Repository;
 
 public interface UserImageRepository extends Repository<UserImage, Long> {
 
-  UserImage save(UserImage userImage);
+    UserImage save(UserImage userImage);
 
 }

@@ -8,5 +8,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class AccessTokenResponse {
 
-  private final Cookie accessToken;
+    private final Cookie accessToken;
 }

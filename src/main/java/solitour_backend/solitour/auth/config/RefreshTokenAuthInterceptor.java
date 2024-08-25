@@ -13,26 +13,25 @@ import solitour_backend.solitour.auth.support.JwtTokenProvider;
 @RequiredArgsConstructor
 public class RefreshTokenAuthInterceptor implements HandlerInterceptor {
 
-  private final JwtTokenProvider jwtTokenProvider;
-  private final TokenRepository tokenRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenRepository tokenRepository;
 
-  @Override
-  public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
-      Object handler) {
-    String refreshToken = CookieExtractor.findToken("refresh_token", request.getCookies());
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        String refreshToken = CookieExtractor.findToken("refresh_token", request.getCookies());
 
-    if (jwtTokenProvider.validateTokenNotUsable(refreshToken)) {
-      throw new RuntimeException("토큰이 유효하지 않습니다.");
+        if (jwtTokenProvider.validateTokenNotUsable(refreshToken)) {
+            throw new RuntimeException("토큰이 유효하지 않습니다.");
+        }
+
+        Long userId = jwtTokenProvider.getPayload(refreshToken);
+        Token token = tokenRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("토큰이 존재하지 않습니다."));
+
+        if (token.isDifferentRefreshToken(refreshToken)) {
+            throw new RuntimeException("토큰이 일치하지 않습니다.");
+        }
+        return true;
     }
-
-    Long userId = jwtTokenProvider.getPayload(refreshToken);
-    Token token = tokenRepository.findByUserId(userId)
-        .orElseThrow(() -> new RuntimeException("토큰이 존재하지 않습니다."));
-
-    if (token.isDifferentRefreshToken(refreshToken)) {
-      throw new RuntimeException("토큰이 일치하지 않습니다.");
-    }
-    return true;
-  }
 
 }

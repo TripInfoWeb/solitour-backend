@@ -7,6 +7,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ImageResponse {
 
-  private String imageStatus;
-  private String address;
+    private String imageStatus;
+    private String address;
 }

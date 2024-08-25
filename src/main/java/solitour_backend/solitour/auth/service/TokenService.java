@@ -12,19 +12,19 @@ import solitour_backend.solitour.user.entity.User;
 @Service
 public class TokenService {
 
-  private final TokenRepository tokenRepository;
+    private final TokenRepository tokenRepository;
 
-  @Transactional
-  public void synchronizeRefreshToken(User user, String refreshToken) {
-    tokenRepository.findByUserId(user.getId())
-        .ifPresentOrElse(
-            token -> token.updateRefreshToken(refreshToken),
-            () -> tokenRepository.save(new Token(user, refreshToken))
-        );
-  }
+    @Transactional
+    public void synchronizeRefreshToken(User user, String refreshToken) {
+        tokenRepository.findByUserId(user.getId())
+                .ifPresentOrElse(
+                        token -> token.updateRefreshToken(refreshToken),
+                        () -> tokenRepository.save(new Token(user, refreshToken))
+                );
+    }
 
-  @Transactional
-  public void deleteByMemberId(Long memberId) {
-    tokenRepository.deleteByUserId(memberId);
-  }
+    @Transactional
+    public void deleteByMemberId(Long memberId) {
+        tokenRepository.deleteByUserId(memberId);
+    }
 }

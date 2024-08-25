@@ -11,11 +11,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ZoneCategoryRegisterRequest {
 
-  @Min(1)
-  @Nullable
-  private Long parentId;
+    @Min(1)
+    @Nullable
+    private Long parentId;
 
-  @NotBlank
-  @Size(max = 20)
-  private String name;
+    @NotBlank
+    @Size(max = 20)
+    private String name;
 }

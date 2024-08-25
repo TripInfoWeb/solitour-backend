@@ -15,25 +15,25 @@ import solitour_backend.solitour.user_image.entity.UserImageRepository;
 @Service
 public class UserImageService {
 
-  private final UserImageRepository userImageRepository;
-  private final S3Uploader s3Uploader;
-  public static final String IMAGE_PATH = "user";
+    private final UserImageRepository userImageRepository;
+    private final S3Uploader s3Uploader;
+    public static final String IMAGE_PATH = "user";
 
-  @Transactional
-  public UserImage saveUserImage(String imageUrl) {
-    UserImage userImage = new UserImage(imageUrl, LocalDate.now());
+    @Transactional
+    public UserImage saveUserImage(String imageUrl) {
+        UserImage userImage = new UserImage(imageUrl, LocalDate.now());
 
-    userImageRepository.save(userImage);
+        userImageRepository.save(userImage);
 
-    return userImage;
-  }
+        return userImage;
+    }
 
-  @Transactional
-  public UserImageResponse registerInformation(Long userId, MultipartFile userImage) {
+    @Transactional
+    public UserImageResponse registerInformation(Long userId, MultipartFile userImage) {
 
-    String userImageUrl = s3Uploader.upload(userImage, IMAGE_PATH, userId);
+        String userImageUrl = s3Uploader.upload(userImage, IMAGE_PATH, userId);
 
-    return new UserImageResponse(userImageUrl);
-  }
+        return new UserImageResponse(userImageUrl);
+    }
 
 }

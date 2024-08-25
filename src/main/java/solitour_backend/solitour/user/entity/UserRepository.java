@@ -6,10 +6,14 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-  Optional<User> findByNickname(String nickname);
+    @Query("SELECT u FROM User u JOIN FETCH u.userImage WHERE u.nickname = :nickname AND u.userStatus = '활성화'")
+    Optional<User> findByNickname(String nickname);
 
-  Optional<User> findByEmail(String email);
+    @Query("SELECT u FROM User u JOIN FETCH u.userImage WHERE u.email = :email AND u.userStatus = '활성화'")
+    Optional<User> findByEmail(String email);
 
-  @Query("SELECT u FROM User u JOIN FETCH u.userImage WHERE u.id = :userId")
-  User findByUserId(Long userId);
+    @Query("SELECT u FROM User u JOIN FETCH u.userImage WHERE u.id = :userId AND u.userStatus = '활성화'")
+    User findByUserId(Long userId);
+
+    boolean existsByNickname(String nickname);
 }

@@ -8,7 +8,7 @@ import lombok.Getter;
 @Getter
 public class CategoryGetResponse {
 
-  private Long id;
-  private String name;
-  private List<CategoryResponse> childrenCategories;
+    private Long id;
+    private String name;
+    private List<CategoryResponse> childrenCategories;
 }

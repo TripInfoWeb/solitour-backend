@@ -7,5 +7,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class UserImageResponse {
 
-  private String imageUrl;
+    private String imageUrl;
 }

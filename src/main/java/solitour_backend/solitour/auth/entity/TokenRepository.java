@@ -8,11 +8,11 @@ import org.springframework.data.repository.query.Param;
 
 public interface TokenRepository extends Repository<Token, Long> {
 
-  Token save(Token token);
+    Token save(Token token);
 
-  Optional<Token> findByUserId(Long userId);
+    Optional<Token> findByUserId(Long userId);
 
-  @Modifying
-  @Query("delete from Token t where t.user.id = :userId")
-  void deleteByUserId(@Param("userId") Long userId);
+    @Modifying
+    @Query("delete from Token t where t.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 }

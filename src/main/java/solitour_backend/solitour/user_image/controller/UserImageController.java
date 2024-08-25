@@ -19,21 +19,20 @@ import solitour_backend.solitour.user_image.service.UserImageService;
 @RequestMapping("/api/user-image")
 public class UserImageController {
 
-  private final UserImageService userImageService;
+    private final UserImageService userImageService;
 
 
-  @PostMapping
-  public ResponseEntity<UserImageResponse> createUserImage(
-      @RequestPart("request") UserImageRequest imageRequest,
-      @RequestPart("userImage") MultipartFile userImage,
-      BindingResult bindingResult) {
-    Utils.validationRequest(bindingResult);
-    UserImageResponse informationResponse = userImageService.registerInformation(
-        imageRequest.getUserId(), userImage);
+    @PostMapping
+    public ResponseEntity<UserImageResponse> createUserImage(@RequestPart("request") UserImageRequest imageRequest,
+                                                             @RequestPart("userImage") MultipartFile userImage,
+                                                             BindingResult bindingResult) {
+        Utils.validationRequest(bindingResult);
+        UserImageResponse informationResponse = userImageService.registerInformation(
+                imageRequest.getUserId(), userImage);
 
-    return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .body(informationResponse);
-  }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(informationResponse);
+    }
 
 }

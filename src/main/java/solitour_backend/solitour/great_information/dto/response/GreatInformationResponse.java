@@ -5,9 +5,9 @@ import lombok.Getter;
 @Getter
 public class GreatInformationResponse {
 
-  private final int greatInformationCount;
+    private final int greatInformationCount;
 
-  public GreatInformationResponse(int greatInformationCount) {
-    this.greatInformationCount = greatInformationCount;
-  }
+    public GreatInformationResponse(int greatInformationCount) {
+        this.greatInformationCount = greatInformationCount;
+    }
 }

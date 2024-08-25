@@ -14,19 +14,21 @@ import solitour_backend.solitour.zone_category.dto.response.ZoneCategoryResponse
 @AllArgsConstructor
 public class InformationDetailResponse {
 
-  private String title;
-  private String address;
-  private LocalDateTime createdDate;
-  private Integer viewCount;
-  private String content;
-  private String tip;
+    private String title;
+    private String address;
+    private LocalDateTime createdDate;
+    private Integer viewCount;
+    private String content;
+    private String tip;
 
-  private UserPostingResponse userPostingResponse;
-  private List<TagResponse> tagResponses;
+    private UserPostingResponse userPostingResponse;
+    private List<TagResponse> tagResponses;
 
-  private PlaceResponse placeResponse;
-  private ZoneCategoryResponse zoneCategoryResponse;
+    private PlaceResponse placeResponse;
+    private ZoneCategoryResponse zoneCategoryResponse;
 
-  private List<ImageResponse> imageResponses;
-  private int likeCount;
+    private List<ImageResponse> imageResponses;
+    private int likeCount;
+
+    private List<InformationBriefResponse> recommendInformation;
 }

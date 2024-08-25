@@ -15,33 +15,31 @@ import solitour_backend.solitour.auth.support.JwtTokenProvider;
 @RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
 
-  private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
 
-  @Override
-  public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
-      Object handler) {
-    if (CorsUtils.isPreFlightRequest(request)) {
-      return true;
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        if (CorsUtils.isPreFlightRequest(request)) {
+            return true;
+        }
+
+        Optional<Authenticated> authenticated = parseAnnotation((HandlerMethod) handler,
+                Authenticated.class);
+        if (authenticated.isPresent()) {
+            validateToken(request);
+        }
+        return true;
     }
 
-    Optional<Authenticated> authenticated = parseAnnotation((HandlerMethod) handler,
-        Authenticated.class);
-    if (authenticated.isPresent()) {
-      validateToken(request);
+    private <T extends Annotation> Optional<T> parseAnnotation(HandlerMethod handler, Class<T> clazz) {
+        return Optional.ofNullable(handler.getMethodAnnotation(clazz));
     }
-    return true;
-  }
 
-  private <T extends Annotation> Optional<T> parseAnnotation(HandlerMethod handler,
-      Class<T> clazz) {
-    return Optional.ofNullable(handler.getMethodAnnotation(clazz));
-  }
-
-  private void validateToken(HttpServletRequest request) {
-    String token = CookieExtractor.findToken("access_token", request.getCookies());
-    if (jwtTokenProvider.validateTokenNotUsable(token)) {
-      throw new RuntimeException("토큰이 유효하지 않습니다.");
+    private void validateToken(HttpServletRequest request) {
+        String token = CookieExtractor.findToken("access_token", request.getCookies());
+        if (jwtTokenProvider.validateTokenNotUsable(token)) {
+            throw new RuntimeException("토큰이 유효하지 않습니다.");
+        }
     }
-  }
 
 }

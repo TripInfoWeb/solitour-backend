@@ -16,19 +16,23 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserImage {
 
-  @Id
-  @Column(name = "user_image_id")
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @Column(name = "user_image_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @Column(name = "user_image_address")
-  private String address;
+    @Column(name = "user_image_address")
+    private String address;
 
-  @Column(name = "user_image_created_date")
-  private LocalDate createdDate;
+    @Column(name = "user_image_created_date")
+    private LocalDate createdDate;
 
-  public UserImage(String address, LocalDate createdDate) {
-    this.address = address;
-    this.createdDate = createdDate;
-  }
+    public UserImage(String address, LocalDate createdDate) {
+        this.address = address;
+        this.createdDate = createdDate;
+    }
+
+    public void updateUserImage(String userImage) {
+        this.address = userImage;
+    }
 }

@@ -7,6 +7,6 @@ import lombok.Getter;
 @Getter
 public class UserPostingResponse {
 
-  private Long id;
-  private String name;
+    private Long id;
+    private String name;
 }

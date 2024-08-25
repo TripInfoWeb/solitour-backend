@@ -8,8 +8,8 @@ import solitour_backend.solitour.category.entity.Category;
 @AllArgsConstructor
 public class CategoryResponse {
 
-  private Long id;
-  private Category parentCategory;
-  private String name;
+    private Long id;
+    private Category parentCategory;
+    private String name;
 
 }

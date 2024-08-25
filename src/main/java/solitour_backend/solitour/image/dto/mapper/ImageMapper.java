@@ -12,14 +12,14 @@ import solitour_backend.solitour.image.image_status.ImageStatus;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ImageMapper {
 
-  @Mapping(source = "imageStatus", target = "imageStatus", qualifiedByName = "mapImageStatus")
-  ImageResponse toImageResponse(Image image);
+    @Mapping(source = "imageStatus", target = "imageStatus", qualifiedByName = "mapImageStatus")
+    ImageResponse toImageResponse(Image image);
 
-  @Named("mapImageStatus")
-  default String mapImageStatus(ImageStatus imageStatus) {
-    return imageStatus.getName();
-  }
+    @Named("mapImageStatus")
+    default String mapImageStatus(ImageStatus imageStatus) {
+        return imageStatus.getName();
+    }
 
 
-  List<ImageResponse> toImageResponseList(List<Image> images);
+    List<ImageResponse> toImageResponseList(List<Image> images);
 }

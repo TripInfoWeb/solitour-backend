@@ -20,73 +20,74 @@ import solitour_backend.solitour.category.repository.CategoryRepository;
 @RequiredArgsConstructor
 public class CategoryService {
 
-  private final CategoryRepository categoryRepository;
-  private final CategoryMapper categoryMapper;
+    private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
-  @Transactional
-  public CategoryResponse registerCategory(CategoryRegisterRequest categoryRegisterRequest) {
-    Category parentCategoryEntity;
-    if (Objects.isNull(categoryRegisterRequest.getParentCategory())) {
-      parentCategoryEntity = null;
-    } else {
-      parentCategoryEntity = categoryRepository.findById(
-              categoryRegisterRequest.getParentCategory())
-          .orElseThrow(
-              () -> new CategoryNotExistsException("Parent category not found"));
+    @Transactional
+    public CategoryResponse registerCategory(CategoryRegisterRequest categoryRegisterRequest) {
+        Category parentCategoryEntity;
+        if (Objects.isNull(categoryRegisterRequest.getParentCategory())) {
+            parentCategoryEntity = null;
+        } else {
+            parentCategoryEntity = categoryRepository.findById(
+                            categoryRegisterRequest.getParentCategory())
+                    .orElseThrow(
+                            () -> new CategoryNotExistsException("Parent category not found"));
+        }
+
+        Category category = new Category(parentCategoryEntity, categoryRegisterRequest.getName());
+        Category saveCategory = categoryRepository.save(category);
+
+        return categoryMapper.mapToCategoryResponse(saveCategory);
     }
 
-    Category category = new Category(parentCategoryEntity, categoryRegisterRequest.getName());
-    Category saveCategory = categoryRepository.save(category);
 
-    return categoryMapper.mapToCategoryResponse(saveCategory);
-  }
+    public CategoryResponse getCategory(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(
+                        () -> new CategoryNotExistsException("category not found"));
 
-
-  public CategoryResponse getCategory(Long id) {
-    Category category = categoryRepository.findById(id)
-        .orElseThrow(
-            () -> new CategoryNotExistsException("category not found"));
-
-    return categoryMapper.mapToCategoryResponse(category);
-  }
-
-
-  public List<CategoryResponse> getChildrenCategories(Long id) {
-    List<Category> childrenCategories = categoryRepository.findAllByParentCategoryId(id);
-
-    return categoryMapper.mapToCategoryResponses(childrenCategories);
-  }
-
-  public List<CategoryGetResponse> getParentCategories() {
-    List<Category> parentCategories = categoryRepository.findAllByParentCategoryId(null);
-    List<CategoryGetResponse> categoryGetResponses = new ArrayList<>();
-
-    for (Category category : parentCategories) {
-      List<CategoryResponse> childrenCategories = getChildrenCategories(category.getId());
-      categoryGetResponses.add(
-          new CategoryGetResponse(category.getId(), category.getName(), childrenCategories));
+        return categoryMapper.mapToCategoryResponse(category);
     }
 
-    return categoryGetResponses;
-  }
 
-  @Transactional
-  public CategoryResponse modifyCategory(Long id, CategoryModifyRequest categoryModifyRequest) {
-    Category parentCategoryEntity;
-    if (Objects.isNull(categoryModifyRequest.getParentCategory())) {
-      parentCategoryEntity = null;
-    } else {
-      parentCategoryEntity = categoryRepository.findById(categoryModifyRequest.getParentCategory())
-          .orElseThrow(
-              () -> new CategoryNotExistsException("Parent category not found"));
+    public List<CategoryResponse> getChildrenCategories(Long id) {
+        List<Category> childrenCategories = categoryRepository.findAllByParentCategoryId(id);
+
+        return categoryMapper.mapToCategoryResponses(childrenCategories);
     }
 
-    Category category = categoryRepository.findById(id).orElseThrow();
+    public List<CategoryGetResponse> getParentCategories() {
+        List<Category> parentCategories = categoryRepository.findAllByParentCategoryId(null);
+        List<CategoryGetResponse> categoryGetResponses = new ArrayList<>();
 
-    category.setName(categoryModifyRequest.getName());
-    category.setParentCategory(parentCategoryEntity);
+        for (Category category : parentCategories) {
+            List<CategoryResponse> childrenCategories = getChildrenCategories(category.getId());
+            categoryGetResponses.add(
+                    new CategoryGetResponse(category.getId(), category.getName(), childrenCategories));
+        }
 
-    return categoryMapper.mapToCategoryResponse(category);
-  }
+        return categoryGetResponses;
+    }
+
+    @Transactional
+    public CategoryResponse modifyCategory(Long id, CategoryModifyRequest categoryModifyRequest) {
+        Category parentCategoryEntity;
+        if (Objects.isNull(categoryModifyRequest.getParentCategory())) {
+            parentCategoryEntity = null;
+        } else {
+            parentCategoryEntity = categoryRepository.findById(
+                            categoryModifyRequest.getParentCategory())
+                    .orElseThrow(
+                            () -> new CategoryNotExistsException("Parent category not found"));
+        }
+
+        Category category = categoryRepository.findById(id).orElseThrow();
+
+        category.setName(categoryModifyRequest.getName());
+        category.setParentCategory(parentCategoryEntity);
+
+        return categoryMapper.mapToCategoryResponse(category);
+    }
 
 }

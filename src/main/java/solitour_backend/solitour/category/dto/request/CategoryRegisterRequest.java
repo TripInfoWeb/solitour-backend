@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CategoryRegisterRequest {
 
-  @Nullable
-  private Long parentCategory;
+    @Nullable
+    private Long parentCategory;
 
-  @NotBlank
-  @Size(min = 2, max = 20)
-  private String name;
+    @NotBlank
+    @Size(min = 2, max = 20)
+    private String name;
 }

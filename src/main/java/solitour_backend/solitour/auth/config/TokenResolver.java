@@ -13,30 +13,30 @@ import solitour_backend.solitour.auth.support.JwtTokenProvider;
 @RequiredArgsConstructor
 public class TokenResolver implements HandlerMethodArgumentResolver {
 
-  private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
 
-  @Override
-  public boolean supportsParameter(MethodParameter parameter) {
-    if (parameter.hasParameterAnnotation(AuthenticationPrincipal.class)) {
-      return true;
-    } else {
-      return parameter.hasParameterAnnotation(AuthenticationRefreshPrincipal.class);
-    }
-  }
-
-  @Override
-  public Long resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-      NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-    String token = "";
-    HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
-
-    if (parameter.hasParameterAnnotation(AuthenticationPrincipal.class)) {
-      token = CookieExtractor.findToken("access_token", request.getCookies());
-    } else {
-      token = CookieExtractor.findToken("refresh_token", request.getCookies());
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        if (parameter.hasParameterAnnotation(AuthenticationPrincipal.class)) {
+            return true;
+        } else {
+            return parameter.hasParameterAnnotation(AuthenticationRefreshPrincipal.class);
+        }
     }
 
-    return jwtTokenProvider.getPayload(token);
-  }
+    @Override
+    public Long resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+        String token = "";
+        HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
+
+        if (parameter.hasParameterAnnotation(AuthenticationPrincipal.class)) {
+            token = CookieExtractor.findToken("access_token", request.getCookies());
+        } else {
+            token = CookieExtractor.findToken("refresh_token", request.getCookies());
+        }
+
+        return jwtTokenProvider.getPayload(token);
+    }
 
 }

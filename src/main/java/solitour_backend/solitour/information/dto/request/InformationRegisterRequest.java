@@ -14,37 +14,37 @@ import solitour_backend.solitour.tag.dto.request.TagRegisterRequest;
 @NoArgsConstructor
 public class InformationRegisterRequest {
 
-  @NotBlank
-  @Size(min = 1, max = 50)
-  private String informationTitle;
+    @NotBlank
+    @Size(min = 1, max = 50)
+    private String informationTitle;
 
-  @NotBlank
-  @Size(min = 1, max = 20)
-  private String informationAddress;
+    @NotBlank
+    @Size(min = 1, max = 20)
+    private String informationAddress;
 
-  private String informationContent;
+    private String informationContent;
 
-  private String informationTips;
+    private String informationTips;
 
-  @NotNull
-  @Min(1)
-  private Long userId;
+    @NotNull
+    @Min(1)
+    private Long userId;
 
-  @NotNull
-  private PlaceRegisterRequest placeRegisterRequest;
+    @NotNull
+    private PlaceRegisterRequest placeRegisterRequest;
 
-  @NotNull
-  @Min(1)
-  private Long categoryId;
+    @NotNull
+    @Min(1)
+    private Long categoryId;
 
-  @NotBlank
-  @Size(min = 1, max = 20)
-  private String zoneCategoryNameParent;
+    @NotBlank
+    @Size(min = 1, max = 20)
+    private String zoneCategoryNameParent;
 
-  @NotBlank
-  @Size(min = 1, max = 20)
-  private String zoneCategoryNameChild;
+    @NotBlank
+    @Size(min = 1, max = 20)
+    private String zoneCategoryNameChild;
 
-  private List<TagRegisterRequest> tagRegisterRequests;
+    private List<TagRegisterRequest> tagRegisterRequests;
 
 }

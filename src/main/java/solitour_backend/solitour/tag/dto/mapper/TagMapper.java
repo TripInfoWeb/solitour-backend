@@ -11,12 +11,12 @@ import solitour_backend.solitour.tag.entity.Tag;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface TagMapper {
 
-  @Mapping(target = "tagId", ignore = true)
-  Tag mapToTag(TagRegisterRequest tagRegisterRequest);
+    @Mapping(target = "tagId", ignore = true)
+    Tag mapToTag(TagRegisterRequest tagRegisterRequest);
 
-  List<Tag> mapToTags(List<TagRegisterRequest> tagRegisterRequests);
+    List<Tag> mapToTags(List<TagRegisterRequest> tagRegisterRequests);
 
-  TagResponse mapToTagResponse(Tag tag);
+    TagResponse mapToTagResponse(Tag tag);
 
-  List<TagResponse> mapToTagResponses(List<Tag> tags);
+    List<TagResponse> mapToTagResponses(List<Tag> tags);
 }

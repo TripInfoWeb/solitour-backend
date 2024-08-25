@@ -8,5 +8,5 @@ import solitour_backend.solitour.zone_category.entity.ZoneCategory;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface ZoneCategoryMapper {
 
-  ZoneCategoryResponse mapToZoneCategoryResponse(ZoneCategory zoneCategory);
+    ZoneCategoryResponse mapToZoneCategoryResponse(ZoneCategory zoneCategory);
 }

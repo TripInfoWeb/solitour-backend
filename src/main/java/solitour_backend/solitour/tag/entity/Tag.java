@@ -17,15 +17,15 @@ import lombok.Setter;
 @Setter
 public class Tag {
 
-  @Id
-  @Column(name = "tag_id")
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long tagId;
+    @Id
+    @Column(name = "tag_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long tagId;
 
-  @Column(name = "tag_name")
-  private String name;
+    @Column(name = "tag_name")
+    private String name;
 
-  public Tag(String name) {
-    this.name = name;
-  }
+    public Tag(String name) {
+        this.name = name;
+    }
 }

@@ -1,5 +1,7 @@
 package solitour_backend.solitour.place.dto.request;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.deser.std.NumberDeserializers;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -12,39 +14,25 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PlaceModifyRequest {
 
-  @Nullable
-  @Size(min = 1, max = 30)
-  private String searchId;
+    @Nullable
+    @Size(min = 1, max = 30)
+    private String searchId;
 
-  @NotBlank
-  @Size(min = 1, max = 30)
-  private String name;
+    @NotBlank
+    @Size(min = 1, max = 30)
+    private String name;
 
-  @Nullable
-  @Digits(integer = 10, fraction = 6)
-  private BigDecimal xAxis;
+    @NotNull
+    @JsonDeserialize(using = NumberDeserializers.BigDecimalDeserializer.class)
+    @Digits(integer = 10, fraction = 6)
+    private BigDecimal xAxis;
 
-  @Nullable
-  @Digits(integer = 10, fraction = 6)
-  private BigDecimal yAxis;
+    @NotNull
+    @JsonDeserialize(using = NumberDeserializers.BigDecimalDeserializer.class)
+    @Digits(integer = 10, fraction = 6)
+    private BigDecimal yAxis;
 
-  @NotBlank
-  @Size(min = 1, max = 50)
-  private String address;
-
-  public boolean validate() {
-    boolean searchIdIsNull = this.searchId == null;
-    boolean xAxisIsNull = this.xAxis == null;
-    boolean yAxisIsNull = this.yAxis == null;
-
-    if (searchIdIsNull && (xAxisIsNull || yAxisIsNull)) {
-      return true;
-    }
-
-    if (!searchIdIsNull && (!xAxisIsNull || !yAxisIsNull)) {
-      return true;
-    }
-
-    return false;
-  }
+    @NotBlank
+    @Size(min = 1, max = 50)
+    private String address;
 }

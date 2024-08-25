@@ -9,7 +9,7 @@ import solitour_backend.solitour.category.entity.Category;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface CategoryMapper {
 
-  CategoryResponse mapToCategoryResponse(Category category);
+    CategoryResponse mapToCategoryResponse(Category category);
 
-  List<CategoryResponse> mapToCategoryResponses(List<Category> categories);
+    List<CategoryResponse> mapToCategoryResponses(List<Category> categories);
 }

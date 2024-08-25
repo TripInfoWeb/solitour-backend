@@ -8,5 +8,5 @@ import solitour_backend.solitour.information.entity.Information;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface InformationMapper {
 
-  InformationResponse mapToInformationResponse(Information information);
+    InformationResponse mapToInformationResponse(Information information);
 }

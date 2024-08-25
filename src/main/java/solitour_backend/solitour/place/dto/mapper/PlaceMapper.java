@@ -9,7 +9,7 @@ import solitour_backend.solitour.place.entity.Place;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface PlaceMapper {
 
-  @Mapping(source = "xaxis", target = "xaxis")
-  @Mapping(source = "yaxis", target = "yaxis")
-  PlaceResponse mapToPlaceResponse(Place place);
+    @Mapping(source = "xaxis", target = "xaxis")
+    @Mapping(source = "yaxis", target = "yaxis")
+    PlaceResponse mapToPlaceResponse(Place place);
 }

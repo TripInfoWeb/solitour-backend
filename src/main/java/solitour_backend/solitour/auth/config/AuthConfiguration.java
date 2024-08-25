@@ -15,38 +15,41 @@ import solitour_backend.solitour.auth.support.JwtTokenProvider;
 @Configuration
 public class AuthConfiguration implements WebMvcConfigurer {
 
-  private final JwtTokenProvider jwtTokenProvider;
-  private final TokenRepository tokenRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenRepository tokenRepository;
 
-  @Override
-  public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(new AuthInterceptor(jwtTokenProvider))
-        .addPathPatterns("/api/**");
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new AuthInterceptor(jwtTokenProvider))
+                .addPathPatterns("/api/**");
 
-    registry.addInterceptor(new RefreshTokenAuthInterceptor(jwtTokenProvider, tokenRepository))
-        .addPathPatterns("/api/auth/oauth2/token/refresh");
-  }
+        registry.addInterceptor(new RefreshTokenAuthInterceptor(jwtTokenProvider, tokenRepository))
+                .addPathPatterns("/api/auth/oauth2/token/refresh");
+    }
 
-  @Override
-  public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    registry.addResourceHandler("/*")
-        .addResourceLocations("classpath:/static/");
-  }
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/*")
+                .addResourceLocations("classpath:/static/");
+    }
 
-  @Override
-  public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-    resolvers.add(new TokenResolver(jwtTokenProvider));
-  }
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(new TokenResolver(jwtTokenProvider));
+    }
 
-  @Override
-  public void addCorsMappings(CorsRegistry registry) {
-    final String LOCAL_URL = "http://localhost:3000";
-    final String ALLOWED_URL = "https://solitour.ssssksss.xyz";
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        final String[] ALLOWED_URLS = {
+                "http://localhost:3000",
+                "https://solitour.ssssksss.xyz",
+                "https://solitour-admin.ssssksss.xyz"
+        };
 
-    registry.addMapping("/*")
-        .allowedOrigins(LOCAL_URL, ALLOWED_URL)
-        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-        .allowedHeaders("")
-        .allowCredentials(true);
-  }
+        registry.addMapping("/**")
+                .allowedOrigins(ALLOWED_URLS)
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+    }
 }
