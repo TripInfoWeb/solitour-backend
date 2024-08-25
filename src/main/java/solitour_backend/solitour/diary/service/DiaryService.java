@@ -3,9 +3,12 @@ package solitour_backend.solitour.diary.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solitour_backend.solitour.diary.diary_day_content.DiaryDayContent;
+import solitour_backend.solitour.diary.dto.DiaryContent;
 import solitour_backend.solitour.diary.dto.DiaryListResponse;
 import solitour_backend.solitour.diary.dto.DiaryRequest;
 import solitour_backend.solitour.diary.dto.DiaryRequest.DiaryDayRequest;
@@ -58,9 +61,8 @@ public class DiaryService {
         }
     }
 
-    public DiaryListResponse getAllDiary(Long userId) {
-        List<Diary> diaries = diaryRepository.findByUserId(userId);
-        return new DiaryListResponse(diaries);
+    public Page<DiaryContent>  getAllDiary(Pageable pageable, Long userId) {
+        return diaryRepository.getAllDiaryPageFilterAndOrder(pageable,userId);
     }
 
 

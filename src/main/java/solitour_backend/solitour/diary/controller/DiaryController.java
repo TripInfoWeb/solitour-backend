@@ -1,6 +1,12 @@
 package solitour_backend.solitour.diary.controller;
 
+import static solitour_backend.solitour.information.controller.InformationController.PAGE_SIZE;
+
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import solitour_backend.solitour.auth.config.Authenticated;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
+import solitour_backend.solitour.diary.dto.DiaryContent;
 import solitour_backend.solitour.diary.dto.DiaryListResponse;
 import solitour_backend.solitour.diary.dto.DiaryRequest;
 import solitour_backend.solitour.diary.dto.DiaryResponse;
@@ -26,11 +33,15 @@ import solitour_backend.solitour.diary.service.DiaryService;
 public class DiaryController {
 
     private final DiaryService diaryService;
+    public static final int PAGE_SIZE = 6;
+
 
     @Authenticated
     @GetMapping()
-    public ResponseEntity<DiaryListResponse> getAllDiary(@AuthenticationPrincipal Long userId) {
-        DiaryListResponse response = diaryService.getAllDiary(userId);
+    public ResponseEntity<Page<DiaryContent>> getAllDiary(@RequestParam(defaultValue = "0") int page,@AuthenticationPrincipal Long userId) {
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+
+        Page<DiaryContent>  response = diaryService.getAllDiary(pageable,userId);
 
         return ResponseEntity.ok(response);
     }

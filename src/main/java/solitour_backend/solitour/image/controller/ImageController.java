@@ -29,11 +29,11 @@ public class ImageController {
 
     @Authenticated
     @PostMapping
-    public ResponseEntity<ImageResponse> uploadImage(@RequestParam Long id,
+    public ResponseEntity<ImageResponse> uploadImage(@AuthenticationPrincipal Long userId,
                                                      @RequestPart("image") MultipartFile userImage,
                                                      @RequestParam String type,
                                                      @RequestParam String imageStatus) {
-        ImageResponse imageResponse = imageService.uploadImage(id, userImage, type,
+        ImageResponse imageResponse = imageService.uploadImage(userId, userImage, type,
                 imageStatus);
 
         return ResponseEntity

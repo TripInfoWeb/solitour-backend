@@ -12,9 +12,9 @@ import solitour_backend.solitour.diary.entity.Diary;
 public class DiaryListResponse {
     private final List<DiaryContent> diaryContentResponse;
 
-    public DiaryListResponse(List<Diary> diaries) {
+    public DiaryListResponse(List<List<Diary>> diaries) {
 
-        diaryContentResponse=  diaries.stream().map(
+        diaryContentResponse=  diaries.stream().flatMap(List::stream).map(
                     diary -> DiaryContent.builder()
                             .diaryId(diary.getId())
                             .title(diary.getTitle())
