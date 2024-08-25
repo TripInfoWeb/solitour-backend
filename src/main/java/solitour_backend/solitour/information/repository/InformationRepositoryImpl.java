@@ -9,11 +9,9 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -47,15 +45,17 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
 
 
     @Override
-    public Page<InformationBriefResponse> getInformationPageFilterAndOrder(Pageable pageable, InformationPageRequest informationPageRequest, Long userId, Long parentCategoryId) {
+    public Page<InformationBriefResponse> getInformationPageFilterAndOrder(Pageable pageable,
+                                                                           InformationPageRequest informationPageRequest,
+                                                                           Long userId, Long parentCategoryId) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (Objects.nonNull(informationPageRequest.getZoneCategoryId())) {
-            whereClause.and(information.zoneCategory.parentZoneCategory.id.eq(informationPageRequest.getZoneCategoryId()));
+            whereClause.and(
+                    information.zoneCategory.parentZoneCategory.id.eq(informationPageRequest.getZoneCategoryId()));
         }
 
         BooleanBuilder categoryCondition = new BooleanBuilder();
-
 
         if (Objects.nonNull(informationPageRequest.getChildCategoryId())) {
             whereClause.and(information.category.id.eq(informationPageRequest.getChildCategoryId()));

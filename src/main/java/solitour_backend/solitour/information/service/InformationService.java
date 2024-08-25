@@ -1,11 +1,13 @@
 package solitour_backend.solitour.information.service;
 
+import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.LIKE_COUNT_SORT;
+import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.VIEW_COUNT_SORT;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -61,9 +63,6 @@ import solitour_backend.solitour.zone_category.dto.response.ZoneCategoryResponse
 import solitour_backend.solitour.zone_category.entity.ZoneCategory;
 import solitour_backend.solitour.zone_category.exception.ZoneCategoryNotExistsException;
 import solitour_backend.solitour.zone_category.repository.ZoneCategoryRepository;
-
-import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.LIKE_COUNT_SORT;
-import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.VIEW_COUNT_SORT;
 
 @Service
 @Transactional(readOnly = true)
@@ -337,11 +336,11 @@ public class InformationService {
     }
 
 
-    public Page<InformationBriefResponse> getPageInformation(Pageable pageable, Long userId, Long parentCategoryId, InformationPageRequest informationPageRequest) {
+    public Page<InformationBriefResponse> getPageInformation(Pageable pageable, Long userId, Long parentCategoryId,
+                                                             InformationPageRequest informationPageRequest) {
         if (!categoryRepository.existsByIdAndParentCategoryId(parentCategoryId, null)) {
             throw new CategoryNotExistsException("해당하는 id의 부모 category 는 없습니다");
         }
-
 
         if (Objects.nonNull(informationPageRequest.getChildCategoryId())) {
             Category category = categoryRepository.findById(informationPageRequest.getChildCategoryId())
@@ -360,12 +359,14 @@ public class InformationService {
         }
 
         if (Objects.nonNull(informationPageRequest.getSort())) {
-            if (!Objects.equals(LIKE_COUNT_SORT, informationPageRequest.getSort()) || !Objects.equals(VIEW_COUNT_SORT, informationPageRequest.getSort())) {
+            if (!Objects.equals(LIKE_COUNT_SORT, informationPageRequest.getSort()) || !Objects.equals(VIEW_COUNT_SORT,
+                    informationPageRequest.getSort())) {
                 throw new RequestValidationFailedException("잘못된 정렬 코드입니다.");
             }
         }
 
-        return informationRepository.getInformationPageFilterAndOrder(pageable, informationPageRequest, userId, parentCategoryId);
+        return informationRepository.getInformationPageFilterAndOrder(pageable, informationPageRequest, userId,
+                parentCategoryId);
     }
 
     public List<InformationRankResponse> getRankInformation() {

@@ -1,9 +1,11 @@
 package solitour_backend.solitour.gathering.service;
 
+import static solitour_backend.solitour.gathering.repository.GatheringRepositoryCustom.LIKE_COUNT_SORT;
+import static solitour_backend.solitour.gathering.repository.GatheringRepositoryCustom.VIEW_COUNT_SORT;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,9 +59,6 @@ import solitour_backend.solitour.zone_category.entity.ZoneCategory;
 import solitour_backend.solitour.zone_category.exception.ZoneCategoryNotExistsException;
 import solitour_backend.solitour.zone_category.repository.ZoneCategoryRepository;
 
-import static solitour_backend.solitour.gathering.repository.GatheringRepositoryCustom.LIKE_COUNT_SORT;
-import static solitour_backend.solitour.gathering.repository.GatheringRepositoryCustom.VIEW_COUNT_SORT;
-
 
 @Service
 @Transactional(readOnly = true)
@@ -106,19 +105,25 @@ public class GatheringService {
         }
         GatheringCategory gatheringCategory = gathering.getGatheringCategory();
 
-        GatheringCategoryResponse gatheringCategoryResponse = gatheringCategoryMapper.mapToCategoryResponse(gatheringCategory);
+        GatheringCategoryResponse gatheringCategoryResponse = gatheringCategoryMapper.mapToCategoryResponse(
+                gatheringCategory);
 
         PlaceResponse placeResponse = placeMapper.mapToPlaceResponse(gathering.getPlace());
 
-        ZoneCategoryResponse zoneCategoryResponse = zoneCategoryMapper.mapToZoneCategoryResponse(gathering.getZoneCategory());
+        ZoneCategoryResponse zoneCategoryResponse = zoneCategoryMapper.mapToZoneCategoryResponse(
+                gathering.getZoneCategory());
 
         int likeCount = greatGatheringRepository.countByGatheringId(gathering.getId());
 
-        List<GatheringApplicantsResponse> gatheringApplicantsResponses = gatheringApplicantsMapper.mapToGatheringApplicantsResponses(gatheringApplicantsRepository.findAllByGathering_IdAndUserIdNot(gathering.getId(), gathering.getUser().getId()));
+        List<GatheringApplicantsResponse> gatheringApplicantsResponses = gatheringApplicantsMapper.mapToGatheringApplicantsResponses(
+                gatheringApplicantsRepository.findAllByGathering_IdAndUserIdNot(gathering.getId(),
+                        gathering.getUser().getId()));
 
-        int nowPersonCount = gatheringApplicantsRepository.countAllByGathering_IdAndGatheringStatus(gathering.getId(), GatheringStatus.CONSENT);
+        int nowPersonCount = gatheringApplicantsRepository.countAllByGathering_IdAndGatheringStatus(gathering.getId(),
+                GatheringStatus.CONSENT);
 
-        boolean isLike = greatGatheringRepository.existsByGatheringIdAndUserIdAndIsDeletedFalse(gathering.getId(), userId);
+        boolean isLike = greatGatheringRepository.existsByGatheringIdAndUserIdAndIsDeletedFalse(gathering.getId(),
+                userId);
 
         List<GatheringBriefResponse> gatheringRecommend = gatheringRepository.getGatheringRecommend(gathering.getId(),
                 gathering.getGatheringCategory().getId(), userId);
@@ -164,16 +169,19 @@ public class GatheringService {
         User user = userRepository.findById(userId)
                 .orElseThrow(
                         () -> new UserNotExistsException("해당하는 id의 User 가 없습니다"));
-        GatheringCategory gatheringCategory = gatheringCategoryRepository.findById(gatheringRegisterRequest.getGatheringCategoryId())
+        GatheringCategory gatheringCategory = gatheringCategoryRepository.findById(
+                        gatheringRegisterRequest.getGatheringCategoryId())
                 .orElseThrow(
                         () -> new GatheringCategoryNotExistsException("해당하는 id의 category 가 없습니다"));
 
-        ZoneCategory parentZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(null, gatheringRegisterRequest.getZoneCategoryNameParent())
+        ZoneCategory parentZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(null,
+                        gatheringRegisterRequest.getZoneCategoryNameParent())
                 .orElseThrow(
                         () ->
                                 new ZoneCategoryNotExistsException("해당하는 name의 ZoneCategory 없습니다"));
 
-        ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(parentZoneCategory.getId(), gatheringRegisterRequest.getZoneCategoryNameChild())
+        ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(
+                        parentZoneCategory.getId(), gatheringRegisterRequest.getZoneCategoryNameChild())
                 .orElseThrow(
                         () -> new ZoneCategoryNotExistsException("해당하는 name의 ZoneCategory 없습니다"));
 
@@ -227,15 +235,18 @@ public class GatheringService {
             throw new GatheringNotManagerException("해당 유저는 권한이 없습니다");
         }
 
-        GatheringCategory gatheringCategory = gatheringCategoryRepository.findById(gatheringModifyRequest.getGatheringCategoryId())
+        GatheringCategory gatheringCategory = gatheringCategoryRepository.findById(
+                        gatheringModifyRequest.getGatheringCategoryId())
                 .orElseThrow(
                         () -> new GatheringCategoryNotExistsException("모임 카테고리가 존재 하지 않습니다")
                 );
-        ZoneCategory parentZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(null, gatheringModifyRequest.getZoneCategoryNameParent())
+        ZoneCategory parentZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(null,
+                        gatheringModifyRequest.getZoneCategoryNameParent())
                 .orElseThrow(
                         () -> new ZoneCategoryNotExistsException("부모 지역 카테고리가 존재 하지 않습니다")
                 );
-        ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(parentZoneCategory.getId(), gatheringModifyRequest.getZoneCategoryNameChild())
+        ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(
+                        parentZoneCategory.getId(), gatheringModifyRequest.getZoneCategoryNameChild())
                 .orElseThrow(
                         () -> new ZoneCategoryNotExistsException("자식 지역 카테고리가 존재 하지 않습니다")
                 );
@@ -301,7 +312,8 @@ public class GatheringService {
 
     }
 
-    public Page<GatheringBriefResponse> getPageGathering(Pageable pageable, GatheringPageRequest gatheringPageRequest, Long userId) {
+    public Page<GatheringBriefResponse> getPageGathering(Pageable pageable, GatheringPageRequest gatheringPageRequest,
+                                                         Long userId) {
         validateGatheringPageRequest(gatheringPageRequest);
 
         return gatheringRepository.getGatheringPageFilterAndOrder(pageable, gatheringPageRequest, userId);
@@ -336,23 +348,27 @@ public class GatheringService {
             if (gatheringPageRequest.getStartAge() > gatheringPageRequest.getEndAge()) {
                 throw new RequestValidationFailedException("시작 나이가 끝 나이보다 클 수 없습니다.");
             }
-        } else if (Objects.nonNull(gatheringPageRequest.getStartAge()) || Objects.nonNull(gatheringPageRequest.getEndAge())) {
+        } else if (Objects.nonNull(gatheringPageRequest.getStartAge()) || Objects.nonNull(
+                gatheringPageRequest.getEndAge())) {
             throw new RequestValidationFailedException("시작 나이와 끝 나이는 둘 다 입력되거나 둘 다 비어 있어야 합니다.");
         }
 
         // 정렬 방식 검증
         if (Objects.nonNull(gatheringPageRequest.getSort())) {
-            if (!LIKE_COUNT_SORT.equals(gatheringPageRequest.getSort()) && !VIEW_COUNT_SORT.equals(gatheringPageRequest.getSort())) {
+            if (!LIKE_COUNT_SORT.equals(gatheringPageRequest.getSort()) && !VIEW_COUNT_SORT.equals(
+                    gatheringPageRequest.getSort())) {
                 throw new RequestValidationFailedException("잘못된 정렬 코드입니다.");
             }
         }
 
         // 날짜 검증
-        if (Objects.nonNull(gatheringPageRequest.getStartDate()) && Objects.nonNull(gatheringPageRequest.getEndDate())) {
+        if (Objects.nonNull(gatheringPageRequest.getStartDate()) && Objects.nonNull(
+                gatheringPageRequest.getEndDate())) {
             if (gatheringPageRequest.getStartDate().isAfter(gatheringPageRequest.getEndDate())) {
                 throw new RequestValidationFailedException("시작 날짜가 종료 날짜보다 나중일 수 없습니다.");
             }
-        } else if (Objects.nonNull(gatheringPageRequest.getStartDate()) || Objects.nonNull(gatheringPageRequest.getEndDate())) {
+        } else if (Objects.nonNull(gatheringPageRequest.getStartDate()) || Objects.nonNull(
+                gatheringPageRequest.getEndDate())) {
             throw new RequestValidationFailedException("시작 날짜와 종료 날짜는 둘 다 입력되거나 둘 다 비어 있어야 합니다.");
         }
     }

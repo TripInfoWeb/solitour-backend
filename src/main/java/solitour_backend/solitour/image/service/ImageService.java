@@ -10,8 +10,6 @@ import solitour_backend.solitour.image.entity.Image;
 import solitour_backend.solitour.image.image_status.ImageStatus;
 import solitour_backend.solitour.image.repository.ImageRepository;
 import solitour_backend.solitour.image.s3.S3Uploader;
-import solitour_backend.solitour.user_image.dto.UserImageResponse;
-import solitour_backend.solitour.user_image.entity.UserImage;
 import solitour_backend.solitour.user_image.entity.UserImageRepository;
 
 @RequiredArgsConstructor

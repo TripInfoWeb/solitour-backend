@@ -3,22 +3,18 @@ package solitour_backend.solitour.gathering.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
-
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-
-import com.querydsl.core.types.dsl.*;
-import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.JPQLQuery;
-import com.querydsl.jpa.impl.JPAQuery;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.annotation.PostConstruct;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -98,7 +94,9 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
 
 
     @Override
-    public Page<GatheringBriefResponse> getGatheringPageFilterAndOrder(Pageable pageable, GatheringPageRequest gatheringPageRequest, Long userId) {
+    public Page<GatheringBriefResponse> getGatheringPageFilterAndOrder(Pageable pageable,
+                                                                       GatheringPageRequest gatheringPageRequest,
+                                                                       Long userId) {
         BooleanBuilder booleanBuilder = makeWhereSQL(gatheringPageRequest);
 
         OrderSpecifier<?> orderSpecifier = getOrderSpecifier(gatheringPageRequest.getSort());
@@ -108,16 +106,17 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
         long total = from(gathering)
                 .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
                 .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(bookMarkGathering).on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
+                .leftJoin(bookMarkGathering)
+                .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
                 .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id))
                 .where(booleanBuilder)
                 .select(gathering.id.count()).fetchCount();
 
-
         List<GatheringBriefResponse> content = from(gathering)
                 .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
                 .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(bookMarkGathering).on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
+                .leftJoin(bookMarkGathering)
+                .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
                 .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id))
                 .where(booleanBuilder)
                 .groupBy(gathering.id, zoneCategoryChild.id, zoneCategoryParent.id, category.id,
@@ -239,7 +238,8 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
             whereClause.and(gathering.startAge.goe(userMaxBirthYear)).and(gathering.endAge.loe(userMinBirthYear));
         }
 
-        if (Objects.nonNull(gatheringPageRequest.getStartDate()) && Objects.nonNull(gatheringPageRequest.getEndDate())) {
+        if (Objects.nonNull(gatheringPageRequest.getStartDate()) && Objects.nonNull(
+                gatheringPageRequest.getEndDate())) {
             whereClause.and(gathering.scheduleStartDate.goe(gatheringPageRequest.getStartDate().atStartOfDay()))
                     .and(gathering.scheduleEndDate.loe(gatheringPageRequest.getEndDate().atTime(LocalTime.MAX)));
         }

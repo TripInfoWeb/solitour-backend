@@ -1,12 +1,12 @@
 package solitour_backend.solitour.gathering.controller;
 
+import static solitour_backend.solitour.information.controller.InformationController.PAGE_SIZE;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,7 +14,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
 import solitour_backend.solitour.auth.support.CookieExtractor;
 import solitour_backend.solitour.auth.support.JwtTokenProvider;
@@ -28,8 +37,6 @@ import solitour_backend.solitour.gathering.dto.response.GatheringDetailResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringRankResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringResponse;
 import solitour_backend.solitour.gathering.service.GatheringService;
-
-import static solitour_backend.solitour.information.controller.InformationController.PAGE_SIZE;
 
 @RestController
 @RequiredArgsConstructor
@@ -110,15 +117,17 @@ public class GatheringController {
 
 
     @GetMapping
-    public ResponseEntity<Page<GatheringBriefResponse>> pageGatheringSortAndFilter(@RequestParam(defaultValue = "0") int page,
-                                                                                   @Valid @ModelAttribute GatheringPageRequest gatheringPageRequest,
-                                                                                   BindingResult bindingResult,
-                                                                                   HttpServletRequest request) {
+    public ResponseEntity<Page<GatheringBriefResponse>> pageGatheringSortAndFilter(
+            @RequestParam(defaultValue = "0") int page,
+            @Valid @ModelAttribute GatheringPageRequest gatheringPageRequest,
+            BindingResult bindingResult,
+            HttpServletRequest request) {
         Utils.validationRequest(bindingResult);
         Long userId = findUser(request);
 
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<GatheringBriefResponse> pageGathering = gatheringService.getPageGathering(pageable, gatheringPageRequest, userId);
+        Page<GatheringBriefResponse> pageGathering = gatheringService.getPageGathering(pageable, gatheringPageRequest,
+                userId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -138,7 +147,8 @@ public class GatheringController {
     public ResponseEntity<List<GatheringBriefResponse>> getHomeGathering(HttpServletRequest request) {
         Long userId = findUser(request);
 
-        List<GatheringBriefResponse> gatheringOrderByLikesFilterByCreate3After = gatheringService.getGatheringOrderByLikesFilterByCreate3After(userId);
+        List<GatheringBriefResponse> gatheringOrderByLikesFilterByCreate3After = gatheringService.getGatheringOrderByLikesFilterByCreate3After(
+                userId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

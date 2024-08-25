@@ -2,7 +2,6 @@ package solitour_backend.solitour.gathering.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import solitour_backend.solitour.gathering.entity.AllowedSex;

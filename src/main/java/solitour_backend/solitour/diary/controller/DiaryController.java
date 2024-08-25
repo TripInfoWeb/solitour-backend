@@ -1,8 +1,5 @@
 package solitour_backend.solitour.diary.controller;
 
-import static solitour_backend.solitour.information.controller.InformationController.PAGE_SIZE;
-
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,10 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import solitour_backend.solitour.auth.config.Authenticated;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
 import solitour_backend.solitour.diary.dto.DiaryContent;
-import solitour_backend.solitour.diary.dto.DiaryListResponse;
 import solitour_backend.solitour.diary.dto.DiaryRequest;
 import solitour_backend.solitour.diary.dto.DiaryResponse;
-import solitour_backend.solitour.diary.entity.Diary;
 import solitour_backend.solitour.diary.service.DiaryService;
 
 @RestController
@@ -38,10 +33,11 @@ public class DiaryController {
 
     @Authenticated
     @GetMapping()
-    public ResponseEntity<Page<DiaryContent>> getAllDiary(@RequestParam(defaultValue = "0") int page,@AuthenticationPrincipal Long userId) {
+    public ResponseEntity<Page<DiaryContent>> getAllDiary(@RequestParam(defaultValue = "0") int page,
+                                                          @AuthenticationPrincipal Long userId) {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
 
-        Page<DiaryContent>  response = diaryService.getAllDiary(pageable,userId);
+        Page<DiaryContent> response = diaryService.getAllDiary(pageable, userId);
 
         return ResponseEntity.ok(response);
     }

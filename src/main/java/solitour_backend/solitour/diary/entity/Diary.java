@@ -2,7 +2,6 @@ package solitour_backend.solitour.diary.entity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
@@ -19,22 +18,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import solitour_backend.solitour.diary.diary_day_content.DiaryDayContent;
 import solitour_backend.solitour.diary.dto.DiaryRequest;
-import solitour_backend.solitour.diary.dto.DiaryRequest.DiaryDayRequest;
-import solitour_backend.solitour.diary.feeling_status.FeelingStatus;
-import solitour_backend.solitour.diary.feeling_status.FeelingStatusConverter;
-import solitour_backend.solitour.gathering.entity.AllowedSex;
-import solitour_backend.solitour.gathering.entity.AllowedSexConverter;
-import solitour_backend.solitour.gathering_category.entity.GatheringCategory;
-import solitour_backend.solitour.place.entity.Place;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.user_status.UserStatusConverter;
-import solitour_backend.solitour.zone_category.entity.ZoneCategory;
 
 
 @Entity
@@ -67,7 +56,7 @@ public class Diary {
     @Column(name = "diary_end_date")
     private LocalDateTime endDatetime;
 
-    @OneToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "diary")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "diary")
     private List<DiaryDayContent> diaryDayContent;
 
     @CreatedDate

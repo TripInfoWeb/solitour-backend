@@ -1,7 +1,6 @@
 package solitour_backend.solitour.diary.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solitour_backend.solitour.diary.diary_day_content.DiaryDayContent;
 import solitour_backend.solitour.diary.dto.DiaryContent;
-import solitour_backend.solitour.diary.dto.DiaryListResponse;
 import solitour_backend.solitour.diary.dto.DiaryRequest;
 import solitour_backend.solitour.diary.dto.DiaryRequest.DiaryDayRequest;
 import solitour_backend.solitour.diary.dto.DiaryResponse;
@@ -61,8 +59,8 @@ public class DiaryService {
         }
     }
 
-    public Page<DiaryContent>  getAllDiary(Pageable pageable, Long userId) {
-        return diaryRepository.getAllDiaryPageFilterAndOrder(pageable,userId);
+    public Page<DiaryContent> getAllDiary(Pageable pageable, Long userId) {
+        return diaryRepository.getAllDiaryPageFilterAndOrder(pageable, userId);
     }
 
 
@@ -70,7 +68,7 @@ public class DiaryService {
         Diary diary = diaryRepository.findById(diaryId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 일기가 존재하지 않습니다."));
 
-        if(!diary.getUser().getId().equals(userId)){
+        if (!diary.getUser().getId().equals(userId)) {
             throw new IllegalArgumentException("해당 일기에 대한 권한이 없습니다.");
         }
 
