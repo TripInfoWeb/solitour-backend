@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
 import solitour_backend.solitour.great_information.dto.response.GreatInformationResponse;
+import solitour_backend.solitour.great_information.entity.GreatInformation;
 import solitour_backend.solitour.great_information.service.GreatInformationService;
 
 @RestController
@@ -17,29 +18,28 @@ import solitour_backend.solitour.great_information.service.GreatInformationServi
 @RequestMapping("/api/information/great")
 public class GreatInformationController {
 
-  private final GreatInformationService service;
+    private final GreatInformationService service;
 
-  @GetMapping()
-  public ResponseEntity<GreatInformationResponse> getInformationGreatCount(
-      @AuthenticationPrincipal Long userId) {
-    GreatInformationResponse response = service.getInformationGreatCount(userId);
+    @GetMapping()
+    public ResponseEntity<GreatInformationResponse> getInformationGreatCount(@AuthenticationPrincipal Long userId) {
+        GreatInformationResponse response = service.getInformationGreatCount(userId);
 
-    return ResponseEntity.ok(response);
-  }
+        return ResponseEntity.ok(response);
+    }
 
-  @PostMapping()
-  public ResponseEntity<Void> createInformationGreat(
-      @AuthenticationPrincipal Long userId, @RequestParam Long infoId) {
-    service.createInformationGreat(userId, infoId);
+    @PostMapping()
+    public ResponseEntity<Long> createInformationGreat(@AuthenticationPrincipal Long userId,
+                                                       @RequestParam Long infoId) {
+        GreatInformation greatInformation = service.createInformationGreat(userId, infoId);
 
-    return ResponseEntity.ok().build();
-  }
+        return ResponseEntity.ok(greatInformation.getId());
+    }
 
-  @DeleteMapping()
-  public ResponseEntity<Void> deleteInformationGreat(@AuthenticationPrincipal Long userId,
-      @RequestParam Long greatId) {
-    service.deleteInformationGreat(userId, greatId);
+    @DeleteMapping()
+    public ResponseEntity<Void> deleteInformationGreat(@AuthenticationPrincipal Long userId,
+                                                       @RequestParam Long infoId) {
+        service.deleteInformationGreat(userId, infoId);
 
-    return ResponseEntity.ok().build();
-  }
+        return ResponseEntity.ok().build();
+    }
 }
