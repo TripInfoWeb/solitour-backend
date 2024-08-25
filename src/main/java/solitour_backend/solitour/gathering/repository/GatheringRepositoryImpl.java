@@ -37,20 +37,9 @@ import solitour_backend.solitour.zone_category.entity.QZoneCategory;
 
 public class GatheringRepositoryImpl extends QuerydslRepositorySupport implements GatheringRepositoryCustom {
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    private JPAQueryFactory queryFactory;
-
     public GatheringRepositoryImpl() {
         super(Gathering.class);
     }
-
-    @PostConstruct
-    private void init() {
-        this.queryFactory = new JPAQueryFactory(entityManager);
-    }
-
 
     QGathering gathering = QGathering.gathering;
     QZoneCategory zoneCategoryChild = QZoneCategory.zoneCategory;
@@ -63,7 +52,6 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
 
     @Override
     public List<GatheringBriefResponse> getGatheringRecommend(Long gatheringId, Long gatheringCategoryId, Long userId) {
-        QGreatGathering greatGatheringSub = new QGreatGathering("greatGatheringSub");
 
         return from(gathering)
                 .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
@@ -104,14 +92,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                         gathering.endAge,
                         gathering.personCount,
                         gatheringApplicants.count().coalesce(0L).intValue(),
-                        new CaseBuilder()
-                                .when(JPAExpressions.selectOne()
-                                        .from(greatGatheringSub)
-                                        .where(greatGatheringSub.gathering.id.eq(gathering.id)
-                                                .and(greatGatheringSub.user.id.eq(userId)))
-                                        .exists())
-                                .then(true)
-                                .otherwise(false)
+                        isUserGreatGathering(userId)
                 )).limit(3L).fetch();
     }
 
@@ -124,18 +105,27 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
 
         NumberExpression<Integer> countGreatGathering = countGreatGatheringByGatheringById();
 
-        JPAQuery<Long> countQuery = queryFactory
-                .select(gathering.id.count())
-                .from(gathering)
+        long total = from(gathering)
                 .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
                 .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
                 .leftJoin(bookMarkGathering).on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
                 .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id))
-                .where(booleanBuilder);
+                .where(booleanBuilder)
+                .select(gathering.id.count()).fetchCount();
 
-        long total = Optional.ofNullable(countQuery.fetchOne()).orElse(0L);
 
-        List<GatheringBriefResponse> content = queryFactory
+        List<GatheringBriefResponse> content = from(gathering)
+                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
+                .leftJoin(bookMarkGathering).on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
+                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id))
+                .where(booleanBuilder)
+                .groupBy(gathering.id, zoneCategoryChild.id, zoneCategoryParent.id, category.id,
+                        gathering.title, gathering.viewCount, gathering.user.name,
+                        gathering.scheduleStartDate, gathering.scheduleEndDate,
+                        gathering.deadline, gathering.allowedSex,
+                        gathering.startAge, gathering.endAge, gathering.personCount)
+                .orderBy(orderSpecifier)
                 .select(Projections.constructor(
                         GatheringBriefResponse.class,
                         gathering.id,
@@ -155,33 +145,15 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                         gathering.endAge,
                         gathering.personCount,
                         gatheringApplicants.count().coalesce(0L).intValue(),
-                        new CaseBuilder()
-                                .when(JPAExpressions.selectOne()
-                                        .from(greatGathering)
-                                        .where(greatGathering.gathering.id.eq(gathering.id)
-                                                .and(greatGathering.user.id.eq(userId)))
-                                        .exists())
-                                .then(true)
-                                .otherwise(false)
+                        isUserGreatGathering(userId)
                 ))
-                .from(gathering)
-                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
-                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(bookMarkGathering).on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
-                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id))
-                .where(booleanBuilder)
-                .groupBy(gathering.id, zoneCategoryChild.id, zoneCategoryParent.id, category.id,
-                        gathering.title, gathering.viewCount, gathering.user.name,
-                        gathering.scheduleStartDate, gathering.scheduleEndDate,
-                        gathering.deadline, gathering.allowedSex,
-                        gathering.startAge, gathering.endAge, gathering.personCount)
-                .orderBy(orderSpecifier)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         return new PageImpl<>(content, pageable, total);
     }
+
 
     @Override
     public List<GatheringRankResponse> getGatheringRankList() {
@@ -194,8 +166,8 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 .select(Projections.constructor(
                         GatheringRankResponse.class,
                         gathering.id,
-                        gathering.title
-                )).fetch();
+                        gathering.title))
+                .fetch();
     }
 
     @Override
@@ -236,14 +208,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                         gathering.endAge,
                         gathering.personCount,
                         gatheringApplicants.count().coalesce(0L).intValue(),
-                        new CaseBuilder()
-                                .when(JPAExpressions.selectOne()
-                                        .from(greatGathering)
-                                        .where(greatGathering.gathering.id.eq(gathering.id)
-                                                .and(greatGathering.user.id.eq(userId)))
-                                        .exists())
-                                .then(true)
-                                .otherwise(false)
+                        isUserGreatGathering(userId)
                 )).limit(6).fetch();
     }
 
@@ -319,5 +284,15 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 .intValue();
     }
 
+    private BooleanExpression isUserGreatGathering(Long userId) {
+        return new CaseBuilder()
+                .when(JPAExpressions.selectOne()
+                        .from(greatGathering)
+                        .where(greatGathering.gathering.id.eq(gathering.id)
+                                .and(greatGathering.user.id.eq(userId)))
+                        .exists())
+                .then(true)
+                .otherwise(false);
+    }
 
 }
