@@ -65,8 +65,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .where(information.user.id.eq(userId));
 
         List<InformationBriefResponse> list = query
-                .groupBy(information.id, information.title, zoneCategoryParent.name, zoneCategoryChild.name,
-                        information.viewCount, bookMarkInformation.user.id, image.address)
+                .groupBy(information.id, zoneCategoryParent.id, zoneCategoryChild.id,
+                        information.id, bookMarkInformation.id, image.id)
                 .orderBy(information.createdDate.desc())
                 .select(Projections.constructor(
                         InformationBriefResponse.class,
@@ -101,8 +101,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .where(information.user.id.eq(userId).and(bookMarkInformation.user.id.eq(userId)));
 
         List<InformationBriefResponse> list = query
-                .groupBy(information.id, information.title, zoneCategoryParent.name, zoneCategoryChild.name,
-                        information.viewCount, bookMarkInformation.user.id, image.address)
+                .groupBy(information.id, zoneCategoryParent.id, zoneCategoryChild.id,
+                        information.id, bookMarkInformation.id, image.id)
                 .orderBy(information.createdDate.desc())
                 .select(Projections.constructor(
                         InformationBriefResponse.class,
@@ -140,11 +140,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .where(gathering.user.id.eq(userId));
 
         List<GatheringBriefResponse> list = query
-                .groupBy(gathering.id, gathering.title, zoneCategoryParent.name, zoneCategoryChild.name,
-                        gathering.viewCount,
-                        gatheringCategory.name, gathering.user.nickname, gathering.scheduleStartDate,
-                        gathering.scheduleEndDate, gathering.deadline, gathering.allowedSex, gathering.startAge,
-                        gathering.endAge, gathering.personCount)
+                .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,
+                        gatheringCategory.id)
                 .select(Projections.constructor(
                         GatheringBriefResponse.class,
                         gathering.id,
@@ -192,11 +189,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .where(bookMarkGathering.user.id.eq(userId));
 
         List<GatheringBriefResponse> list = query
-                .groupBy(gathering.id, gathering.title, zoneCategoryParent.name, zoneCategoryChild.name,
-                        gathering.viewCount,
-                        gatheringCategory.name, gathering.user.nickname, gathering.scheduleStartDate,
-                        gathering.scheduleEndDate, gathering.deadline, gathering.allowedSex, gathering.startAge,
-                        gathering.endAge, gathering.personCount)
+                .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,
+                        gatheringCategory.id)
                 .select(Projections.constructor(
                         GatheringBriefResponse.class,
                         gathering.id,
@@ -245,11 +239,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .where(gatheringApplicants.user.id.eq(userId));
 
         List<GatheringApplicantResponse> list = query
-                .groupBy(gathering.id, gathering.title, zoneCategoryParent.name, zoneCategoryChild.name,
-                        gathering.viewCount,
-                        gatheringCategory.name, gathering.user.nickname, gathering.scheduleStartDate,
-                        gathering.scheduleEndDate, gathering.deadline, gathering.allowedSex, gathering.startAge,
-                        gathering.endAge, gathering.personCount, gatheringApplicants.gatheringStatus)
+                .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,
+                        gatheringCategory.id, gatheringApplicants.id)
                 .select(Projections.constructor(
                         GatheringApplicantResponse.class,
                         gathering.id,
