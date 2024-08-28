@@ -22,6 +22,7 @@ import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
 import solitour_backend.solitour.auth.service.OauthService;
 import solitour_backend.solitour.auth.support.google.GoogleConnector;
 import solitour_backend.solitour.auth.support.kakao.KakaoConnector;
+import solitour_backend.solitour.gathering.dto.response.GatheringApplicantResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringBriefResponse;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.user.dto.UpdateAgeAndSex;
@@ -155,12 +156,12 @@ public class UserController {
     }
 
     @GetMapping("/mypage/gathering/applicant")
-    public ResponseEntity<Page<GatheringBriefResponse>> retrieveGatheringApplicant(
+    public ResponseEntity<Page<GatheringApplicantResponse>> retrieveGatheringApplicant(
             @RequestParam(defaultValue = "0") int page,
             @AuthenticationPrincipal Long userId) {
 
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<GatheringBriefResponse> response = userService.retrieveGatheringApplicant(pageable,
+        Page<GatheringApplicantResponse> response = userService.retrieveGatheringApplicant(pageable,
                 userId);
 
         return ResponseEntity.ok(response);

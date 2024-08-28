@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import solitour_backend.solitour.gathering.dto.response.GatheringApplicantResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringBriefResponse;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.user.entity.User;
@@ -76,7 +77,7 @@ public class UserService {
         return userRepository.retrieveGatheringBookmark(pageable, userId);
     }
 
-    public Page<GatheringBriefResponse> retrieveGatheringApplicant(Pageable pageable, Long userId) {
+    public Page<GatheringApplicantResponse> retrieveGatheringApplicant(Pageable pageable, Long userId) {
         return userRepository.retrieveGatheringApplicant(pageable, userId);
     }
 }

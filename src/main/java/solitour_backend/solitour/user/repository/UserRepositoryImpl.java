@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import java.util.List;
@@ -14,9 +15,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import solitour_backend.solitour.book_mark_gathering.entity.QBookMarkGathering;
 import solitour_backend.solitour.book_mark_information.entity.QBookMarkInformation;
+import solitour_backend.solitour.gathering.dto.response.GatheringApplicantResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringBriefResponse;
+import solitour_backend.solitour.gathering.dto.response.GatheringResponse;
 import solitour_backend.solitour.gathering.entity.Gathering;
 import solitour_backend.solitour.gathering.entity.QGathering;
+import solitour_backend.solitour.gathering_applicants.entity.GatheringStatus;
 import solitour_backend.solitour.gathering_applicants.entity.QGatheringApplicants;
 import solitour_backend.solitour.gathering_category.entity.QGatheringCategory;
 import solitour_backend.solitour.great_gathering.entity.QGreatGathering;
@@ -222,9 +226,10 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
     }
 
     @Override
-    public Page<GatheringBriefResponse> retrieveGatheringApplicant(Pageable pageable, Long userId) {
+    public Page<GatheringApplicantResponse> retrieveGatheringApplicant(Pageable pageable, Long userId) {
         NumberExpression<Integer> likeCount = countGreatGatheringByGatheringById();
         BooleanExpression isBookMark = isGatheringBookmark(userId);
+        StringExpression gatheringStatus = getGatheringStatus();
 
         JPQLQuery<Gathering> query = from(gathering)
                 .leftJoin(zoneCategoryParent)
@@ -238,12 +243,13 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .orderBy(gathering.createdAt.desc())
                 .where(gatheringApplicants.user.id.eq(userId));
 
-        List<GatheringBriefResponse> list = query
+        List<GatheringApplicantResponse> list = query
                 .groupBy(gathering.id, gathering.title, zoneCategoryParent.name, zoneCategoryChild.name,gathering.viewCount,
-                        gathering.personCount, gathering.viewCount, gathering.scheduleStartDate,
-                        gathering.scheduleEndDate)
+                        gatheringCategory.name, gathering.user.nickname, gathering.scheduleStartDate,
+                        gathering.scheduleEndDate, gathering.deadline, gathering.allowedSex, gathering.startAge,
+                        gathering.endAge, gathering.personCount,gatheringApplicants.gatheringStatus)
                 .select(Projections.constructor(
-                        GatheringBriefResponse.class,
+                        GatheringApplicantResponse.class,
                         gathering.id,
                         gathering.title,
                         zoneCategoryParent.name,
@@ -261,7 +267,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                         gathering.endAge,
                         gathering.personCount,
                         gatheringApplicants.count().coalesce(0L).intValue(),
-                        isUserGreatGathering(userId)
+                        isUserGreatGathering(userId),
+                        gatheringStatus
                 ))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -269,6 +276,16 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         long total = query.fetchCount();
 
         return new PageImpl<>(list, pageable, total);
+    }
+
+    private StringExpression getGatheringStatus() {
+        QGatheringApplicants gatheringApplicants = QGatheringApplicants.gatheringApplicants;
+        return new CaseBuilder()
+                .when(gatheringApplicants.gatheringStatus.eq(GatheringStatus.WAIT))
+                .then("대기중")
+                .when(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT))
+                .then("승인됨")
+                .otherwise("거절됨");
     }
 
     private NumberExpression<Integer> countGreatGatheringByGatheringById() {
