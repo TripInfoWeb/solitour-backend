@@ -42,4 +42,10 @@ public class UserService {
         User user = userRepository.findByUserId(userId);
         user.deleteUser(userId);
     }
+    @Transactional
+    public void updateUserProfile(Long userId, MultipartFile userProfile) {
+        UserImageResponse response = userImageService.registerInformation(userId,userProfile);
+        User user = userRepository.findByUserId(userId);
+        user.updateUserImage(response.getImageUrl());
+    }
 }

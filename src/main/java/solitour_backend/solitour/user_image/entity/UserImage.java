@@ -31,4 +31,8 @@ public class UserImage {
         this.address = address;
         this.createdDate = createdDate;
     }
+
+    public void updateUserImage(String imageUrl) {
+        this.address = imageUrl;
+    }
 }
