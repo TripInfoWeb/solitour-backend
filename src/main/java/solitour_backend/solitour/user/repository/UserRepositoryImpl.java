@@ -17,7 +17,6 @@ import solitour_backend.solitour.book_mark_gathering.entity.QBookMarkGathering;
 import solitour_backend.solitour.book_mark_information.entity.QBookMarkInformation;
 import solitour_backend.solitour.gathering.dto.response.GatheringApplicantResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringBriefResponse;
-import solitour_backend.solitour.gathering.dto.response.GatheringResponse;
 import solitour_backend.solitour.gathering.entity.Gathering;
 import solitour_backend.solitour.gathering.entity.QGathering;
 import solitour_backend.solitour.gathering_applicants.entity.GatheringStatus;
@@ -31,7 +30,6 @@ import solitour_backend.solitour.information.dto.response.InformationBriefRespon
 import solitour_backend.solitour.information.entity.Information;
 import solitour_backend.solitour.information.entity.QInformation;
 import solitour_backend.solitour.place.entity.QPlace;
-import solitour_backend.solitour.user.entity.QUser;
 import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.zone_category.entity.QZoneCategory;
 
@@ -53,6 +51,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
     QBookMarkGathering bookMarkGathering = QBookMarkGathering.bookMarkGathering;
     QGatheringApplicants gatheringApplicants = QGatheringApplicants.gatheringApplicants;
     QGreatGathering greatGathering = QGreatGathering.greatGathering;
+
     @Override
     public Page<InformationBriefResponse> retrieveInformationOwner(Pageable pageable, Long userId) {
         JPQLQuery<Information> query = from(information)
@@ -141,7 +140,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .where(gathering.user.id.eq(userId));
 
         List<GatheringBriefResponse> list = query
-                .groupBy(gathering.id, gathering.title, zoneCategoryParent.name, zoneCategoryChild.name,gathering.viewCount,
+                .groupBy(gathering.id, gathering.title, zoneCategoryParent.name, zoneCategoryChild.name,
+                        gathering.viewCount,
                         gatheringCategory.name, gathering.user.nickname, gathering.scheduleStartDate,
                         gathering.scheduleEndDate, gathering.deadline, gathering.allowedSex, gathering.startAge,
                         gathering.endAge, gathering.personCount)
@@ -192,7 +192,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .where(bookMarkGathering.user.id.eq(userId));
 
         List<GatheringBriefResponse> list = query
-                .groupBy(gathering.id, gathering.title, zoneCategoryParent.name, zoneCategoryChild.name,gathering.viewCount,
+                .groupBy(gathering.id, gathering.title, zoneCategoryParent.name, zoneCategoryChild.name,
+                        gathering.viewCount,
                         gatheringCategory.name, gathering.user.nickname, gathering.scheduleStartDate,
                         gathering.scheduleEndDate, gathering.deadline, gathering.allowedSex, gathering.startAge,
                         gathering.endAge, gathering.personCount)
@@ -244,10 +245,11 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .where(gatheringApplicants.user.id.eq(userId));
 
         List<GatheringApplicantResponse> list = query
-                .groupBy(gathering.id, gathering.title, zoneCategoryParent.name, zoneCategoryChild.name,gathering.viewCount,
+                .groupBy(gathering.id, gathering.title, zoneCategoryParent.name, zoneCategoryChild.name,
+                        gathering.viewCount,
                         gatheringCategory.name, gathering.user.nickname, gathering.scheduleStartDate,
                         gathering.scheduleEndDate, gathering.deadline, gathering.allowedSex, gathering.startAge,
-                        gathering.endAge, gathering.personCount,gatheringApplicants.gatheringStatus)
+                        gathering.endAge, gathering.personCount, gatheringApplicants.gatheringStatus)
                 .select(Projections.constructor(
                         GatheringApplicantResponse.class,
                         gathering.id,

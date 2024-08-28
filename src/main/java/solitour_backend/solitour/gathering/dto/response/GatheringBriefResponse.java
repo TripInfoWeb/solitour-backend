@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import solitour_backend.solitour.gathering.entity.AllowedSex;
-import solitour_backend.solitour.gathering_applicants.entity.GatheringStatus;
 
 @Getter
 @AllArgsConstructor
