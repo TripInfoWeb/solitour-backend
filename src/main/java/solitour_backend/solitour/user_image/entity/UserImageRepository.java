@@ -1,9 +1,8 @@
 package solitour_backend.solitour.user_image.entity;
 
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserImageRepository extends Repository<UserImage, Long> {
+public interface UserImageRepository extends JpaRepository<UserImage, Long> {
 
     UserImage save(UserImage userImage);
 }

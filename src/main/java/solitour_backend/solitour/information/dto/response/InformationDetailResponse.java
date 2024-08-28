@@ -29,6 +29,7 @@ public class InformationDetailResponse {
 
     private List<ImageResponse> imageResponses;
     private int likeCount;
-
+    private String userImage;
+    private Boolean isLike;
     private List<InformationBriefResponse> recommendInformation;
 }

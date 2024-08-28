@@ -1,7 +1,7 @@
 package solitour_backend.solitour.user.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.List;
+
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -83,7 +83,6 @@ public class UserController {
         }
     }
 
-    @Authenticated
     @PutMapping("/profile")
     public ResponseEntity<Void> updateUserProfile(@AuthenticationPrincipal Long userId,
                                                   @RequestPart(value = "userProfile", required = false) MultipartFile userProfile) {
@@ -92,17 +91,30 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/image")
+    public ResponseEntity<String> updateUserImage(@AuthenticationPrincipal Long userId,
+                                                  @RequestParam String userImage) {
+        try {
+            userService.updateUserImage(userId, userImage);
+            return ResponseEntity.ok("UserImage updated successfully");
+        } catch (UserNotExistsException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An internal error occurred");
+        }
+    }
 
     @Authenticated
     @DeleteMapping()
-    public ResponseEntity<String> deleteUser(@AuthenticationPrincipal Long id, @RequestParam String type,
+    public ResponseEntity<String> deleteUser(HttpServletResponse response, @AuthenticationPrincipal Long id,
+                                             @RequestParam String type,
                                              @RequestParam String code, @RequestParam String redirectUrl) {
         String token = getOauthAccessToken(type, code, redirectUrl);
 
         try {
             oauthservice.revokeToken(type, token);
 
-            oauthservice.logout(id);
+            oauthservice.logout(response, id);
             userService.deleteUser(id);
 
             return ResponseEntity.ok("User deleted successfully");

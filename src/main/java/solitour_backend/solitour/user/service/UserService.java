@@ -16,6 +16,7 @@ import solitour_backend.solitour.user_image.dto.UserImageResponse;
 import solitour_backend.solitour.user_image.entity.UserImage;
 import solitour_backend.solitour.user_image.entity.UserImageRepository;
 import solitour_backend.solitour.user_image.service.UserImageService;
+import solitour_backend.solitour.user_image.entity.UserImage;
 
 @Service
 @RequiredArgsConstructor
@@ -67,5 +68,4 @@ public class UserService {
         UserImageResponse response = userImageService.registerInformation(userId,userProfile);
         User user = userRepository.findByUserId(userId);
         user.updateUserImage(response.getImageUrl());
-    }
 }

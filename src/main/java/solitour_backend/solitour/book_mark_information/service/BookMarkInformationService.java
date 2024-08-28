@@ -37,8 +37,8 @@ public class BookMarkInformationService {
         bookMarkInformationRepository.save(bookMarkInformation);
     }
 
-    public void deleteUserBookmark(Long userId, Long bookMarkId) {
-        BookMarkInformation bookmark = bookMarkInformationRepository.findByIdAndUserId(bookMarkId,
+    public void deleteUserBookmark(Long userId, Long infoId) {
+        BookMarkInformation bookmark = bookMarkInformationRepository.findByInformationIdAndUserId(infoId,
                         userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당하는 북마크가 없습니다"));
 

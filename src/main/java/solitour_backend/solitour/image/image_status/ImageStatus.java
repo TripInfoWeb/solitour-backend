@@ -7,7 +7,8 @@ import lombok.Getter;
 public enum ImageStatus {
     THUMBNAIL("썸네일"),
     CONTENT("본문"),
-    USER("회원");
+    USER("회원"),
+    NONE("없음");
 
     private final String name;
 
