@@ -22,6 +22,7 @@ import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
 import solitour_backend.solitour.auth.service.OauthService;
 import solitour_backend.solitour.auth.support.google.GoogleConnector;
 import solitour_backend.solitour.auth.support.kakao.KakaoConnector;
+import solitour_backend.solitour.gathering.dto.response.GatheringBriefResponse;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.user.dto.UpdateAgeAndSex;
 import solitour_backend.solitour.user.dto.UpdateNicknameRequest;
@@ -40,7 +41,7 @@ public class UserController {
     private final KakaoConnector kakaoConnector;
     private final GoogleConnector googleConnector;
 
-    public static final int PAGE_SIZE = 12;
+    public static final int PAGE_SIZE = 6;
 
     @Authenticated
     @GetMapping("/info")
@@ -108,23 +109,58 @@ public class UserController {
     }
 
     @Authenticated
-    @GetMapping("/post/information")
-    public ResponseEntity<Page<InformationBriefResponse>> retrieveUserInformationPostByUserId(
+    @GetMapping("/mypage/information/owner")
+    public ResponseEntity<Page<InformationBriefResponse>> retrieveInformationOwner(
             @RequestParam(defaultValue = "0") int page,
             @AuthenticationPrincipal Long userId) {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<InformationBriefResponse> response = userService.retrieveUserInformationPostByUserId(pageable, userId);
+        Page<InformationBriefResponse> response = userService.retrieveInformationOwner(pageable, userId);
 
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/post/bookmark")
-    public ResponseEntity<Page<InformationBriefResponse>> retrieveUserInformationPostByUserBookMark(
+    @GetMapping("/mypage/information/bookmark")
+    public ResponseEntity<Page<InformationBriefResponse>> retrieveInformationBookmark(
             @RequestParam(defaultValue = "0") int page,
             @AuthenticationPrincipal Long userId) {
 
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<InformationBriefResponse> response = userService.retrieveUserInformationPostByUserBookMark(pageable,
+        Page<InformationBriefResponse> response = userService.retrieveInformationBookmark(pageable,
+                userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Authenticated
+    @GetMapping("/mypage/gathering/host")
+    public ResponseEntity<Page<GatheringBriefResponse>> retrieveGatheringHost(
+            @RequestParam(defaultValue = "0") int page,
+            @AuthenticationPrincipal Long userId) {
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<GatheringBriefResponse> response = userService.retrieveGatheringHost(pageable, userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/mypage/gathering/bookmark")
+    public ResponseEntity<Page<GatheringBriefResponse>> retrieveGatheringBookmark(
+            @RequestParam(defaultValue = "0") int page,
+            @AuthenticationPrincipal Long userId) {
+
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<GatheringBriefResponse> response = userService.retrieveGatheringBookmark(pageable,
+                userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/mypage/gathering/applicant")
+    public ResponseEntity<Page<GatheringBriefResponse>> retrieveGatheringApplicant(
+            @RequestParam(defaultValue = "0") int page,
+            @AuthenticationPrincipal Long userId) {
+
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<GatheringBriefResponse> response = userService.retrieveGatheringApplicant(pageable,
                 userId);
 
         return ResponseEntity.ok(response);

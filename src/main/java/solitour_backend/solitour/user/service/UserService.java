@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import solitour_backend.solitour.gathering.dto.response.GatheringBriefResponse;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.user.exception.NicknameAlreadyExistsException;
@@ -52,12 +53,12 @@ public class UserService {
         user.deleteUser(userId);
     }
 
-    public Page<InformationBriefResponse> retrieveUserInformationPostByUserId(Pageable pageable, Long userId) {
-        return userRepository.getInformationByUserId(pageable, userId);
+    public Page<InformationBriefResponse> retrieveInformationOwner(Pageable pageable, Long userId) {
+        return userRepository.retrieveInformationOwner(pageable, userId);
     }
 
-    public Page<InformationBriefResponse> retrieveUserInformationPostByUserBookMark(Pageable pageable, Long userId) {
-        return userRepository.getInformationByUserBookMark(pageable, userId);
+    public Page<InformationBriefResponse> retrieveInformationBookmark(Pageable pageable, Long userId) {
+        return userRepository.retrieveInformationBookmark(pageable, userId);
     }
 
     @Transactional
@@ -65,5 +66,17 @@ public class UserService {
         UserImageResponse response = userImageService.registerInformation(userId, userProfile);
         User user = userRepository.findByUserId(userId);
         user.updateUserImage(response.getImageUrl());
+    }
+
+    public Page<GatheringBriefResponse> retrieveGatheringHost(Pageable pageable, Long userId) {
+        return userRepository.retrieveGatheringHost(pageable, userId);
+    }
+
+    public Page<GatheringBriefResponse> retrieveGatheringBookmark(Pageable pageable, Long userId) {
+        return userRepository.retrieveGatheringBookmark(pageable, userId);
+    }
+
+    public Page<GatheringBriefResponse> retrieveGatheringApplicant(Pageable pageable, Long userId) {
+        return userRepository.retrieveGatheringApplicant(pageable, userId);
     }
 }
