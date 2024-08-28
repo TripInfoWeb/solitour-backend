@@ -10,13 +10,11 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -57,7 +55,8 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 .leftJoin(bookMarkGathering)
                 .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
                 .leftJoin(category).on(category.id.eq(gathering.gatheringCategory.id))
-                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
+                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id)
+                        .and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
                 .where(gathering.isFinish.eq(Boolean.FALSE)
                         .and(gathering.gatheringCategory.id.eq(gatheringCategoryId))
                         .and(gathering.id.ne(gatheringId))
@@ -178,7 +177,8 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 .leftJoin(bookMarkGathering)
                 .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
                 .leftJoin(category).on(category.id.eq(gathering.gatheringCategory.id))
-                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
+                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id)
+                        .and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
                 .where(gathering.isFinish.eq(Boolean.FALSE)
                         .and(gathering.isDeleted.eq(Boolean.FALSE))
                         .and(gathering.createdAt.after(LocalDateTime.now().minusMonths(3))))

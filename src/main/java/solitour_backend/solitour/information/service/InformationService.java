@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,8 +56,8 @@ import solitour_backend.solitour.tag.repository.TagRepository;
 import solitour_backend.solitour.user.dto.UserPostingResponse;
 import solitour_backend.solitour.user.dto.mapper.UserMapper;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.entity.UserRepository;
 import solitour_backend.solitour.user.exception.UserNotExistsException;
+import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.user_image.entity.UserImage;
 import solitour_backend.solitour.user_image.entity.UserImageRepository;
 import solitour_backend.solitour.zone_category.dto.mapper.ZoneCategoryMapper;
@@ -186,13 +185,13 @@ public class InformationService {
 
         int likeCount = greatInformationRepository.countByInformationId(information.getId());
 
-        List<InformationBriefResponse> informationRecommend = informationRepository.getInformationRecommend(information.getId(), information.getCategory().getId(), userId);
+        List<InformationBriefResponse> informationRecommend = informationRepository.getInformationRecommend(
+                information.getId(), information.getCategory().getId(), userId);
 
         boolean isLike = greatInformationRepository.existsByInformationIdAndUserId(information.getId(), userId);
 
         //TODO
         UserImage userImage = userImageRepository.findById(userId).orElse(null);
-
 
         return new InformationDetailResponse(
                 information.getTitle(),
@@ -213,7 +212,8 @@ public class InformationService {
     }
 
     @Transactional
-    public InformationResponse modifyInformation(Long id, InformationModifyRequest informationModifyRequest, MultipartFile thumbNail, List<MultipartFile> contentImages) {
+    public InformationResponse modifyInformation(Long id, InformationModifyRequest informationModifyRequest,
+                                                 MultipartFile thumbNail, List<MultipartFile> contentImages) {
         Information information = informationRepository.findById(id)
                 .orElseThrow(
                         () -> new InformationNotExistsException("해당하는 id의 information 이 존재하지 않습니다."));

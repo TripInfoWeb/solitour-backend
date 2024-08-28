@@ -17,8 +17,8 @@ import solitour_backend.solitour.gathering_applicants.exception.GatheringApplica
 import solitour_backend.solitour.gathering_applicants.exception.GatheringNotManagerException;
 import solitour_backend.solitour.gathering_applicants.repository.GatheringApplicantsRepository;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.user.exception.UserNotExistsException;
+import solitour_backend.solitour.user.repository.UserRepository;
 
 @Service
 @Transactional

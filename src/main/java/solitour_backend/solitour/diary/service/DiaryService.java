@@ -16,7 +16,7 @@ import solitour_backend.solitour.diary.feeling_status.FeelingStatus;
 import solitour_backend.solitour.diary.repository.DiaryDayContentRepository;
 import solitour_backend.solitour.diary.repository.DiaryRepository;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.entity.UserRepository;
+import solitour_backend.solitour.user.repository.UserRepository;
 
 
 @Service

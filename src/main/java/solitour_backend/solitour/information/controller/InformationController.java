@@ -3,10 +3,8 @@ package solitour_backend.solitour.information.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-
 import java.util.List;
 import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,10 +49,11 @@ public class InformationController {
 
     @PostMapping
     @Authenticated
-    public ResponseEntity<InformationResponse> createInformation(@Valid @RequestPart("request") InformationRegisterRequest informationRegisterRequest,
-                                                                 @RequestPart("thumbNailImage") MultipartFile thumbnail,
-                                                                 @RequestPart("contentImages") List<MultipartFile> contentImages,
-                                                                 BindingResult bindingResult) {
+    public ResponseEntity<InformationResponse> createInformation(
+            @Valid @RequestPart("request") InformationRegisterRequest informationRegisterRequest,
+            @RequestPart("thumbNailImage") MultipartFile thumbnail,
+            @RequestPart("contentImages") List<MultipartFile> contentImages,
+            BindingResult bindingResult) {
         Utils.validationRequest(bindingResult);
         InformationResponse informationResponse = informationService.registerInformation(
                 informationRegisterRequest, thumbnail, contentImages);
@@ -104,11 +103,12 @@ public class InformationController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<InformationBriefResponse>> pageInformationSortAndFilter(@RequestParam(defaultValue = "0") int page,
-                                                                                       @RequestParam(defaultValue = "1") Long parentCategoryId,
-                                                                                       @Valid @ModelAttribute InformationPageRequest informationPageRequest,
-                                                                                       BindingResult bindingResult,
-                                                                                       HttpServletRequest request) {
+    public ResponseEntity<Page<InformationBriefResponse>> pageInformationSortAndFilter(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") Long parentCategoryId,
+            @Valid @ModelAttribute InformationPageRequest informationPageRequest,
+            BindingResult bindingResult,
+            HttpServletRequest request) {
         Utils.validationRequest(bindingResult);
         Long userId = findUser(request);
 

@@ -1,6 +1,5 @@
 package solitour_backend.solitour.user.service;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,14 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.user.exception.NicknameAlreadyExistsException;
+import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.user.service.dto.response.UserInfoResponse;
 import solitour_backend.solitour.user_image.dto.UserImageResponse;
-import solitour_backend.solitour.user_image.entity.UserImage;
 import solitour_backend.solitour.user_image.entity.UserImageRepository;
 import solitour_backend.solitour.user_image.service.UserImageService;
-import solitour_backend.solitour.user_image.entity.UserImage;
 
 @Service
 @RequiredArgsConstructor
@@ -65,7 +62,8 @@ public class UserService {
 
     @Transactional
     public void updateUserProfile(Long userId, MultipartFile userProfile) {
-        UserImageResponse response = userImageService.registerInformation(userId,userProfile);
+        UserImageResponse response = userImageService.registerInformation(userId, userProfile);
         User user = userRepository.findByUserId(userId);
         user.updateUserImage(response.getImageUrl());
+    }
 }

@@ -9,11 +9,9 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -53,7 +51,8 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (Objects.nonNull(informationPageRequest.getZoneCategoryId())) {
-            whereClause.and(information.zoneCategory.parentZoneCategory.id.eq(informationPageRequest.getZoneCategoryId()));
+            whereClause.and(
+                    information.zoneCategory.parentZoneCategory.id.eq(informationPageRequest.getZoneCategoryId()));
         }
 
         BooleanBuilder categoryCondition = new BooleanBuilder();
@@ -72,7 +71,8 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                 .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
                 .leftJoin(bookMarkInformation)
                 .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
-                .leftJoin(image).on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .leftJoin(image)
+                .on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
                 .join(category).on(category.id.eq(information.category.id).and(categoryCondition))
                 .where(whereClause)
                 .select(information.count()).fetchCount();
@@ -82,7 +82,8 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                 .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
                 .leftJoin(bookMarkInformation)
                 .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
-                .leftJoin(image).on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .leftJoin(image)
+                .on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
                 .join(category).on(category.id.eq(information.category.id).and(categoryCondition))
                 .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
                 .where(whereClause)
@@ -139,7 +140,8 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
     }
 
     @Override
-    public List<InformationBriefResponse> getInformationRecommend(Long informationId, Long childCategoryId, Long userId) {
+    public List<InformationBriefResponse> getInformationRecommend(Long informationId, Long childCategoryId,
+                                                                  Long userId) {
         return from(information)
                 .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
                 .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))

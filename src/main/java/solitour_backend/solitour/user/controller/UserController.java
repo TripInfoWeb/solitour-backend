@@ -8,10 +8,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import solitour_backend.solitour.auth.config.Authenticated;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
 import solitour_backend.solitour.auth.service.OauthService;
-import solitour_backend.solitour.auth.service.TokenService;
 import solitour_backend.solitour.auth.support.google.GoogleConnector;
 import solitour_backend.solitour.auth.support.kakao.KakaoConnector;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
@@ -89,19 +86,6 @@ public class UserController {
         userService.updateUserProfile(userId, userProfile);
 
         return ResponseEntity.ok().build();
-    }
-
-    @PutMapping("/image")
-    public ResponseEntity<String> updateUserImage(@AuthenticationPrincipal Long userId,
-                                                  @RequestParam String userImage) {
-        try {
-            userService.updateUserImage(userId, userImage);
-            return ResponseEntity.ok("UserImage updated successfully");
-        } catch (UserNotExistsException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An internal error occurred");
-        }
     }
 
     @Authenticated

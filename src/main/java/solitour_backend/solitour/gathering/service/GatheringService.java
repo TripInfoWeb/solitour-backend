@@ -6,7 +6,6 @@ import static solitour_backend.solitour.gathering.repository.GatheringRepository
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -52,8 +51,8 @@ import solitour_backend.solitour.tag.repository.TagRepository;
 import solitour_backend.solitour.user.dto.UserPostingResponse;
 import solitour_backend.solitour.user.dto.mapper.UserMapper;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.user.exception.UserNotExistsException;
+import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.zone_category.dto.mapper.ZoneCategoryMapper;
 import solitour_backend.solitour.zone_category.dto.response.ZoneCategoryResponse;
 import solitour_backend.solitour.zone_category.entity.ZoneCategory;
@@ -106,11 +105,13 @@ public class GatheringService {
         }
         GatheringCategory gatheringCategory = gathering.getGatheringCategory();
 
-        GatheringCategoryResponse gatheringCategoryResponse = gatheringCategoryMapper.mapToCategoryResponse(gatheringCategory);
+        GatheringCategoryResponse gatheringCategoryResponse = gatheringCategoryMapper.mapToCategoryResponse(
+                gatheringCategory);
 
         PlaceResponse placeResponse = placeMapper.mapToPlaceResponse(gathering.getPlace());
 
-        ZoneCategoryResponse zoneCategoryResponse = zoneCategoryMapper.mapToZoneCategoryResponse(gathering.getZoneCategory());
+        ZoneCategoryResponse zoneCategoryResponse = zoneCategoryMapper.mapToZoneCategoryResponse(
+                gathering.getZoneCategory());
 
         int likeCount = greatGatheringRepository.countByGatheringId(gathering.getId());
 
@@ -119,7 +120,9 @@ public class GatheringService {
         boolean isApplicants = gatheringApplicantsRepository.existsByGatheringIdAndUserId(gathering.getId(), userId);
 
         if (gathering.getUser().getId().equals(userId)) {
-            gatheringApplicantsResponses = gatheringApplicantsMapper.mapToGatheringApplicantsResponses(gatheringApplicantsRepository.findAllByGathering_IdAndUserIdNot(gathering.getId(), gathering.getUser().getId()));
+            gatheringApplicantsResponses = gatheringApplicantsMapper.mapToGatheringApplicantsResponses(
+                    gatheringApplicantsRepository.findAllByGathering_IdAndUserIdNot(gathering.getId(),
+                            gathering.getUser().getId()));
         }
 
         int nowPersonCount = gatheringApplicantsRepository.countAllByGathering_IdAndGatheringStatus(gathering.getId(),
@@ -127,7 +130,8 @@ public class GatheringService {
 
         boolean isLike = greatGatheringRepository.existsByGatheringIdAndUserId(gathering.getId(), userId);
 
-        List<GatheringBriefResponse> gatheringRecommend = gatheringRepository.getGatheringRecommend(gathering.getId(), gathering.getGatheringCategory().getId(), userId);
+        List<GatheringBriefResponse> gatheringRecommend = gatheringRepository.getGatheringRecommend(gathering.getId(),
+                gathering.getGatheringCategory().getId(), userId);
 
         return new GatheringDetailResponse(
                 gathering.getTitle(),
@@ -220,7 +224,8 @@ public class GatheringService {
     }
 
     @Transactional
-    public GatheringResponse modifyGathering(Long userId, Long gatheringId, GatheringModifyRequest gatheringModifyRequest) {
+    public GatheringResponse modifyGathering(Long userId, Long gatheringId,
+                                             GatheringModifyRequest gatheringModifyRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(
                         () -> new UserNotExistsException("해당하는 id의 User 가 없습니다"));
@@ -357,13 +362,15 @@ public class GatheringService {
 
         // 정렬 방식 검증
         if (Objects.nonNull(gatheringPageRequest.getSort())) {
-            if (!LIKE_COUNT_SORT.equals(gatheringPageRequest.getSort()) && !VIEW_COUNT_SORT.equals(gatheringPageRequest.getSort())) {
+            if (!LIKE_COUNT_SORT.equals(gatheringPageRequest.getSort()) && !VIEW_COUNT_SORT.equals(
+                    gatheringPageRequest.getSort())) {
                 throw new RequestValidationFailedException("잘못된 정렬 코드입니다.");
             }
         }
 
         // 날짜 검증
-        if (Objects.nonNull(gatheringPageRequest.getStartDate()) && Objects.nonNull(gatheringPageRequest.getEndDate())) {
+        if (Objects.nonNull(gatheringPageRequest.getStartDate()) && Objects.nonNull(
+                gatheringPageRequest.getEndDate())) {
 
             if (gatheringPageRequest.getStartDate().isAfter(gatheringPageRequest.getEndDate())) {
                 throw new RequestValidationFailedException("시작 날짜가 종료 날짜보다 나중일 수 없습니다.");
