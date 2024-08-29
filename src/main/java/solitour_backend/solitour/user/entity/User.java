@@ -89,4 +89,8 @@ public class User {
         this.userStatus = UserStatus.DELETE;
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void updateUserImage(String imageUrl) {
+        this.userImage.updateUserImage(imageUrl);
+    }
 }

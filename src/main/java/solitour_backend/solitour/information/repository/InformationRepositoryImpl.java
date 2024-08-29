@@ -1,6 +1,13 @@
 package solitour_backend.solitour.information.repository;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,13 +21,12 @@ import solitour_backend.solitour.category.entity.QCategory;
 import solitour_backend.solitour.great_information.entity.QGreatInformation;
 import solitour_backend.solitour.image.entity.QImage;
 import solitour_backend.solitour.image.image_status.ImageStatus;
-import solitour_backend.solitour.info_tag.entity.QInfoTag;
+import solitour_backend.solitour.information.dto.request.InformationPageRequest;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.information.dto.response.InformationMainResponse;
 import solitour_backend.solitour.information.dto.response.InformationRankResponse;
 import solitour_backend.solitour.information.entity.Information;
 import solitour_backend.solitour.information.entity.QInformation;
-import solitour_backend.solitour.tag.entity.QTag;
 import solitour_backend.solitour.zone_category.entity.QZoneCategory;
 
 public class InformationRepositoryImpl extends QuerydslRepositorySupport implements InformationRepositoryCustom {
@@ -36,31 +42,53 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
     QImage image = QImage.image;
     QGreatInformation greatInformation = QGreatInformation.greatInformation;
     QCategory category = QCategory.category;
-    QInfoTag infoTag = QInfoTag.infoTag;
 
 
     @Override
-    public Page<InformationBriefResponse> getInformationByParentCategoryFilterZoneCategory(Pageable pageable,
-                                                                                           Long parentCategoryId,
-                                                                                           Long userId,
-                                                                                           Long zoneCategoryId) {
-        JPQLQuery<Information> query = from(information)
+    public Page<InformationBriefResponse> getInformationPageFilterAndOrder(Pageable pageable,
+                                                                           InformationPageRequest informationPageRequest,
+                                                                           Long userId, Long parentCategoryId) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if (Objects.nonNull(informationPageRequest.getZoneCategoryId())) {
+            whereClause.and(
+                    information.zoneCategory.parentZoneCategory.id.eq(informationPageRequest.getZoneCategoryId()));
+        }
+
+        BooleanBuilder categoryCondition = new BooleanBuilder();
+
+        if (Objects.nonNull(informationPageRequest.getChildCategoryId())) {
+            whereClause.and(information.category.id.eq(informationPageRequest.getChildCategoryId()));
+        } else {
+            categoryCondition.and(category.parentCategory.id.eq(parentCategoryId));
+        }
+
+        OrderSpecifier<?> orderSpecifier = getOrderSpecifier(informationPageRequest.getSort());
+        NumberExpression<Integer> countGreatInformation = countGreatInformationByInformationById();
+
+        long total = from(information)
                 .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
                 .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
                 .leftJoin(bookMarkInformation)
                 .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
-                .leftJoin(image).on(image.information.id.eq(information.id)
-                        .and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .leftJoin(image)
+                .on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .join(category).on(category.id.eq(information.category.id).and(categoryCondition))
+                .where(whereClause)
+                .select(information.count()).fetchCount();
+
+        List<InformationBriefResponse> list = from(information)
+                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
+                .leftJoin(bookMarkInformation)
+                .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
+                .leftJoin(image)
+                .on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .join(category).on(category.id.eq(information.category.id).and(categoryCondition))
                 .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
-                .where(information.category.parentCategory.id.eq(parentCategoryId));
-
-        if (Objects.nonNull(zoneCategoryId)) {
-            query = query.where(information.zoneCategory.parentZoneCategory.id.eq(zoneCategoryId));
-        }
-
-        List<InformationBriefResponse> list = query
+                .where(whereClause)
                 .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id)
-                .orderBy(information.createdDate.desc())
+                .orderBy(orderSpecifier)
                 .select(Projections.constructor(
                         InformationBriefResponse.class,
                         information.id,
@@ -70,224 +98,11 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                         information.viewCount,
                         bookMarkInformation.user.id.isNotNull(),
                         image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
-                ))
-                .offset(pageable.getOffset())
+                        countGreatInformation,
+                        isUserGreatInformation(userId)
+                )).offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
-
-        long total = from(information).where(information.category.id.eq(parentCategoryId)).fetchCount();
-
-        return new PageImpl<>(list, pageable, total);
-    }
-
-    @Override
-    public Page<InformationBriefResponse> getInformationByChildCategoryFilterZoneCategory(Pageable pageable,
-                                                                                          Long childCategoryId,
-                                                                                          Long userId,
-                                                                                          Long zoneCategoryId) {
-        JPQLQuery<Information> query = from(information)
-                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(bookMarkInformation)
-                .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
-                .leftJoin(image).on(image.information.id.eq(information.id)
-                        .and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
-                .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
-                .where(information.category.id.eq(childCategoryId));
-
-        if (Objects.nonNull(zoneCategoryId)) {
-            query = query.where(information.zoneCategory.parentZoneCategory.id.eq(zoneCategoryId));
-        }
-
-        List<InformationBriefResponse> list = query
-                .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id)
-                .orderBy(information.createdDate.desc())
-                .select(Projections.constructor(
-                        InformationBriefResponse.class,
-                        information.id,
-                        information.title,
-                        zoneCategoryParent.name,
-                        zoneCategoryChild.name,
-                        information.viewCount,
-                        bookMarkInformation.user.id.isNotNull(),
-                        image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
-                ))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        long total = from(information).where(information.category.id.eq(childCategoryId)).fetchCount();
-
-        return new PageImpl<>(list, pageable, total);
-    }
-
-
-    @Override
-    public Page<InformationBriefResponse> getInformationByParentCategoryFilterZoneCategoryLikeCount(Pageable pageable,
-                                                                                                    Long categoryId,
-                                                                                                    Long userId,
-                                                                                                    Long zoneCategoryId) {
-        JPQLQuery<Information> query = from(information)
-                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(bookMarkInformation)
-                .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
-                .leftJoin(image).on(image.information.id.eq(information.id)
-                        .and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
-                .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
-                .where(information.category.parentCategory.id.eq(categoryId));
-
-        if (Objects.nonNull(zoneCategoryId)) {
-            query = query.where(information.zoneCategory.parentZoneCategory.id.eq(zoneCategoryId));
-        }
-
-        List<InformationBriefResponse> list = query.groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id,
-                        image.id)
-                .orderBy(greatInformation.information.count().desc())
-                .select(Projections.constructor(
-                        InformationBriefResponse.class,
-                        information.id,
-                        information.title,
-                        zoneCategoryParent.name,
-                        zoneCategoryChild.name,
-                        information.viewCount,
-                        bookMarkInformation.user.id.isNotNull(),
-                        image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
-                ))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        long total = from(information).where(information.category.id.eq(categoryId)).fetchCount();
-
-        return new PageImpl<>(list, pageable, total);
-    }
-
-    @Override
-    public Page<InformationBriefResponse> getInformationByChildCategoryFilterZoneCategoryLikeCount(Pageable pageable,
-                                                                                                   Long categoryId,
-                                                                                                   Long userId,
-                                                                                                   Long zoneCategoryId) {
-        JPQLQuery<Information> query = from(information)
-                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(bookMarkInformation)
-                .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
-                .leftJoin(image).on(image.information.id.eq(information.id)
-                        .and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
-                .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
-                .where(information.category.id.eq(categoryId));
-
-        if (Objects.nonNull(zoneCategoryId)) {
-            query = query.where(information.zoneCategory.parentZoneCategory.id.eq(zoneCategoryId));
-        }
-
-        List<InformationBriefResponse> list = query
-                .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id)
-                .orderBy(greatInformation.information.count().desc())
-                .select(Projections.constructor(
-                        InformationBriefResponse.class,
-                        information.id,
-                        information.title,
-                        zoneCategoryParent.name,
-                        zoneCategoryChild.name,
-                        information.viewCount,
-                        bookMarkInformation.user.id.isNotNull(),
-                        image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
-                ))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        long total = from(information).where(information.category.id.eq(categoryId)).fetchCount();
-
-        return new PageImpl<>(list, pageable, total);
-    }
-
-    @Override
-    public Page<InformationBriefResponse> getInformationByParentCategoryFilterZoneCategoryViewCount(Pageable pageable,
-                                                                                                    Long categoryId,
-                                                                                                    Long userId,
-                                                                                                    Long zoneCategoryId) {
-        JPQLQuery<Information> query = from(information)
-                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(bookMarkInformation)
-                .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
-                .leftJoin(image).on(image.information.id.eq(information.id)
-                        .and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
-                .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
-                .where(information.category.parentCategory.id.eq(categoryId));
-
-        if (Objects.nonNull(zoneCategoryId)) {
-            query = query.where(information.zoneCategory.parentZoneCategory.id.eq(zoneCategoryId));
-        }
-
-        List<InformationBriefResponse> list = query
-                .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id)
-                .orderBy(information.viewCount.desc())
-                .select(Projections.constructor(
-                        InformationBriefResponse.class,
-                        information.id,
-                        information.title,
-                        zoneCategoryParent.name,
-                        zoneCategoryChild.name,
-                        information.viewCount,
-                        bookMarkInformation.user.id.isNotNull(),
-                        image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
-                ))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        long total = from(information).where(information.category.id.eq(categoryId)).fetchCount();
-
-        return new PageImpl<>(list, pageable, total);
-    }
-
-    @Override
-    public Page<InformationBriefResponse> getInformationByChildCategoryFilterZoneCategoryViewCount(Pageable pageable,
-                                                                                                   Long categoryId,
-                                                                                                   Long userId,
-                                                                                                   Long zoneCategoryId) {
-        JPQLQuery<Information> query = from(information)
-                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(bookMarkInformation)
-                .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
-                .leftJoin(image).on(image.information.id.eq(information.id)
-                        .and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
-                .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
-                .where(information.category.id.eq(categoryId));
-
-        if (Objects.nonNull(zoneCategoryId)) {
-            query = query.where(information.zoneCategory.parentZoneCategory.id.eq(zoneCategoryId));
-        }
-
-        List<InformationBriefResponse> list = query
-                .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id)
-                .orderBy(information.viewCount.desc())
-                .select(Projections.constructor(
-                        InformationBriefResponse.class,
-                        information.id,
-                        information.title,
-                        zoneCategoryParent.name,
-                        zoneCategoryChild.name,
-                        information.viewCount,
-                        bookMarkInformation.user.id.isNotNull(),
-                        image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
-                ))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        long total = from(information).where(information.category.id.eq(categoryId)).fetchCount();
 
         return new PageImpl<>(list, pageable, total);
     }
@@ -318,7 +133,8 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                         information.viewCount,
                         bookMarkInformation.user.id.isNotNull(),
                         image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
+                        countGreatInformationByInformationById(),
+                        isUserGreatInformation(userId)
                 )).limit(6).fetch();
 
     }
@@ -346,87 +162,11 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                         information.viewCount,
                         bookMarkInformation.user.id.isNotNull(),
                         image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
-                )).limit(3L).fetch();
-    }
-
-    @Override
-    public Page<InformationBriefResponse> getInformationByParentCategoryFilterTag(Pageable pageable,
-                                                                                  Long parentCategoryId,
-                                                                                  Long userId, String tagName) {
-
-        JPQLQuery<Information> query = from(information)
-                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(bookMarkInformation)
-                .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
-                .leftJoin(infoTag)
-                .on(infoTag.tag.name.eq(tagName))
-                .leftJoin(image).on(image.information.id.eq(information.id)
-                        .and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
-                .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
-                .where(information.category.parentCategory.id.eq(parentCategoryId).and(infoTag.information.id.eq(information.id)));
-
-        List<InformationBriefResponse> list = query
-                .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id)
-                .orderBy(information.createdDate.desc())
-                .select(Projections.constructor(
-                        InformationBriefResponse.class,
-                        information.id,
-                        information.title,
-                        zoneCategoryParent.name,
-                        zoneCategoryChild.name,
-                        information.viewCount,
-                        bookMarkInformation.user.id.isNotNull(),
-                        image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
+                        countGreatInformationByInformationById(),
+                        isUserGreatInformation(userId)
                 ))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .limit(3L)
                 .fetch();
-
-        long total = from(information).where(information.category.id.eq(parentCategoryId)).fetchCount();
-
-        return new PageImpl<>(list, pageable, total);
-    }
-
-    @Override
-    public Page<InformationBriefResponse> getInformationByChildCategoryFilterTag(Pageable pageable,
-                                                                                 Long childCategoryId,
-                                                                                 Long userId, String tagName) {
-        JPQLQuery<Information> query = from(information)
-                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(infoTag)
-                .on(infoTag.tag.name.eq(tagName))
-                .leftJoin(bookMarkInformation)
-                .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
-                .leftJoin(image).on(image.information.id.eq(information.id)
-                        .and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
-                .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
-                .where(information.category.id.eq(childCategoryId).and(infoTag.information.id.eq(information.id)));
-
-        List<InformationBriefResponse> list = query
-                .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id)
-                .orderBy(information.createdDate.desc())
-                .select(Projections.constructor(
-                        InformationBriefResponse.class,
-                        information.id,
-                        information.title,
-                        zoneCategoryParent.name,
-                        zoneCategoryChild.name,
-                        information.viewCount,
-                        bookMarkInformation.user.id.isNotNull(),
-                        image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
-                ))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        long total = from(information).where(information.category.id.eq(childCategoryId)).fetchCount();
-
-        return new PageImpl<>(list, pageable, total);
     }
 
     @Override
@@ -442,6 +182,38 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                         information.id,
                         information.title
                 )).fetch();
+    }
+
+    private OrderSpecifier<?> getOrderSpecifier(String sort) {
+        if (Objects.nonNull(sort)) {
+            if (Objects.equals(LIKE_COUNT_SORT, sort)) {
+                return countGreatInformationByInformationById().desc();
+            } else if (Objects.equals(VIEW_COUNT_SORT, sort)) {
+                return information.viewCount.desc();
+            }
+        }
+        return information.createdDate.desc();
+    }
+
+    private NumberExpression<Integer> countGreatInformationByInformationById() {
+        QGreatInformation greatInformationSub = QGreatInformation.greatInformation;
+        JPQLQuery<Long> likeCountSubQuery = JPAExpressions
+                .select(greatInformationSub.count())
+                .from(greatInformationSub)
+                .where(greatInformationSub.information.id.eq(information.id));
+
+        return Expressions.numberTemplate(Long.class, "{0}", likeCountSubQuery).coalesce(0L).intValue();
+    }
+
+    private BooleanExpression isUserGreatInformation(Long userId) {
+        return new CaseBuilder()
+                .when(JPAExpressions.selectOne()
+                        .from(greatInformation)
+                        .where(greatInformation.information.id.eq(information.id)
+                                .and(greatInformation.information.id.eq(userId)))
+                        .exists())
+                .then(true)
+                .otherwise(false);
     }
 
 

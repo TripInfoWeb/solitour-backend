@@ -10,7 +10,7 @@ import solitour_backend.solitour.great_information.repository.GreatInformationRe
 import solitour_backend.solitour.information.entity.Information;
 import solitour_backend.solitour.information.repository.InformationRepository;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.entity.UserRepository;
+import solitour_backend.solitour.user.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -33,14 +33,14 @@ public class GreatInformationService {
         Information information = informationRepository.findById(infoId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 정보가 없습니다."));
 
-        return greatInformationRepository.findByIdAndUserId(infoId, userId)
+        return greatInformationRepository.findByInformationIdAndUserId(infoId, userId)
                 .orElseGet(
                         () -> greatInformationRepository.save(new GreatInformation(user, information)));
     }
 
     @Transactional
-    public void deleteInformationGreat(Long userId, Long bookMarkId) {
-        GreatInformation greatInformation = greatInformationRepository.findByIdAndUserId(bookMarkId,
+    public void deleteInformationGreat(Long userId, Long infoId) {
+        GreatInformation greatInformation = greatInformationRepository.findByInformationIdAndUserId(infoId,
                         userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 정보에는 좋아요를 하지 않았습니다"));
 

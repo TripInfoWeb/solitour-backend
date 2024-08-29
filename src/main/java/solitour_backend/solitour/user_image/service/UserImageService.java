@@ -35,5 +35,4 @@ public class UserImageService {
 
         return new UserImageResponse(userImageUrl);
     }
-
 }

@@ -30,6 +30,6 @@ public class GatheringBriefResponse {
     private Integer endAge;
     private Integer personCount;
     private Integer nowPersonCount;
-
+    private Boolean isLike;
 
 }

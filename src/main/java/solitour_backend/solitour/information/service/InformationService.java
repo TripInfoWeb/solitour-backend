@@ -1,5 +1,8 @@
 package solitour_backend.solitour.information.service;
 
+import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.LIKE_COUNT_SORT;
+import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.VIEW_COUNT_SORT;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,6 +18,7 @@ import solitour_backend.solitour.book_mark_information.entity.BookMarkInformatio
 import solitour_backend.solitour.category.entity.Category;
 import solitour_backend.solitour.category.exception.CategoryNotExistsException;
 import solitour_backend.solitour.category.repository.CategoryRepository;
+import solitour_backend.solitour.error.exception.RequestValidationFailedException;
 import solitour_backend.solitour.great_information.repository.GreatInformationRepository;
 import solitour_backend.solitour.image.dto.mapper.ImageMapper;
 import solitour_backend.solitour.image.dto.request.ImageDeleteRequest;
@@ -30,6 +34,7 @@ import solitour_backend.solitour.info_tag.entity.InfoTag;
 import solitour_backend.solitour.info_tag.repository.InfoTagRepository;
 import solitour_backend.solitour.information.dto.mapper.InformationMapper;
 import solitour_backend.solitour.information.dto.request.InformationModifyRequest;
+import solitour_backend.solitour.information.dto.request.InformationPageRequest;
 import solitour_backend.solitour.information.dto.request.InformationRegisterRequest;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.information.dto.response.InformationDetailResponse;
@@ -51,8 +56,10 @@ import solitour_backend.solitour.tag.repository.TagRepository;
 import solitour_backend.solitour.user.dto.UserPostingResponse;
 import solitour_backend.solitour.user.dto.mapper.UserMapper;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.user.exception.UserNotExistsException;
+import solitour_backend.solitour.user.repository.UserRepository;
+import solitour_backend.solitour.user_image.entity.UserImage;
+import solitour_backend.solitour.user_image.entity.UserImageRepository;
 import solitour_backend.solitour.zone_category.dto.mapper.ZoneCategoryMapper;
 import solitour_backend.solitour.zone_category.dto.response.ZoneCategoryResponse;
 import solitour_backend.solitour.zone_category.entity.ZoneCategory;
@@ -80,6 +87,7 @@ public class InformationService {
     private final UserMapper userMapper;
     private final GreatInformationRepository greatInformationRepository;
     private final BookMarkInformationRepository bookMarkInformationRepository;
+    private final UserImageRepository userImageRepository;
 
     public static final String IMAGE_PATH = "information";
     private final ImageRepository imageRepository;
@@ -152,12 +160,13 @@ public class InformationService {
 
 
     public InformationDetailResponse getDetailInformation(Long userId, Long informationId) {
-        Information information = informationRepository.findById(informationId).orElseThrow(
-                () -> new InformationNotExistsException("해당하는 id의 information이 존재하지 않습니다."));
+        Information information = informationRepository.findById(informationId)
+                .orElseThrow(
+                        () ->
+                                new InformationNotExistsException("해당하는 id 의 information 이 존재하지 않습니다."));
         List<InfoTag> infoTags = infoTagRepository.findAllByInformationId(information.getId());
 
-        UserPostingResponse userPostingResponse = userMapper.mapToUserPostingResponse(
-                information.getUser());
+        UserPostingResponse userPostingResponse = userMapper.mapToUserPostingResponse(information.getUser());
 
         List<TagResponse> tagResponses = new ArrayList<>();
         if (!infoTags.isEmpty()) {
@@ -179,6 +188,11 @@ public class InformationService {
         List<InformationBriefResponse> informationRecommend = informationRepository.getInformationRecommend(
                 information.getId(), information.getCategory().getId(), userId);
 
+        boolean isLike = greatInformationRepository.existsByInformationIdAndUserId(information.getId(), userId);
+
+        //TODO
+        UserImage userImage = userImageRepository.findById(userId).orElse(null);
+
         return new InformationDetailResponse(
                 information.getTitle(),
                 information.getAddress(),
@@ -192,6 +206,8 @@ public class InformationService {
                 zoneCategoryResponse,
                 imageResponseList,
                 likeCount,
+                Objects.requireNonNull(userImage).getAddress(),
+                isLike,
                 informationRecommend);
     }
 
@@ -200,7 +216,7 @@ public class InformationService {
                                                  MultipartFile thumbNail, List<MultipartFile> contentImages) {
         Information information = informationRepository.findById(id)
                 .orElseThrow(
-                        () -> new InformationNotExistsException("해당하는 id의 information이 존재하지 않습니다."));
+                        () -> new InformationNotExistsException("해당하는 id의 information 이 존재하지 않습니다."));
         information.setTitle(informationModifyRequest.getTitle());
         information.setAddress(informationModifyRequest.getAddress());
         information.setContent(informationModifyRequest.getContent());
@@ -277,8 +293,8 @@ public class InformationService {
         if (Objects.nonNull(contentImages)) {
             for (MultipartFile multipartFile : contentImages) {
                 String upload = s3Uploader.upload(multipartFile, IMAGE_PATH, information.getId());
-                Image contentImage = new Image(ImageStatus.CONTENT, information, upload,
-                        LocalDate.now());
+                Image contentImage = new Image(ImageStatus.CONTENT, information, upload, LocalDate.now());
+
                 imageRepository.save(contentImage);
             }
         }
@@ -304,8 +320,10 @@ public class InformationService {
 
     @Transactional
     public void deleteInformation(Long id) {
-        Information information = informationRepository.findById(id).orElseThrow(
-                () -> new InformationNotExistsException("해당하는 id의 information이 존재하지 않습니다."));
+        Information information = informationRepository.findById(id)
+                .orElseThrow(
+                        () ->
+                                new InformationNotExistsException("해당하는 id의 information 이 존재하지 않습니다."));
 
         List<InfoTag> infoTags = infoTagRepository.findAllByInformationId(information.getId());
         infoTagRepository.deleteAllByInformationId(information.getId());
@@ -330,108 +348,39 @@ public class InformationService {
 
     }
 
-    //default
-    public Page<InformationBriefResponse> getBriefInformationPageByParentCategoryFilterZoneCategory(Pageable pageable,
-                                                                                                    Long parentCategoryId,
-                                                                                                    Long userId,
-                                                                                                    Long zoneCategoryId) {
-        if (!categoryRepository.existsById(parentCategoryId)) {
-            throw new CategoryNotExistsException("해당하는 id의 category는 없습니다");
-        }
-        if (Objects.nonNull(zoneCategoryId) && !zoneCategoryRepository.existsById(zoneCategoryId)) {
-            throw new ZoneCategoryNotExistsException("해당하는 id의 zoneCategory는 없습니다");
+
+    public Page<InformationBriefResponse> getPageInformation(Pageable pageable, Long userId, Long parentCategoryId,
+                                                             InformationPageRequest informationPageRequest) {
+        if (!categoryRepository.existsByIdAndParentCategoryId(parentCategoryId, null)) {
+            throw new CategoryNotExistsException("해당하는 id의 부모 category 는 없습니다");
         }
 
-        return informationRepository.getInformationByParentCategoryFilterZoneCategory(pageable, parentCategoryId,
-                userId, zoneCategoryId);
+        if (Objects.nonNull(informationPageRequest.getChildCategoryId())) {
+            Category category = categoryRepository.findById(informationPageRequest.getChildCategoryId())
+                    .orElseThrow(
+                            () -> new CategoryNotExistsException("해당하는 id의 category 는 없습니다"));
+
+            if (!Objects.equals(category.getParentCategory().getId(), parentCategoryId)) {
+                throw new RequestValidationFailedException("자식 카테고리의 부모 카테고리와 요청한 부모 카테고리가 다릅니다");
+            }
+        }
+
+        if (Objects.nonNull(informationPageRequest.getZoneCategoryId())) {
+            if (!zoneCategoryRepository.existsById(informationPageRequest.getZoneCategoryId())) {
+                throw new ZoneCategoryNotExistsException("해당하는 지역 카테고리가 없습니다");
+            }
+        }
+
+        if (Objects.nonNull(informationPageRequest.getSort())) {
+            if (!Objects.equals(LIKE_COUNT_SORT, informationPageRequest.getSort()) || !Objects.equals(VIEW_COUNT_SORT,
+                    informationPageRequest.getSort())) {
+                throw new RequestValidationFailedException("잘못된 정렬 코드입니다.");
+            }
+        }
+
+        return informationRepository.getInformationPageFilterAndOrder(pageable, informationPageRequest, userId,
+                parentCategoryId);
     }
-
-    public Page<InformationBriefResponse> getBriefInformationPageByChildCategoryFilterZoneCategory(Pageable pageable,
-                                                                                                   Long childCategoryId,
-                                                                                                   Long userId,
-                                                                                                   Long zoneCategoryId) {
-        if (!categoryRepository.existsById(childCategoryId)) {
-            throw new CategoryNotExistsException("해당하는 id의 category는 없습니다");
-        }
-        if (Objects.nonNull(zoneCategoryId) && !zoneCategoryRepository.existsById(zoneCategoryId)) {
-            throw new ZoneCategoryNotExistsException("해당하는 id의 zoneCategory는 없습니다");
-        }
-        return informationRepository.getInformationByChildCategoryFilterZoneCategory(pageable, childCategoryId, userId,
-                zoneCategoryId);
-    }
-
-    //지역카테고리별 좋아요순
-    public Page<InformationBriefResponse> getBriefInformationPageByParentCategoryFilterZoneCategoryLikeCount(
-            Pageable pageable, Long parentCategoryId, Long userId, Long zoneCategoryId) {
-        if (!categoryRepository.existsById(parentCategoryId)) {
-            throw new CategoryNotExistsException("해당하는 id의 category는 없습니다");
-        }
-        if (Objects.nonNull(zoneCategoryId) && !zoneCategoryRepository.existsById(zoneCategoryId)) {
-            throw new ZoneCategoryNotExistsException("해당하는 id의 zoneCategory는 없습니다");
-        }
-
-        return informationRepository.getInformationByParentCategoryFilterZoneCategoryLikeCount(pageable,
-                parentCategoryId, userId, zoneCategoryId);
-    }
-
-    public Page<InformationBriefResponse> getBriefInformationPageByChildCategoryFilterZoneCategoryLikeCount(
-            Pageable pageable, Long childCategoryId, Long userId, Long zoneCategoryId) {
-        if (!categoryRepository.existsById(childCategoryId)) {
-            throw new CategoryNotExistsException("해당하는 id의 category는 없습니다");
-        }
-        if (Objects.nonNull(zoneCategoryId) && !zoneCategoryRepository.existsById(zoneCategoryId)) {
-            throw new ZoneCategoryNotExistsException("해당하는 id의 zoneCategory는 없습니다");
-        }
-
-        return informationRepository.getInformationByChildCategoryFilterZoneCategoryLikeCount(pageable, childCategoryId,
-                userId, zoneCategoryId);
-    }
-
-    //지역카테고리별 조회순
-    public Page<InformationBriefResponse> getBriefInformationPageByParentCategoryFilterZoneCategoryViewCount(
-            Pageable pageable, Long parentCategoryId, Long userId, Long zoneCategoryId) {
-        if (!categoryRepository.existsById(parentCategoryId)) {
-            throw new CategoryNotExistsException("해당하는 id의 category는 없습니다");
-        }
-        if (Objects.nonNull(zoneCategoryId) && !zoneCategoryRepository.existsById(zoneCategoryId)) {
-            throw new ZoneCategoryNotExistsException("해당하는 id의 zoneCategory는 없습니다");
-        }
-
-        return informationRepository.getInformationByParentCategoryFilterZoneCategoryViewCount(pageable,
-                parentCategoryId, userId, zoneCategoryId);
-    }
-
-    public Page<InformationBriefResponse> getBriefInformationPageByChildCategoryFilterZoneCategoryViewCount(
-            Pageable pageable, Long childCategoryId, Long userId, Long zoneCategoryId) {
-        if (!categoryRepository.existsById(childCategoryId)) {
-            throw new CategoryNotExistsException("해당하는 id의 category는 없습니다");
-        }
-        if (Objects.nonNull(zoneCategoryId) && !zoneCategoryRepository.existsById(zoneCategoryId)) {
-            throw new ZoneCategoryNotExistsException("해당하는 id의 zoneCategory는 없습니다");
-        }
-
-        return informationRepository.getInformationByChildCategoryFilterZoneCategoryViewCount(pageable, childCategoryId,
-                userId, zoneCategoryId);
-    }
-
-    public Page<InformationBriefResponse> getBriefInformationPageByParentCategoryFilterTag(Pageable pageable, Long parentCategoryId, Long userId, String tag) {
-        if (!categoryRepository.existsById(parentCategoryId)) {
-            throw new CategoryNotExistsException("해당하는 id의 category는 없습니다");
-        }
-
-        return informationRepository.getInformationByParentCategoryFilterTag(pageable,
-                parentCategoryId, userId, tag);
-    }
-
-    public Page<InformationBriefResponse> getBriefInformationPageByChildCategoryFilterTag(Pageable pageable, Long childCategoryId, Long userId, String tag) {
-        if (!categoryRepository.existsById(childCategoryId)) {
-            throw new CategoryNotExistsException("해당하는 id의 category는 없습니다");
-        }
-
-        return informationRepository.getInformationByChildCategoryFilterTag(pageable,
-                childCategoryId, userId, tag);
-    }
-
 
     public List<InformationRankResponse> getRankInformation() {
         return informationRepository.getInformationRank();
@@ -440,6 +389,4 @@ public class InformationService {
     public List<InformationMainResponse> getMainPageInformation(Long userId) {
         return informationRepository.getInformationLikeCountFromCreatedIn3(userId);
     }
-
-
 }
