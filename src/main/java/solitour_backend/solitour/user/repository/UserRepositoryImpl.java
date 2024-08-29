@@ -261,7 +261,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                         gathering.personCount,
                         gatheringApplicants.count().coalesce(0L).intValue(),
                         isUserGreatGathering(userId),
-                        gatheringStatus
+                        gatheringStatus,
+                        gathering.isFinish
                 ))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -275,10 +276,10 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         QGatheringApplicants gatheringApplicants = QGatheringApplicants.gatheringApplicants;
         return new CaseBuilder()
                 .when(gatheringApplicants.gatheringStatus.eq(GatheringStatus.WAIT))
-                .then("대기중")
+                .then("WAIT")
                 .when(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT))
-                .then("승인됨")
-                .otherwise("거절됨");
+                .then("CONSENT")
+                .otherwise("REFUSE");
     }
 
     private NumberExpression<Integer> countGreatGatheringByGatheringById() {

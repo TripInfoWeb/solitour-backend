@@ -32,4 +32,5 @@ public class GatheringApplicantResponse {
     private Integer nowPersonCount;
     private Boolean isLike;
     private String gatheringStatus;
+    private Boolean isFinish;
 }
