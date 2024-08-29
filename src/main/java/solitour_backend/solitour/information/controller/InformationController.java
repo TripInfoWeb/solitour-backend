@@ -137,7 +137,7 @@ public class InformationController {
         Long userId = findUser(request);
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<InformationBriefResponse> briefInformationPage = informationService.getPageInformationByTag(
-                pageable, userId,parentCategoryId, informationPageRequest,decodedTag);
+                pageable, userId, parentCategoryId, informationPageRequest, decodedTag);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(briefInformationPage);

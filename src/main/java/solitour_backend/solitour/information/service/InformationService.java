@@ -390,7 +390,10 @@ public class InformationService {
         return informationRepository.getInformationLikeCountFromCreatedIn3(userId);
     }
 
-    public Page<InformationBriefResponse> getPageInformationByTag(Pageable pageable, Long userId, Long parentCategoryId, InformationPageRequest informationPageRequest, String decodedTag) {
-        return informationRepository.getInformationPageByTag(pageable, userId, parentCategoryId, informationPageRequest, decodedTag);
+    public Page<InformationBriefResponse> getPageInformationByTag(Pageable pageable, Long userId, Long parentCategoryId,
+                                                                  InformationPageRequest informationPageRequest,
+                                                                  String decodedTag) {
+        return informationRepository.getInformationPageByTag(pageable, userId, parentCategoryId, informationPageRequest,
+                decodedTag);
     }
 }

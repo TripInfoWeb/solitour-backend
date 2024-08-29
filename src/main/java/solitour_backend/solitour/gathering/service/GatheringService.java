@@ -326,10 +326,12 @@ public class GatheringService {
         return gatheringRepository.getGatheringPageFilterAndOrder(pageable, gatheringPageRequest, userId);
     }
 
-    public Page<GatheringBriefResponse> getPageGatheringByTag(Pageable pageable, Long userId, GatheringPageRequest gatheringPageRequest, String decodedTag) {
+    public Page<GatheringBriefResponse> getPageGatheringByTag(Pageable pageable, Long userId,
+                                                              GatheringPageRequest gatheringPageRequest,
+                                                              String decodedTag) {
         validateGatheringPageRequest(gatheringPageRequest);
 
-        return gatheringRepository.getPageGatheringByTag(pageable, gatheringPageRequest, userId,decodedTag);
+        return gatheringRepository.getPageGatheringByTag(pageable, gatheringPageRequest, userId, decodedTag);
     }
 
     public List<GatheringRankResponse> getGatheringRankOrderByLikes() {

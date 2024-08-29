@@ -25,5 +25,7 @@ public interface InformationRepositoryCustom {
 
     List<InformationBriefResponse> getInformationRecommend(Long informationId, Long childCategoryId, Long userId);
 
-    Page<InformationBriefResponse> getInformationPageByTag(Pageable pageable, Long userId, Long parentCategoryId, InformationPageRequest informationPageRequest, String decodedTag);
+    Page<InformationBriefResponse> getInformationPageByTag(Pageable pageable, Long userId, Long parentCategoryId,
+                                                           InformationPageRequest informationPageRequest,
+                                                           String decodedTag);
 }

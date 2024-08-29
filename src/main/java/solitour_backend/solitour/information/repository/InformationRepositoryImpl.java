@@ -218,7 +218,7 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                 .leftJoin(infoTag)
                 .on(infoTag.information.id.eq(information.id))
                 .where(whereClause)
-                .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id,infoTag.id)
+                .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id, infoTag.id)
                 .orderBy(orderSpecifier)
                 .select(Projections.constructor(
                         InformationBriefResponse.class,
