@@ -5,6 +5,7 @@ import static solitour_backend.solitour.information.controller.InformationContro
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,8 @@ import solitour_backend.solitour.gathering.dto.response.GatheringDetailResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringRankResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringResponse;
 import solitour_backend.solitour.gathering.service.GatheringService;
+import solitour_backend.solitour.information.dto.request.InformationPageRequest;
+import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 
 @RestController
 @RequiredArgsConstructor
@@ -133,6 +136,26 @@ public class GatheringController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(pageGathering);
+    }
+
+    @GetMapping("/tag/search")
+    public ResponseEntity<Page<GatheringBriefResponse>> getPageGatheringByTag(
+            @RequestParam(defaultValue = "0") int page,
+            @Valid @ModelAttribute GatheringPageRequest gatheringPageRequest,
+            @RequestParam(required = false, name = "tagName") String tag,
+            BindingResult bindingResult,
+            HttpServletRequest request) {
+        byte[] decodedBytes = Base64.getUrlDecoder().decode(tag);
+        String decodedTag = new String(decodedBytes);
+
+        Utils.validationRequest(bindingResult);
+        Long userId = findUser(request);
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<GatheringBriefResponse> briefGatheringPage = gatheringService.getPageGatheringByTag(
+                pageable, userId, gatheringPageRequest,decodedTag);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(briefGatheringPage);
     }
 
     @GetMapping("/ranks")

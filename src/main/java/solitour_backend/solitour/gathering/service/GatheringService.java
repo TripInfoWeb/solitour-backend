@@ -326,6 +326,12 @@ public class GatheringService {
         return gatheringRepository.getGatheringPageFilterAndOrder(pageable, gatheringPageRequest, userId);
     }
 
+    public Page<GatheringBriefResponse> getPageGatheringByTag(Pageable pageable, Long userId, GatheringPageRequest gatheringPageRequest, String decodedTag) {
+        validateGatheringPageRequest(gatheringPageRequest);
+
+        return gatheringRepository.getPageGatheringByTag(pageable, gatheringPageRequest, userId,decodedTag);
+    }
+
     public List<GatheringRankResponse> getGatheringRankOrderByLikes() {
         return gatheringRepository.getGatheringRankList();
     }
@@ -380,6 +386,5 @@ public class GatheringService {
             throw new RequestValidationFailedException("시작 날짜와 종료 날짜는 둘 다 입력되거나 둘 다 비어 있어야 합니다.");
         }
     }
-
 
 }
