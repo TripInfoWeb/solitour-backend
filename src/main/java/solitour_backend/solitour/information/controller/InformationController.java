@@ -122,37 +122,22 @@ public class InformationController {
                 .body(pageInformation);
     }
 
-    @GetMapping("/parent-category/{parentCategoryId}/tag")
-    public ResponseEntity<Page<InformationBriefResponse>> pageInformationByParentCategoryFilterZoneCategoryTag(
+    @GetMapping("/tag/search")
+    public ResponseEntity<Page<InformationBriefResponse>> getPageInformationByTag(
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") Long parentCategoryId,
+            @Valid @ModelAttribute InformationPageRequest informationPageRequest,
             @RequestParam(required = false, name = "tagName") String tag,
-            @PathVariable("parentCategoryId") Long categoryId,
+            BindingResult bindingResult,
             HttpServletRequest request) {
-        byte[] decodedBytes = Base64.getDecoder().decode(tag);
+        byte[] decodedBytes = Base64.getUrlDecoder().decode(tag);
         String decodedTag = new String(decodedBytes);
 
+        Utils.validationRequest(bindingResult);
         Long userId = findUser(request);
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<InformationBriefResponse> briefInformationPage = informationService.getBriefInformationPageByParentCategoryFilterTag(
-                pageable, categoryId, userId, decodedTag);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(briefInformationPage);
-    }
-
-    @GetMapping("/child-category/{childCategoryId}/tag")
-    public ResponseEntity<Page<InformationBriefResponse>> pageInformationByChildCategoryFilterZoneCategoryTag(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(required = false, name = "tagName") String tag,
-            @PathVariable("childCategoryId") Long categoryId,
-            HttpServletRequest request) {
-        byte[] decodedBytes = Base64.getDecoder().decode(tag);
-        String decodedTag = new String(decodedBytes);
-
-        Long userId = findUser(request);
-        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<InformationBriefResponse> briefInformationPage = informationService.getBriefInformationPageByChildCategoryFilterTag(
-                pageable, categoryId, userId, decodedTag);
+        Page<InformationBriefResponse> briefInformationPage = informationService.getPageInformationByTag(
+                pageable, userId,parentCategoryId, informationPageRequest,decodedTag);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(briefInformationPage);
