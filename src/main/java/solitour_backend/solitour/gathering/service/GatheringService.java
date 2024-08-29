@@ -6,6 +6,7 @@ import static solitour_backend.solitour.gathering.repository.GatheringRepository
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -117,16 +118,22 @@ public class GatheringService {
 
         List<GatheringApplicantsResponse> gatheringApplicantsResponses = null;
 
-        boolean isApplicants = gatheringApplicantsRepository.existsByGatheringIdAndUserId(gathering.getId(), userId);
+//        boolean isApplicants = gatheringApplicantsRepository.existsByGatheringIdAndUserId(gathering.getId(), userId);
+
+        GatheringStatus gatheringStatus = null;
+        GatheringApplicants gatheringApplicants = gatheringApplicantsRepository.findByGatheringIdAndUserId(gathering.getId(), userId).orElse(null);
+
+        if (Objects.nonNull(gatheringApplicants)) {
+            gatheringStatus = gatheringApplicants.getGatheringStatus();
+        }
+
 
         if (gathering.getUser().getId().equals(userId)) {
             gatheringApplicantsResponses = gatheringApplicantsMapper.mapToGatheringApplicantsResponses(
-                    gatheringApplicantsRepository.findAllByGathering_IdAndUserIdNot(gathering.getId(),
-                            gathering.getUser().getId()));
+                    gatheringApplicantsRepository.findAllByGathering_IdAndUserIdNot(gathering.getId(), gathering.getUser().getId()));
         }
 
-        int nowPersonCount = gatheringApplicantsRepository.countAllByGathering_IdAndGatheringStatus(gathering.getId(),
-                GatheringStatus.CONSENT);
+        int nowPersonCount = gatheringApplicantsRepository.countAllByGathering_IdAndGatheringStatus(gathering.getId(), GatheringStatus.CONSENT);
 
         boolean isLike = greatGatheringRepository.existsByGatheringIdAndUserId(gathering.getId(), userId);
 
@@ -156,7 +163,7 @@ public class GatheringService {
                 isLike,
                 gatheringApplicantsResponses,
                 gatheringRecommend,
-                isApplicants
+                gatheringStatus
         );
     }
 
