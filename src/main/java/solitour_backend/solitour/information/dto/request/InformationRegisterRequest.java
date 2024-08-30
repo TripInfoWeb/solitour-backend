@@ -5,12 +5,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solitour_backend.solitour.place.dto.request.PlaceRegisterRequest;
 import solitour_backend.solitour.tag.dto.request.TagRegisterRequest;
 
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor
 public class InformationRegisterRequest {
 

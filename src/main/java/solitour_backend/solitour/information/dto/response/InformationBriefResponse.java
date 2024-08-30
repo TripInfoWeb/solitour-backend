@@ -15,4 +15,5 @@ public class InformationBriefResponse {
     private Boolean isBookMark;
     private String thumbNailImage;
     private Integer likeCount;
+    private Boolean isLike;
 }

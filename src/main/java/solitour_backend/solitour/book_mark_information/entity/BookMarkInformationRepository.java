@@ -10,7 +10,7 @@ public interface BookMarkInformationRepository extends JpaRepository<BookMarkInf
     @Query("SELECT b FROM BookMarkInformation b JOIN FETCH b.user u JOIN FETCH b.information i WHERE u.id = :userId")
     List<BookMarkInformation> findByUserId(Long userId);
 
-    Optional<BookMarkInformation> findByIdAndUserId(Long bookMarkId, Long userId);
+    Optional<BookMarkInformation> findByInformationIdAndUserId(Long infoId, Long userId);
 
     void deleteAllByInformationId(Long informationId);
 }

@@ -40,8 +40,8 @@ public class BookMarkInformationController {
     @Transactional
     @DeleteMapping()
     public ResponseEntity<Void> deleteUserBookmark(@AuthenticationPrincipal Long userId,
-                                                   @RequestParam Long bookMarkId) {
-        service.deleteUserBookmark(userId, bookMarkId);
+                                                   @RequestParam Long infoId) {
+        service.deleteUserBookmark(userId, infoId);
 
         return ResponseEntity.ok().build();
     }

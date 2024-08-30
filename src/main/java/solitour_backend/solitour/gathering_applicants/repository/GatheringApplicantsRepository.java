@@ -7,7 +7,7 @@ import solitour_backend.solitour.gathering_applicants.entity.GatheringApplicants
 import solitour_backend.solitour.gathering_applicants.entity.GatheringStatus;
 
 public interface GatheringApplicantsRepository extends JpaRepository<GatheringApplicants, Long> {
-    List<GatheringApplicants> findAllByGathering_Id(Long id);
+    List<GatheringApplicants> findAllByGathering_IdAndUserIdNot(Long id, Long userId);
 
     int countAllByGathering_IdAndGatheringStatus(Long id, GatheringStatus gatheringStatus);
 

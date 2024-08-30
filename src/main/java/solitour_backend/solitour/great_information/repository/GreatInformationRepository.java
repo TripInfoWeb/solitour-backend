@@ -10,7 +10,9 @@ public interface GreatInformationRepository extends JpaRepository<GreatInformati
     @Query("SELECT COUNT(g) FROM GreatInformation g WHERE g.information.id = :informationId")
     int countByInformationId(Long informationId);
 
-    Optional<GreatInformation> findByIdAndUserId(Long greatInformationId, Long userId);
+    Optional<GreatInformation> findByInformationIdAndUserId(Long informationId, Long userId);
 
     void deleteAllByInformationId(Long informationId);
+
+    boolean existsByInformationIdAndUserId(Long informationId, Long userId);
 }

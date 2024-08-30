@@ -23,7 +23,7 @@ import solitour_backend.solitour.auth.support.kakao.KakaoConnector;
 import solitour_backend.solitour.auth.support.kakao.KakaoProvider;
 import solitour_backend.solitour.auth.support.kakao.dto.KakaoUserResponse;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.entity.UserRepository;
+import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.user.user_status.UserStatus;
 import solitour_backend.solitour.user_image.entity.UserImage;
 import solitour_backend.solitour.user_image.service.UserImageService;
