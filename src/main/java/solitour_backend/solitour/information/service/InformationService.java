@@ -372,7 +372,7 @@ public class InformationService {
         }
 
         if (Objects.nonNull(informationPageRequest.getSort())) {
-            if (!Objects.equals(LIKE_COUNT_SORT, informationPageRequest.getSort()) || !Objects.equals(VIEW_COUNT_SORT,
+            if (!Objects.equals(LIKE_COUNT_SORT, informationPageRequest.getSort()) && !Objects.equals(VIEW_COUNT_SORT,
                     informationPageRequest.getSort())) {
                 throw new RequestValidationFailedException("잘못된 정렬 코드입니다.");
             }

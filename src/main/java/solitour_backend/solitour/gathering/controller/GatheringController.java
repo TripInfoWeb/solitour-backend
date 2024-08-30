@@ -4,10 +4,12 @@ import static solitour_backend.solitour.information.controller.InformationContro
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -119,11 +121,10 @@ public class GatheringController {
 
 
     @GetMapping
-    public ResponseEntity<Page<GatheringBriefResponse>> pageGatheringSortAndFilter(
-            @RequestParam(defaultValue = "0") int page,
-            @Valid @ModelAttribute GatheringPageRequest gatheringPageRequest,
-            BindingResult bindingResult,
-            HttpServletRequest request) {
+    public ResponseEntity<Page<GatheringBriefResponse>> pageGatheringSortAndFilter(@RequestParam(defaultValue = "0") int page,
+                                                                                   @Valid @ModelAttribute GatheringPageRequest gatheringPageRequest,
+                                                                                   BindingResult bindingResult,
+                                                                                   HttpServletRequest request) {
         Utils.validationRequest(bindingResult);
         Long userId = findUser(request);
 
@@ -137,20 +138,18 @@ public class GatheringController {
     }
 
     @GetMapping("/tag/search")
-    public ResponseEntity<Page<GatheringBriefResponse>> getPageGatheringByTag(
-            @RequestParam(defaultValue = "0") int page,
-            @Valid @ModelAttribute GatheringPageRequest gatheringPageRequest,
-            @RequestParam(required = false, name = "tagName") String tag,
-            BindingResult bindingResult,
-            HttpServletRequest request) {
+    public ResponseEntity<Page<GatheringBriefResponse>> getPageGatheringByTag(@RequestParam(defaultValue = "0") int page,
+                                                                              @Valid @ModelAttribute GatheringPageRequest gatheringPageRequest,
+                                                                              @RequestParam(required = false, name = "tagName") String tag,
+                                                                              BindingResult bindingResult,
+                                                                              HttpServletRequest request) {
         byte[] decodedBytes = Base64.getUrlDecoder().decode(tag);
         String decodedTag = new String(decodedBytes);
 
         Utils.validationRequest(bindingResult);
         Long userId = findUser(request);
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<GatheringBriefResponse> briefGatheringPage = gatheringService.getPageGatheringByTag(
-                pageable, userId, gatheringPageRequest, decodedTag);
+        Page<GatheringBriefResponse> briefGatheringPage = gatheringService.getPageGatheringByTag(pageable, userId, gatheringPageRequest, decodedTag);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(briefGatheringPage);
@@ -165,6 +164,26 @@ public class GatheringController {
                 .body(gatheringRankOrderByLikes);
     }
 
+    @PutMapping("/finish/{gatheringId}")
+    public ResponseEntity<Void> gatheringFinish(@AuthenticationPrincipal Long userId,
+                                                @PathVariable Long gatheringId) {
+        gatheringService.setGatheringFinish(userId, gatheringId);
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
+    }
+
+    @PutMapping("/not-finish/{gatheringId}")
+    public ResponseEntity<Void> gatheringNotFinish(@AuthenticationPrincipal Long userId,
+                                                   @PathVariable Long gatheringId) {
+        gatheringService.setGatheringNotFinish(userId, gatheringId);
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
+    }
+
+
     @GetMapping("/home")
     public ResponseEntity<List<GatheringBriefResponse>> getHomeGathering(HttpServletRequest request) {
         Long userId = findUser(request);
@@ -176,7 +195,6 @@ public class GatheringController {
                 .status(HttpStatus.OK)
                 .body(gatheringOrderByLikesFilterByCreate3After);
     }
-
 
     private Long findUser(HttpServletRequest request) {
         String token = CookieExtractor.findToken("access_token", request.getCookies());
