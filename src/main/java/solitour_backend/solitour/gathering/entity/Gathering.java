@@ -94,6 +94,9 @@ public class Gathering {
     @Column(name = "gathering_end_age")
     private Integer endAge;
 
+    @Column(name = "gathering_is_deleted")
+    private Boolean isDeleted;
+
     public Gathering(User user, ZoneCategory zoneCategory, GatheringCategory gatheringCategory, Place place,
                      String title, String content, Integer personCount, Integer viewCount,
                      LocalDateTime scheduleStartDate, LocalDateTime scheduleEndDate, Boolean isFinish,

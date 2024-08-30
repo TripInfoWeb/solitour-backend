@@ -10,8 +10,6 @@ import solitour_backend.solitour.image.entity.Image;
 import solitour_backend.solitour.image.image_status.ImageStatus;
 import solitour_backend.solitour.image.repository.ImageRepository;
 import solitour_backend.solitour.image.s3.S3Uploader;
-import solitour_backend.solitour.user_image.dto.UserImageResponse;
-import solitour_backend.solitour.user_image.entity.UserImage;
 import solitour_backend.solitour.user_image.entity.UserImageRepository;
 
 @RequiredArgsConstructor
@@ -24,8 +22,8 @@ public class ImageService {
     private final S3Uploader s3Uploader;
 
     @Transactional
-    public ImageResponse uploadImage(Long userId, MultipartFile image, String imagePath, String imageStatus) {
-        String imageUrl = s3Uploader.upload(image, imagePath, userId);
+    public ImageResponse uploadImage(Long id, MultipartFile image, String type, String imageStatus) {
+        String imageUrl = s3Uploader.upload(image, type, id);
         ImageStatus status = checkImageStatus(imageStatus);
         Image contentImage = new Image(status, imageUrl, LocalDate.now());
         imageRepository.save(contentImage);

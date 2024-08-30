@@ -49,8 +49,8 @@ public class Image {
         this.createdDate = createdDate;
     }
 
-    public Image(ImageStatus imageStatus, String imageUrl, LocalDate now) {
-        this.imageStatus = imageStatus;
+    public Image(ImageStatus status, String imageUrl, LocalDate now) {
+        this.imageStatus = status;
         this.address = imageUrl;
         this.createdDate = now;
     }

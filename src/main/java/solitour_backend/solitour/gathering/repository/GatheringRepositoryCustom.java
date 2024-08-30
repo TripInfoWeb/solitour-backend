@@ -1,7 +1,6 @@
 package solitour_backend.solitour.gathering.repository;
 
 import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -16,7 +15,13 @@ public interface GatheringRepositoryCustom {
 
     List<GatheringBriefResponse> getGatheringRecommend(Long informationId, Long gatheringCategoryId, Long userId);
 
-    Page<GatheringBriefResponse> getGatheringPageFilterAndOrder(Pageable pageable, GatheringPageRequest gatheringPageRequest, Long userId);
+    Page<GatheringBriefResponse> getGatheringPageFilterAndOrder(Pageable pageable,
+                                                                GatheringPageRequest gatheringPageRequest, Long userId);
 
     List<GatheringRankResponse> getGatheringRankList();
+
+    List<GatheringBriefResponse> getGatheringLikeCountFromCreatedIn3(Long userId);
+
+    Page<GatheringBriefResponse> getPageGatheringByTag(Pageable pageable, GatheringPageRequest gatheringPageRequest,
+                                                       Long userId, String decodedTag);
 }

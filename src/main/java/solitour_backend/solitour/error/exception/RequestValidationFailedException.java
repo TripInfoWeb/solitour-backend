@@ -1,9 +1,7 @@
 package solitour_backend.solitour.error.exception;
 
 import jakarta.validation.ValidationException;
-
 import java.util.stream.Collectors;
-
 import org.springframework.validation.BindingResult;
 
 public class RequestValidationFailedException extends ValidationException {

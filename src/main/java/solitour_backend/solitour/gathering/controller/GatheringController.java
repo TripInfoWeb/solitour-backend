@@ -1,9 +1,12 @@
 package solitour_backend.solitour.gathering.controller;
 
+import static solitour_backend.solitour.information.controller.InformationController.PAGE_SIZE;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
@@ -14,7 +17,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
 import solitour_backend.solitour.auth.support.CookieExtractor;
 import solitour_backend.solitour.auth.support.JwtTokenProvider;
@@ -28,8 +40,6 @@ import solitour_backend.solitour.gathering.dto.response.GatheringDetailResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringRankResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringResponse;
 import solitour_backend.solitour.gathering.service.GatheringService;
-
-import static solitour_backend.solitour.information.controller.InformationController.PAGE_SIZE;
 
 @RestController
 @RequiredArgsConstructor
@@ -89,12 +99,24 @@ public class GatheringController {
         if (gatheringModifyRequest.getDeadline().isBefore(LocalDateTime.now())) {
             throw new RequestValidationFailedException("마감일은 현재 시간보다 이후여야 합니다.");
         }
+
         GatheringResponse gatheringResponse = gatheringService.modifyGathering(userId, gatheringId,
                 gatheringModifyRequest);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(gatheringResponse);
+    }
+
+    @DeleteMapping("/{gatheringId}")
+    public ResponseEntity<Void> deleteGathering(@PathVariable Long gatheringId, HttpServletRequest request) {
+        Long userId = findUser(request);
+
+        gatheringService.deleteGathering(gatheringId, userId);
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
 
@@ -107,11 +129,31 @@ public class GatheringController {
         Long userId = findUser(request);
 
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<GatheringBriefResponse> pageGathering = gatheringService.getPageGathering(pageable, gatheringPageRequest, userId);
+        Page<GatheringBriefResponse> pageGathering = gatheringService.getPageGathering(pageable, gatheringPageRequest,
+                userId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(pageGathering);
+    }
+
+    @GetMapping("/tag/search")
+    public ResponseEntity<Page<GatheringBriefResponse>> getPageGatheringByTag(@RequestParam(defaultValue = "0") int page,
+                                                                              @Valid @ModelAttribute GatheringPageRequest gatheringPageRequest,
+                                                                              @RequestParam(required = false, name = "tagName") String tag,
+                                                                              BindingResult bindingResult,
+                                                                              HttpServletRequest request) {
+        byte[] decodedBytes = Base64.getUrlDecoder().decode(tag);
+        String decodedTag = new String(decodedBytes);
+        String filteredTag = decodedTag.replaceAll("[^a-zA-Z0-9가-힣]", "");
+
+        Utils.validationRequest(bindingResult);
+        Long userId = findUser(request);
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<GatheringBriefResponse> briefGatheringPage = gatheringService.getPageGatheringByTag(pageable, userId, gatheringPageRequest, filteredTag);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(briefGatheringPage);
     }
 
     @GetMapping("/ranks")
@@ -123,6 +165,37 @@ public class GatheringController {
                 .body(gatheringRankOrderByLikes);
     }
 
+    @PutMapping("/finish/{gatheringId}")
+    public ResponseEntity<Void> gatheringFinish(@AuthenticationPrincipal Long userId,
+                                                @PathVariable Long gatheringId) {
+        gatheringService.setGatheringFinish(userId, gatheringId);
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
+    }
+
+    @PutMapping("/not-finish/{gatheringId}")
+    public ResponseEntity<Void> gatheringNotFinish(@AuthenticationPrincipal Long userId,
+                                                   @PathVariable Long gatheringId) {
+        gatheringService.setGatheringNotFinish(userId, gatheringId);
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
+    }
+
+
+    @GetMapping("/home")
+    public ResponseEntity<List<GatheringBriefResponse>> getHomeGathering(HttpServletRequest request) {
+        Long userId = findUser(request);
+
+        List<GatheringBriefResponse> gatheringOrderByLikesFilterByCreate3After = gatheringService.getGatheringOrderByLikesFilterByCreate3After(
+                userId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(gatheringOrderByLikesFilterByCreate3After);
+    }
 
     private Long findUser(HttpServletRequest request) {
         String token = CookieExtractor.findToken("access_token", request.getCookies());

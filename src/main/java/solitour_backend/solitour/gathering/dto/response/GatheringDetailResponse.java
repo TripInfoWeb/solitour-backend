@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import solitour_backend.solitour.gathering.entity.AllowedSex;
 import solitour_backend.solitour.gathering_applicants.dto.response.GatheringApplicantsResponse;
+import solitour_backend.solitour.gathering_applicants.entity.GatheringStatus;
 import solitour_backend.solitour.gathering_category.dto.response.GatheringCategoryResponse;
 import solitour_backend.solitour.place.dto.response.PlaceResponse;
 import solitour_backend.solitour.tag.dto.response.TagResponse;
@@ -46,4 +47,6 @@ public class GatheringDetailResponse {
     private List<GatheringApplicantsResponse> gatheringApplicantsResponses;
 
     private List<GatheringBriefResponse> gatheringRecommend;
+
+    private GatheringStatus gatheringStatus;
 }

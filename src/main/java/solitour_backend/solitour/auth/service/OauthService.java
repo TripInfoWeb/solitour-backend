@@ -23,7 +23,7 @@ import solitour_backend.solitour.auth.support.kakao.KakaoConnector;
 import solitour_backend.solitour.auth.support.kakao.KakaoProvider;
 import solitour_backend.solitour.auth.support.kakao.dto.KakaoUserResponse;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.entity.UserRepository;
+import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.user.user_status.UserStatus;
 import solitour_backend.solitour.user_image.entity.UserImage;
 import solitour_backend.solitour.user_image.service.UserImageService;
@@ -79,15 +79,15 @@ public class OauthService {
         if (Objects.equals(type, "kakao")) {
             KakaoUserResponse response = kakaoConnector.requestKakaoUserInfo(code, redirectUrl)
                     .getBody();
-            String nickname = response.getKakaoAccount().getProfile().getNickName();
-            return userRepository.findByNickname(nickname)
+            String id = response.getId().toString();
+            return userRepository.findByOauthId(id)
                     .orElseGet(() -> saveKakaoUser(response));
         }
         if (Objects.equals(type, "google")) {
             GoogleUserResponse response = googleConnector.requestGoogleUserInfo(code, redirectUrl)
                     .getBody();
-            String email = response.getEmailAddresses().get(0).getValue();
-            return userRepository.findByEmail(email)
+            String id = response.getResourceName();
+            return userRepository.findByOauthId(id)
                     .orElseGet(() -> saveGoogleUser(response));
         } else {
             throw new RuntimeException("지원하지 않는 oauth 타입입니다.");

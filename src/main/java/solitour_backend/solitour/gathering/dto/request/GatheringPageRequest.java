@@ -2,14 +2,13 @@ package solitour_backend.solitour.gathering.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 import solitour_backend.solitour.gathering.entity.AllowedSex;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -33,6 +32,8 @@ public class GatheringPageRequest {
     private Integer endAge;
 
     private String sort;
+
+    private String search;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern = "yyyy-MM-dd")

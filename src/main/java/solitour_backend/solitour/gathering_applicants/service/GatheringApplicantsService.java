@@ -1,7 +1,6 @@
 package solitour_backend.solitour.gathering_applicants.service;
 
 import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,11 +10,15 @@ import solitour_backend.solitour.gathering.repository.GatheringRepository;
 import solitour_backend.solitour.gathering_applicants.dto.request.GatheringApplicantsModifyRequest;
 import solitour_backend.solitour.gathering_applicants.entity.GatheringApplicants;
 import solitour_backend.solitour.gathering_applicants.entity.GatheringStatus;
-import solitour_backend.solitour.gathering_applicants.exception.*;
+import solitour_backend.solitour.gathering_applicants.exception.GatheringApplicantsAlreadyExistsException;
+import solitour_backend.solitour.gathering_applicants.exception.GatheringApplicantsAlreadyFullPeopleException;
+import solitour_backend.solitour.gathering_applicants.exception.GatheringApplicantsManagerException;
+import solitour_backend.solitour.gathering_applicants.exception.GatheringApplicantsNotExistsException;
+import solitour_backend.solitour.gathering_applicants.exception.GatheringNotManagerException;
 import solitour_backend.solitour.gathering_applicants.repository.GatheringApplicantsRepository;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.entity.UserRepository;
 import solitour_backend.solitour.user.exception.UserNotExistsException;
+import solitour_backend.solitour.user.repository.UserRepository;
 
 @Service
 @Transactional
