@@ -26,10 +26,8 @@ public class ImageController {
     @PostMapping
     public ResponseEntity<ImageResponse> uploadImage(@AuthenticationPrincipal Long userId,
                                                      @RequestPart("image") MultipartFile userImage,
-                                                     @RequestParam String type,
-                                                     @RequestParam String imageStatus) {
-        ImageResponse imageResponse = imageService.uploadImage(userId, userImage, type,
-                imageStatus);
+                                                     @RequestParam String type) {
+        ImageResponse imageResponse = imageService.uploadImage(userId, userImage, type);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

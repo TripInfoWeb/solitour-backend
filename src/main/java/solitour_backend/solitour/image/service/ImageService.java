@@ -17,31 +17,13 @@ import solitour_backend.solitour.user_image.entity.UserImageRepository;
 @Service
 public class ImageService {
 
-    private final UserImageRepository userImageRepository;
-    private final ImageRepository imageRepository;
     private final S3Uploader s3Uploader;
 
     @Transactional
-    public ImageResponse uploadImage(Long id, MultipartFile image, String type, String imageStatus) {
+    public ImageResponse uploadImage(Long id, MultipartFile image, String type) {
         String imageUrl = s3Uploader.upload(image, type, id);
-        ImageStatus status = checkImageStatus(imageStatus);
-        Image contentImage = new Image(status, imageUrl, LocalDate.now());
-        imageRepository.save(contentImage);
-        return new ImageResponse(contentImage.getImageStatus().getName(), contentImage.getAddress());
+
+        return new ImageResponse( imageUrl);
     }
 
-    private ImageStatus checkImageStatus(String imageStatus) {
-        switch (imageStatus) {
-            case "CONTENT" -> {
-                return ImageStatus.CONTENT;
-            }
-            case "USER" -> {
-                return ImageStatus.USER;
-            }
-            case "THUMNAIl" -> {
-                return ImageStatus.THUMBNAIL;
-            }
-        }
-        return ImageStatus.NONE;
-    }
 }
