@@ -145,11 +145,12 @@ public class GatheringController {
                                                                               HttpServletRequest request) {
         byte[] decodedBytes = Base64.getUrlDecoder().decode(tag);
         String decodedTag = new String(decodedBytes);
+        String filteredTag = decodedTag.replaceAll("[^a-zA-Z0-9가-힣]", "");
 
         Utils.validationRequest(bindingResult);
         Long userId = findUser(request);
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<GatheringBriefResponse> briefGatheringPage = gatheringService.getPageGatheringByTag(pageable, userId, gatheringPageRequest, decodedTag);
+        Page<GatheringBriefResponse> briefGatheringPage = gatheringService.getPageGatheringByTag(pageable, userId, gatheringPageRequest, filteredTag);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(briefGatheringPage);

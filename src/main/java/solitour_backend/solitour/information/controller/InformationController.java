@@ -132,12 +132,13 @@ public class InformationController {
             HttpServletRequest request) {
         byte[] decodedBytes = Base64.getUrlDecoder().decode(tag);
         String decodedTag = new String(decodedBytes);
+        String filteredTag = decodedTag.replaceAll("[^a-zA-Z0-9가-힣]", "");
 
         Utils.validationRequest(bindingResult);
         Long userId = findUser(request);
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<InformationBriefResponse> briefInformationPage = informationService.getPageInformationByTag(
-                pageable, userId, parentCategoryId, informationPageRequest, decodedTag);
+                pageable, userId, parentCategoryId, informationPageRequest, filteredTag);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(briefInformationPage);
