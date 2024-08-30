@@ -2,6 +2,8 @@ package solitour_backend.solitour.gathering.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -91,6 +93,24 @@ public class GatheringController {
                 .body(gatheringResponse);
     }
 
+    @GetMapping("/tag/search")
+    public ResponseEntity<Page<GatheringBriefResponse>> getPageGatheringByTag(@RequestParam(defaultValue = "0") int page,
+                                                                              @Valid @ModelAttribute GatheringPageRequest gatheringPageRequest,
+                                                                              @RequestParam(required = false, name = "tagName") String tag,
+                                                                              BindingResult bindingResult,
+                                                                              HttpServletRequest request)
+            throws UnsupportedEncodingException {
+        String decodedValue = java.net.URLDecoder.decode(tag, "UTF-8");
+        String filteredTag = decodedValue.replaceAll("[^a-zA-Z0-9가-힣]", "");
+
+        Utils.validationRequest(bindingResult);
+        Long userId = findUser(request);
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<GatheringBriefResponse> briefGatheringPage = gatheringService.getPageGatheringByTag(pageable, userId, gatheringPageRequest, filteredTag);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(briefGatheringPage);
+    }
 
     private Long findUser(HttpServletRequest request) {
         String token = CookieExtractor.findToken("access_token", request.getCookies());
