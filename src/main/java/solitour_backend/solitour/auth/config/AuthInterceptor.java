@@ -3,6 +3,7 @@ package solitour_backend.solitour.auth.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,8 @@ public class AuthInterceptor implements HandlerInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws IOException {
         if (CorsUtils.isPreFlightRequest(request)) {
             return true;
         }
@@ -26,7 +28,12 @@ public class AuthInterceptor implements HandlerInterceptor {
         Optional<Authenticated> authenticated = parseAnnotation((HandlerMethod) handler,
                 Authenticated.class);
         if (authenticated.isPresent()) {
-            validateToken(request);
+            try {
+                validateToken(request);
+            }catch (Exception e) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰이 유효하지 않습니다.");
+                return false;
+            }
         }
         return true;
     }
