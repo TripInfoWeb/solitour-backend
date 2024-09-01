@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,8 +41,10 @@ public class OauthService {
     private final GoogleConnector googleConnector;
     private final GoogleProvider googleProvider;
     private final UserImageService userImageService;
-    private final String USER_PROFILE_MALE = "https://s3.ap-northeast-2.amazonaws.com/solitour-bucket/user/2/3e6f9c1b-5f3d-4744-9c8b-dfd2c0e2455f.svg";
-    private final String USER_PROFILE_FEMALE = "https://s3.ap-northeast-2.amazonaws.com/solitour-bucket/user/3/96cb196b-35db-4b51-86fa-f661ae731db9.svg";
+    @Value("${user.profile.url.male}")
+    private String USER_PROFILE_MALE;
+    @Value("${user.profile.url.female}")
+    private String USER_PROFILE_FEMALE;
 
 
     public OauthLinkResponse generateAuthUrl(String type, String redirectUrl) {
