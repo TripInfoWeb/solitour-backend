@@ -32,7 +32,7 @@ public class UserImage {
         this.createdDate = createdDate;
     }
 
-    public void updateUserImage(String userImage) {
-        this.address = userImage;
+    public void updateUserImage(String imageUrl) {
+        this.address = imageUrl;
     }
 }

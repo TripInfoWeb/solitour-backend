@@ -11,7 +11,7 @@ import solitour_backend.solitour.book_mark_information.service.dto.response.Book
 import solitour_backend.solitour.information.entity.Information;
 import solitour_backend.solitour.information.repository.InformationRepository;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.entity.UserRepository;
+import solitour_backend.solitour.user.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor

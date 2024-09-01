@@ -9,5 +9,5 @@ public interface GreatGatheringRepository extends JpaRepository<GreatGathering, 
     @Query("SELECT COUNT(g) FROM GreatGathering  g WHERE g.gathering.id = :gatheringId")
     int countByGatheringId(Long gatheringId);
 
-    boolean existsByGatheringIdAndUserIdAndIsDeletedFalse(Long gatheringId, Long userId);
+    boolean existsByGatheringIdAndUserId(Long gatheringId, Long userId);
 }

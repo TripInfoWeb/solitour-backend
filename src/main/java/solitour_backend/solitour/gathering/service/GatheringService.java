@@ -6,6 +6,7 @@ import static solitour_backend.solitour.gathering.repository.GatheringRepository
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import solitour_backend.solitour.gathering.dto.response.GatheringResponse;
 import solitour_backend.solitour.gathering.entity.Gathering;
 import solitour_backend.solitour.gathering.exception.GatheringCategoryNotExistsException;
 import solitour_backend.solitour.gathering.exception.GatheringDeleteException;
+import solitour_backend.solitour.gathering.exception.GatheringFinishConflictException;
 import solitour_backend.solitour.gathering.exception.GatheringNotExistsException;
 import solitour_backend.solitour.gathering.repository.GatheringRepository;
 import solitour_backend.solitour.gathering_applicants.dto.mapper.GatheringApplicantsMapper;
@@ -51,8 +53,8 @@ import solitour_backend.solitour.tag.repository.TagRepository;
 import solitour_backend.solitour.user.dto.UserPostingResponse;
 import solitour_backend.solitour.user.dto.mapper.UserMapper;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.user.entity.UserRepository;
 import solitour_backend.solitour.user.exception.UserNotExistsException;
+import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.zone_category.dto.mapper.ZoneCategoryMapper;
 import solitour_backend.solitour.zone_category.dto.response.ZoneCategoryResponse;
 import solitour_backend.solitour.zone_category.entity.ZoneCategory;
@@ -87,7 +89,7 @@ public class GatheringService {
                 .orElseThrow(
                         () -> new GatheringNotExistsException("해당하는 id의 gathering 이 존재 하지 않습니다"));
 
-        if (gathering.getIsDeleted()) {
+        if (Boolean.TRUE.equals(gathering.getIsDeleted())) {
             throw new GatheringDeleteException("해당하는 모임은 삭제가 되었습니다");
         }
 
@@ -115,15 +117,26 @@ public class GatheringService {
 
         int likeCount = greatGatheringRepository.countByGatheringId(gathering.getId());
 
-        List<GatheringApplicantsResponse> gatheringApplicantsResponses = gatheringApplicantsMapper.mapToGatheringApplicantsResponses(
-                gatheringApplicantsRepository.findAllByGathering_IdAndUserIdNot(gathering.getId(),
-                        gathering.getUser().getId()));
+        List<GatheringApplicantsResponse> gatheringApplicantsResponses = null;
 
-        int nowPersonCount = gatheringApplicantsRepository.countAllByGathering_IdAndGatheringStatus(gathering.getId(),
-                GatheringStatus.CONSENT);
+//        boolean isApplicants = gatheringApplicantsRepository.existsByGatheringIdAndUserId(gathering.getId(), userId);
 
-        boolean isLike = greatGatheringRepository.existsByGatheringIdAndUserIdAndIsDeletedFalse(gathering.getId(),
-                userId);
+        GatheringStatus gatheringStatus = null;
+        GatheringApplicants gatheringApplicants = gatheringApplicantsRepository.findByGatheringIdAndUserId(gathering.getId(), userId).orElse(null);
+
+        if (Objects.nonNull(gatheringApplicants)) {
+            gatheringStatus = gatheringApplicants.getGatheringStatus();
+        }
+
+
+        if (gathering.getUser().getId().equals(userId)) {
+            gatheringApplicantsResponses = gatheringApplicantsMapper.mapToGatheringApplicantsResponses(
+                    gatheringApplicantsRepository.findAllByGathering_IdAndUserIdNot(gathering.getId(), gathering.getUser().getId()));
+        }
+
+        int nowPersonCount = gatheringApplicantsRepository.countAllByGathering_IdAndGatheringStatus(gathering.getId(), GatheringStatus.CONSENT);
+
+        boolean isLike = greatGatheringRepository.existsByGatheringIdAndUserId(gathering.getId(), userId);
 
         List<GatheringBriefResponse> gatheringRecommend = gatheringRepository.getGatheringRecommend(gathering.getId(),
                 gathering.getGatheringCategory().getId(), userId);
@@ -150,7 +163,8 @@ public class GatheringService {
                 nowPersonCount,
                 isLike,
                 gatheringApplicantsResponses,
-                gatheringRecommend
+                gatheringRecommend,
+                gatheringStatus
         );
     }
 
@@ -168,7 +182,7 @@ public class GatheringService {
         Place savePlace = placeRepository.save(place);
         User user = userRepository.findById(userId)
                 .orElseThrow(
-                        () -> new UserNotExistsException("해당하는 id의 User 가 없습니다"));
+                        () -> new UserNotExistsException("해당하는 id 의 User 가 없습니다"));
         GatheringCategory gatheringCategory = gatheringCategoryRepository.findById(
                         gatheringRegisterRequest.getGatheringCategoryId())
                 .orElseThrow(
@@ -178,12 +192,12 @@ public class GatheringService {
                         gatheringRegisterRequest.getZoneCategoryNameParent())
                 .orElseThrow(
                         () ->
-                                new ZoneCategoryNotExistsException("해당하는 name의 ZoneCategory 없습니다"));
+                                new ZoneCategoryNotExistsException("해당하는 name 의 ZoneCategory 없습니다"));
 
         ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(
                         parentZoneCategory.getId(), gatheringRegisterRequest.getZoneCategoryNameChild())
                 .orElseThrow(
-                        () -> new ZoneCategoryNotExistsException("해당하는 name의 ZoneCategory 없습니다"));
+                        () -> new ZoneCategoryNotExistsException("해당하는 name 의 ZoneCategory 없습니다"));
 
         Gathering gathering =
                 new Gathering(
@@ -208,7 +222,8 @@ public class GatheringService {
         List<Tag> tags = tagMapper.mapToTags(gatheringRegisterRequest.getTagRegisterRequests());
         List<Tag> saveTags = tagRepository.saveAll(tags);
 
-        new GatheringApplicants(gathering, user, GatheringStatus.CONSENT);
+        GatheringApplicants gatheringApplicants = new GatheringApplicants(gathering, user, GatheringStatus.CONSENT);
+        gatheringApplicantsRepository.save(gatheringApplicants);
 
         for (Tag tag : saveTags) {
             gatheringTagRepository.save(new GatheringTag(tag, saveGathering));
@@ -227,7 +242,7 @@ public class GatheringService {
                 .orElseThrow(
                         () -> new GatheringNotExistsException("해당하는 id의 gathering 이 존재 하지 않습니다"));
 
-        if (gathering.getIsDeleted()) {
+        if (Boolean.TRUE.equals(gathering.getIsDeleted())) {
             throw new GatheringDeleteException("해당하는 모임은 삭제가 되었습니다");
         }
 
@@ -304,7 +319,7 @@ public class GatheringService {
             throw new GatheringNotManagerException("해당 유저는 권한이 없습니다");
         }
 
-        if (gathering.getIsDeleted()) {
+        if (Boolean.TRUE.equals(gathering.getIsDeleted())) {
             return;
         }
 
@@ -319,12 +334,68 @@ public class GatheringService {
         return gatheringRepository.getGatheringPageFilterAndOrder(pageable, gatheringPageRequest, userId);
     }
 
+    public Page<GatheringBriefResponse> getPageGatheringByTag(Pageable pageable, Long userId,
+                                                              GatheringPageRequest gatheringPageRequest,
+                                                              String decodedTag) {
+        validateGatheringPageRequest(gatheringPageRequest);
+
+        return gatheringRepository.getPageGatheringByTag(pageable, gatheringPageRequest, userId, decodedTag);
+    }
+
     public List<GatheringRankResponse> getGatheringRankOrderByLikes() {
         return gatheringRepository.getGatheringRankList();
     }
 
     public List<GatheringBriefResponse> getGatheringOrderByLikesFilterByCreate3After(Long userId) {
         return gatheringRepository.getGatheringLikeCountFromCreatedIn3(userId);
+    }
+
+    public void setGatheringFinish(Long userId, Long gatheringId) {
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(
+                        () -> new GatheringNotExistsException("해당하는 id의 gathering 이 존재 하지 않습니다"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(
+                        () -> new UserNotExistsException("해당하는 id의 User 가 없습니다"));
+
+        if (!Objects.equals(user, gathering.getUser())) {
+            throw new GatheringNotManagerException("해당 유저는 권한이 없습니다");
+        }
+
+        if (Boolean.TRUE.equals(gathering.getIsDeleted())) {
+            throw new GatheringDeleteException("해당 하는 모임은 삭제된 모임입니다");
+        }
+
+        if (Boolean.TRUE.equals(gathering.getIsFinish())) {
+            throw new GatheringFinishConflictException("이미 모임이 finish 상태입니다");
+        }
+
+        gathering.setIsFinish(true);
+    }
+
+    public void setGatheringNotFinish(Long userId, Long gatheringId) {
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(
+                        () -> new GatheringNotExistsException("해당하는 id의 gathering 이 존재 하지 않습니다"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(
+                        () -> new UserNotExistsException("해당하는 id의 User 가 없습니다"));
+
+        if (!Objects.equals(user, gathering.getUser())) {
+            throw new GatheringNotManagerException("해당 유저는 권한이 없습니다");
+        }
+
+        if (Boolean.TRUE.equals(gathering.getIsDeleted())) {
+            throw new GatheringDeleteException("해당 하는 모임은 삭제된 모임입니다");
+        }
+
+        if (Boolean.FALSE.equals(gathering.getIsFinish())) {
+            throw new GatheringFinishConflictException("이미 모임이 not finish 상태입니다");
+        }
+
+        gathering.setIsFinish(false);
     }
 
 
@@ -355,8 +426,7 @@ public class GatheringService {
 
         // 정렬 방식 검증
         if (Objects.nonNull(gatheringPageRequest.getSort())) {
-            if (!LIKE_COUNT_SORT.equals(gatheringPageRequest.getSort()) && !VIEW_COUNT_SORT.equals(
-                    gatheringPageRequest.getSort())) {
+            if (!LIKE_COUNT_SORT.equals(gatheringPageRequest.getSort()) && !VIEW_COUNT_SORT.equals(gatheringPageRequest.getSort())) {
                 throw new RequestValidationFailedException("잘못된 정렬 코드입니다.");
             }
         }
@@ -364,6 +434,7 @@ public class GatheringService {
         // 날짜 검증
         if (Objects.nonNull(gatheringPageRequest.getStartDate()) && Objects.nonNull(
                 gatheringPageRequest.getEndDate())) {
+
             if (gatheringPageRequest.getStartDate().isAfter(gatheringPageRequest.getEndDate())) {
                 throw new RequestValidationFailedException("시작 날짜가 종료 날짜보다 나중일 수 없습니다.");
             }
@@ -372,6 +443,5 @@ public class GatheringService {
             throw new RequestValidationFailedException("시작 날짜와 종료 날짜는 둘 다 입력되거나 둘 다 비어 있어야 합니다.");
         }
     }
-
 
 }

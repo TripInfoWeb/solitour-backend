@@ -12,7 +12,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solitour_backend.solitour.gathering.entity.Gathering;
-import solitour_backend.solitour.information.entity.Information;
 import solitour_backend.solitour.user.entity.User;
 
 @Entity
@@ -26,6 +25,7 @@ public class BookMarkGathering {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -34,11 +34,4 @@ public class BookMarkGathering {
     @JoinColumn(name = "gathering_id")
     private Gathering gathering;
 
-    @Column(name = "is_deleted")
-    private Boolean isDeleted;
-
-    public BookMarkGathering(User user, Gathering gathering) {
-        this.user = user;
-        this.gathering = gathering;
-    }
 }

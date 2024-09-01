@@ -7,7 +7,7 @@ import solitour_backend.solitour.gathering.entity.AllowedSex;
 
 @Getter
 @AllArgsConstructor
-public class GatheringBriefResponse {
+public class GatheringApplicantResponse {
     private Long gatheringId;
     private String title;
     private String zoneCategoryParentName;
@@ -31,5 +31,6 @@ public class GatheringBriefResponse {
     private Integer personCount;
     private Integer nowPersonCount;
     private Boolean isLike;
-
+    private String gatheringStatus;
+    private Boolean isFinish;
 }

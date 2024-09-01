@@ -21,4 +21,7 @@ public interface GatheringRepositoryCustom {
     List<GatheringRankResponse> getGatheringRankList();
 
     List<GatheringBriefResponse> getGatheringLikeCountFromCreatedIn3(Long userId);
+
+    Page<GatheringBriefResponse> getPageGatheringByTag(Pageable pageable, GatheringPageRequest gatheringPageRequest,
+                                                       Long userId, String decodedTag);
 }
