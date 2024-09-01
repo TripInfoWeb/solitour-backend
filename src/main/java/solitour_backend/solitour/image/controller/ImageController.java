@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import solitour_backend.solitour.auth.config.Authenticated;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
 import solitour_backend.solitour.image.dto.response.S3FileResponse;
+import solitour_backend.solitour.image.image_status.ImageType;
 import solitour_backend.solitour.image.service.ImageService;
 
 @RestController
@@ -29,9 +30,9 @@ public class ImageController {
     @PostMapping
     public ResponseEntity<S3FileResponse> uploadImage(@AuthenticationPrincipal Long userId,
                                                       @RequestPart("image") MultipartFile userImage,
-                                                      @RequestParam String type) {
+                                                      @RequestParam ImageType type) {
         checkType(type);
-        String path = env.concat("/").concat(type);
+        String path = env.concat("/").concat(type.getName());
         S3FileResponse s3FileResponse = imageService.uploadImage(userId, userImage, path);
 
         return ResponseEntity
@@ -39,15 +40,12 @@ public class ImageController {
                 .body(s3FileResponse);
     }
 
-    private void checkType(String type) {
+    private void checkType(ImageType type) {
         switch (type) {
-            case "user":
-                break;
-            case "diary":
-                break;
-            case "gathering":
-                break;
-            case "information":
+            case USER:
+            case DIARY:
+            case GATHERING:
+            case INFORMATION:
                 break;
             default:
                 throw new IllegalArgumentException("잘못된 타입입니다.");
