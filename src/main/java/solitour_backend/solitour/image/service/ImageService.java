@@ -15,8 +15,8 @@ public class ImageService {
 
     private final S3Uploader s3Uploader;
 
-    public S3FileResponse uploadImage(Long id, MultipartFile image, String type) {
-        String imageUrl = s3Uploader.upload(image, type, id);
+    public S3FileResponse uploadImage(Long id, MultipartFile image, String path) {
+        String imageUrl = s3Uploader.upload(image, path, id);
 
         return new S3FileResponse(imageUrl);
     }

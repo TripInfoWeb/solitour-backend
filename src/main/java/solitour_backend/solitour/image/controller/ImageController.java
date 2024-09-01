@@ -1,6 +1,7 @@
 package solitour_backend.solitour.image.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,8 @@ import solitour_backend.solitour.image.service.ImageService;
 public class ImageController {
 
     private final ImageService imageService;
+    @Value("${image.env}")
+    private String env;
 
 
     @Authenticated
@@ -27,11 +30,28 @@ public class ImageController {
     public ResponseEntity<S3FileResponse> uploadImage(@AuthenticationPrincipal Long userId,
                                                       @RequestPart("image") MultipartFile userImage,
                                                       @RequestParam String type) {
-        S3FileResponse s3FileResponse = imageService.uploadImage(userId, userImage, type);
+        checkType(type);
+        String path = env.concat("/").concat(type);
+        S3FileResponse s3FileResponse = imageService.uploadImage(userId, userImage, path);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(s3FileResponse);
+    }
+
+    private void checkType(String type) {
+        switch (type) {
+            case "user":
+                break;
+            case "diary":
+                break;
+            case "gathering":
+                break;
+            case "information":
+                break;
+            default:
+                throw new IllegalArgumentException("잘못된 타입입니다.");
+        }
     }
 
 }
