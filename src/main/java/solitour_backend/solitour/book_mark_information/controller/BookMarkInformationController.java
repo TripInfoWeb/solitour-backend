@@ -20,14 +20,6 @@ public class BookMarkInformationController {
 
     private final BookMarkInformationService service;
 
-    @GetMapping()
-    public ResponseEntity<BookMarkInformationResponse> getUserBookmark(
-            @AuthenticationPrincipal Long userId) {
-        BookMarkInformationResponse response = service.getUserBookmark(userId);
-
-        return ResponseEntity.ok(response);
-    }
-
     @Transactional
     @PostMapping()
     public ResponseEntity<BookMarkInformationResponse> createUserBookmark(

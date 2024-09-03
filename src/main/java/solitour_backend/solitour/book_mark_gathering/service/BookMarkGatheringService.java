@@ -22,12 +22,6 @@ public class BookMarkGatheringService {
     private final UserRepository userRepository;
     private final GatheringRepository gatheringRepository;
 
-    public BookMarkGatheringResponse getUserBookmark(Long userId) {
-        List<BookMarkGathering> bookMarkInformation = bookMarkGatheringRepository.findByUserId(userId);
-
-        return new BookMarkGatheringResponse(bookMarkInformation);
-    }
-
     public void createUserBookmark(Long userId, Long gatheringId) {
         User user = userRepository.findByUserId(userId);
         Gathering gathering = gatheringRepository.findById(gatheringId)

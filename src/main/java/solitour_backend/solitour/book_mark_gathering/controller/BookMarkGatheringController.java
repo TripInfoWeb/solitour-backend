@@ -22,14 +22,6 @@ public class BookMarkGatheringController {
 
     private final BookMarkGatheringService service;
 
-    @GetMapping()
-    public ResponseEntity<BookMarkGatheringResponse> getUserBookmark(
-            @AuthenticationPrincipal Long userId) {
-        BookMarkGatheringResponse response = service.getUserBookmark(userId);
-
-        return ResponseEntity.ok(response);
-    }
-
     @Transactional
     @PostMapping()
     public ResponseEntity<BookMarkGatheringResponse> createUserBookmark(
