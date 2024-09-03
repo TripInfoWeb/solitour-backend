@@ -18,6 +18,7 @@ import solitour_backend.solitour.image.exception.ImageAlreadyExistsException;
 import solitour_backend.solitour.image.exception.ImageNotExistsException;
 import solitour_backend.solitour.image.exception.ImageRequestValidationFailedException;
 import solitour_backend.solitour.information.exception.InformationNotExistsException;
+import solitour_backend.solitour.information.exception.InformationNotManageException;
 import solitour_backend.solitour.user.exception.UserNotExistsException;
 import solitour_backend.solitour.zone_category.exception.ZoneCategoryAlreadyExistsException;
 import solitour_backend.solitour.zone_category.exception.ZoneCategoryNotExistsException;
@@ -28,7 +29,8 @@ public class GlobalControllerAdvice {
     @ExceptionHandler({
             RequestValidationFailedException.class,
             ImageRequestValidationFailedException.class,
-            GatheringApplicantsManagerException.class
+            GatheringApplicantsManagerException.class,
+            InformationNotManageException.class
     })
     public ResponseEntity<String> validationException(Exception exception) {
         return ResponseEntity

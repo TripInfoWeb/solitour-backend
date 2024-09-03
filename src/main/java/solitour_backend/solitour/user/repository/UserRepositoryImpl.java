@@ -8,7 +8,10 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
+
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +41,12 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
     public UserRepositoryImpl() {
         super(User.class);
     }
+
+    @Value("${user.profile.url.male}")
+    private String maleProfileUrl;
+
+    @Value("${user.profile.url.female}")
+    private String femaleProfileUrl;
 
     QInformation information = QInformation.information;
     QZoneCategory zoneCategoryChild = QZoneCategory.zoneCategory;
@@ -261,7 +270,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                         gathering.personCount,
                         gatheringApplicants.count().coalesce(0L).intValue(),
                         isUserGreatGathering(userId),
-                        gatheringStatus
+                        gatheringStatus,
+                        gathering.isFinish
                 ))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -271,14 +281,24 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         return new PageImpl<>(list, pageable, total);
     }
 
+    @Override
+    public String getProfileUrl(String gender) {
+        if ("male".equalsIgnoreCase(gender)) {
+            return maleProfileUrl;
+        } else if ("female".equalsIgnoreCase(gender)) {
+            return femaleProfileUrl;
+        }
+        return null; // Or return a default URL
+    }
+
     private StringExpression getGatheringStatus() {
         QGatheringApplicants gatheringApplicants = QGatheringApplicants.gatheringApplicants;
         return new CaseBuilder()
                 .when(gatheringApplicants.gatheringStatus.eq(GatheringStatus.WAIT))
-                .then("대기중")
+                .then("WAIT")
                 .when(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT))
-                .then("승인됨")
-                .otherwise("거절됨");
+                .then("CONSENT")
+                .otherwise("REFUSE");
     }
 
     private NumberExpression<Integer> countGreatGatheringByGatheringById() {

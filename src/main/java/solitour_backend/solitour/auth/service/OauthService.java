@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,8 +41,10 @@ public class OauthService {
     private final GoogleConnector googleConnector;
     private final GoogleProvider googleProvider;
     private final UserImageService userImageService;
-    private final String USER_PROFILE_MALE = "https://s3.ap-northeast-2.amazonaws.com/solitour-bucket/user/2/3e6f9c1b-5f3d-4744-9c8b-dfd2c0e2455f.svg";
-    private final String USER_PROFILE_FEMALE = "https://s3.ap-northeast-2.amazonaws.com/solitour-bucket/user/3/96cb196b-35db-4b51-86fa-f661ae731db9.svg";
+    @Value("${user.profile.url.male}")
+    private String USER_PROFILE_MALE;
+    @Value("${user.profile.url.female}")
+    private String USER_PROFILE_FEMALE;
 
 
     public OauthLinkResponse generateAuthUrl(String type, String redirectUrl) {
@@ -79,15 +82,15 @@ public class OauthService {
         if (Objects.equals(type, "kakao")) {
             KakaoUserResponse response = kakaoConnector.requestKakaoUserInfo(code, redirectUrl)
                     .getBody();
-            String nickname = response.getKakaoAccount().getProfile().getNickName();
-            return userRepository.findByNickname(nickname)
+            String id = response.getId().toString();
+            return userRepository.findByOauthId(id)
                     .orElseGet(() -> saveKakaoUser(response));
         }
         if (Objects.equals(type, "google")) {
             GoogleUserResponse response = googleConnector.requestGoogleUserInfo(code, redirectUrl)
                     .getBody();
-            String email = response.getEmailAddresses().get(0).getValue();
-            return userRepository.findByEmail(email)
+            String id = response.getResourceName();
+            return userRepository.findByOauthId(id)
                     .orElseGet(() -> saveGoogleUser(response));
         } else {
             throw new RuntimeException("지원하지 않는 oauth 타입입니다.");

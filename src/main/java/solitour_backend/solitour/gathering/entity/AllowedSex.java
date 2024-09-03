@@ -1,6 +1,7 @@
 package solitour_backend.solitour.gathering.entity;
 
 import java.util.Arrays;
+
 import lombok.Getter;
 
 @Getter
@@ -19,6 +20,6 @@ public enum AllowedSex {
         return Arrays.stream(AllowedSex.values())
                 .filter(e -> e.name.equals(name))
                 .findAny()
-                .orElse(null);
+                .orElseThrow(RuntimeException::new);
     }
 }

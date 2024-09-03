@@ -10,11 +10,13 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +30,7 @@ import solitour_backend.solitour.gathering.entity.QGathering;
 import solitour_backend.solitour.gathering_applicants.entity.GatheringStatus;
 import solitour_backend.solitour.gathering_applicants.entity.QGatheringApplicants;
 import solitour_backend.solitour.gathering_category.entity.QGatheringCategory;
+import solitour_backend.solitour.gathering_tag.entity.QGatheringTag;
 import solitour_backend.solitour.great_gathering.entity.QGreatGathering;
 import solitour_backend.solitour.zone_category.entity.QZoneCategory;
 
@@ -44,7 +47,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
     QGreatGathering greatGathering = QGreatGathering.greatGathering;
     QGatheringCategory category = QGatheringCategory.gatheringCategory;
     QGatheringApplicants gatheringApplicants = QGatheringApplicants.gatheringApplicants;
-
+    QGatheringTag gatheringTag = QGatheringTag.gatheringTag;
 
     @Override
     public List<GatheringBriefResponse> getGatheringRecommend(Long gatheringId, Long gatheringCategoryId, Long userId) {
@@ -55,8 +58,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 .leftJoin(bookMarkGathering)
                 .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
                 .leftJoin(category).on(category.id.eq(gathering.gatheringCategory.id))
-                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id)
-                        .and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
+                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
                 .where(gathering.isFinish.eq(Boolean.FALSE)
                         .and(gathering.gatheringCategory.id.eq(gatheringCategoryId))
                         .and(gathering.id.ne(gatheringId))
@@ -116,7 +118,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
                 .leftJoin(bookMarkGathering)
                 .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
-                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id))
+                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
                 .where(booleanBuilder)
                 .groupBy(gathering.id, zoneCategoryChild.id, zoneCategoryParent.id, category.id,
                         gathering.title, gathering.viewCount, gathering.user.name,
@@ -152,6 +154,65 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
         return new PageImpl<>(content, pageable, total);
     }
 
+    @Override
+    public Page<GatheringBriefResponse> getPageGatheringByTag(Pageable pageable,
+                                                              GatheringPageRequest gatheringPageRequest, Long userId,
+                                                              String decodedTag) {
+        BooleanBuilder booleanBuilder = makeWhereSQL(gatheringPageRequest);
+
+        OrderSpecifier<?> orderSpecifier = getOrderSpecifier(gatheringPageRequest.getSort());
+
+        NumberExpression<Integer> countGreatGathering = countGreatGatheringByGatheringById();
+
+        long total = from(gathering)
+                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
+                .leftJoin(bookMarkGathering)
+                .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
+                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id))
+                .leftJoin(gatheringTag)
+                .on(gatheringTag.gathering.id.eq(gathering.id).and(gatheringTag.tag.name.eq(decodedTag)))
+                .where(booleanBuilder.and(gatheringTag.tag.name.eq(decodedTag)))
+                .select(gathering.id.count()).fetchCount();
+
+        List<GatheringBriefResponse> content = from(gathering)
+                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
+                .leftJoin(bookMarkGathering)
+                .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
+                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
+                .leftJoin(gatheringTag)
+                .on(gatheringTag.gathering.id.eq(gathering.id).and(gatheringTag.tag.name.eq(decodedTag)))
+                .where(booleanBuilder.and(gatheringTag.tag.name.eq(decodedTag)))
+                .groupBy(gathering.id, zoneCategoryChild.id, zoneCategoryParent.id, category.id)
+                .orderBy(orderSpecifier)
+                .select(Projections.constructor(
+                        GatheringBriefResponse.class,
+                        gathering.id,
+                        gathering.title,
+                        zoneCategoryParent.name,
+                        zoneCategoryChild.name,
+                        gathering.viewCount,
+                        bookMarkGathering.user.id.isNotNull(),
+                        countGreatGathering,
+                        gathering.gatheringCategory.name,
+                        gathering.user.name,
+                        gathering.scheduleStartDate,
+                        gathering.scheduleEndDate,
+                        gathering.deadline,
+                        gathering.allowedSex,
+                        gathering.startAge,
+                        gathering.endAge,
+                        gathering.personCount,
+                        gatheringApplicants.count().coalesce(0L).intValue(),
+                        isUserGreatGathering(userId)
+                ))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(content, pageable, total);
+    }
 
     @Override
     public List<GatheringRankResponse> getGatheringRankList() {
@@ -210,7 +271,6 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                         isUserGreatGathering(userId)
                 )).limit(6).fetch();
     }
-
 
     //where 절
     private BooleanBuilder makeWhereSQL(GatheringPageRequest gatheringPageRequest) {

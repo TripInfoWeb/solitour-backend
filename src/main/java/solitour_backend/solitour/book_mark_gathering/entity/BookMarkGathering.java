@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solitour_backend.solitour.gathering.entity.Gathering;
@@ -33,5 +34,10 @@ public class BookMarkGathering {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gathering_id")
     private Gathering gathering;
+
+    public BookMarkGathering(User user, Gathering gathering) {
+        this.user = user;
+        this.gathering = gathering;
+    }
 
 }

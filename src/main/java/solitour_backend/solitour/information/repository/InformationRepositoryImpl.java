@@ -21,6 +21,7 @@ import solitour_backend.solitour.category.entity.QCategory;
 import solitour_backend.solitour.great_information.entity.QGreatInformation;
 import solitour_backend.solitour.image.entity.QImage;
 import solitour_backend.solitour.image.image_status.ImageStatus;
+import solitour_backend.solitour.info_tag.entity.QInfoTag;
 import solitour_backend.solitour.information.dto.request.InformationPageRequest;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.information.dto.response.InformationMainResponse;
@@ -42,6 +43,7 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
     QImage image = QImage.image;
     QGreatInformation greatInformation = QGreatInformation.greatInformation;
     QCategory category = QCategory.category;
+    QInfoTag infoTag = QInfoTag.infoTag;
 
 
     @Override
@@ -167,6 +169,73 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                 ))
                 .limit(3L)
                 .fetch();
+    }
+
+    @Override
+    public Page<InformationBriefResponse> getInformationPageByTag(Pageable pageable, Long userId, Long parentCategoryId,
+                                                                  InformationPageRequest informationPageRequest,
+                                                                  String decodedTag) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if (Objects.nonNull(informationPageRequest.getZoneCategoryId())) {
+            whereClause.and(
+                    information.zoneCategory.parentZoneCategory.id.eq(informationPageRequest.getZoneCategoryId()));
+        }
+
+        BooleanBuilder categoryCondition = new BooleanBuilder();
+
+        if (Objects.nonNull(informationPageRequest.getChildCategoryId())) {
+            whereClause.and(information.category.id.eq(informationPageRequest.getChildCategoryId()));
+        } else {
+            categoryCondition.and(category.parentCategory.id.eq(parentCategoryId));
+        }
+
+        OrderSpecifier<?> orderSpecifier = getOrderSpecifier(informationPageRequest.getSort());
+        NumberExpression<Integer> countGreatInformation = countGreatInformationByInformationById();
+
+        long total = from(information)
+                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
+                .leftJoin(bookMarkInformation)
+                .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
+                .leftJoin(image)
+                .on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .join(category).on(category.id.eq(information.category.id).and(categoryCondition))
+                .leftJoin(infoTag)
+                .on(infoTag.information.id.eq(information.id))
+                .where(whereClause.and(infoTag.information.id.eq(information.id).and(infoTag.tag.name.eq(decodedTag))))
+                .select(information.count()).fetchCount();
+
+        List<InformationBriefResponse> list = from(information)
+                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
+                .leftJoin(bookMarkInformation)
+                .on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
+                .leftJoin(image)
+                .on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .join(category).on(category.id.eq(information.category.id).and(categoryCondition))
+                .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
+                .leftJoin(infoTag)
+                .on(infoTag.information.id.eq(information.id))
+                .where(whereClause)
+                .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id, infoTag.id)
+                .orderBy(orderSpecifier)
+                .select(Projections.constructor(
+                        InformationBriefResponse.class,
+                        information.id,
+                        information.title,
+                        zoneCategoryParent.name,
+                        zoneCategoryChild.name,
+                        information.viewCount,
+                        bookMarkInformation.user.id.isNotNull(),
+                        image.address,
+                        countGreatInformation,
+                        isUserGreatInformation(userId)
+                )).offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(list, pageable, total);
     }
 
     @Override

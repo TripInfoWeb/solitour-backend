@@ -20,6 +20,5 @@ public interface ImageMapper {
         return imageStatus.getName();
     }
 
-
     List<ImageResponse> toImageResponseList(List<Image> images);
 }

@@ -1,18 +1,13 @@
 package solitour_backend.solitour.image.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import java.time.LocalDate;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import solitour_backend.solitour.image.image_status.ImageStatus;
 import solitour_backend.solitour.image.image_status.ImageStatusConverter;
 import solitour_backend.solitour.information.entity.Information;
@@ -21,6 +16,7 @@ import solitour_backend.solitour.information.entity.Information;
 @Getter
 @Table(name = "image")
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class Image {
 
     @Id
@@ -39,19 +35,13 @@ public class Image {
     @Column(name = "image_address")
     private String address;
 
+    @CreatedDate
     @Column(name = "image_created_date")
     private LocalDate createdDate;
 
-    public Image(ImageStatus imageStatus, Information information, String address, LocalDate createdDate) {
+    public Image(ImageStatus imageStatus, Information information, String address) {
         this.imageStatus = imageStatus;
         this.information = information;
         this.address = address;
-        this.createdDate = createdDate;
-    }
-
-    public Image(ImageStatus status, String imageUrl, LocalDate now) {
-        this.imageStatus = status;
-        this.address = imageUrl;
-        this.createdDate = now;
     }
 }

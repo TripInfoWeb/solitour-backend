@@ -20,4 +20,6 @@ public interface UserRepositoryCustom {
     Page<GatheringBriefResponse> retrieveGatheringBookmark(Pageable pageable, Long userId);
 
     Page<GatheringApplicantResponse> retrieveGatheringApplicant(Pageable pageable, Long userId);
+
+    String getProfileUrl(String gender);
 }
