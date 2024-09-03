@@ -86,7 +86,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                         information.viewCount,
                         bookMarkInformation.user.id.isNotNull(),
                         image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
+                        greatInformation.information.count().coalesce(0L).intValue(),
+                        isUserGreatInformation(userId)
                 ))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -122,7 +123,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                         information.viewCount,
                         bookMarkInformation.user.id.isNotNull(),
                         image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
+                        greatInformation.information.count().coalesce(0L).intValue(),
+                        isUserGreatInformation(userId)
                 ))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -311,6 +313,17 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         return Expressions.numberTemplate(Long.class, "{0}", likeCountSubQuery)
                 .coalesce(0L)
                 .intValue();
+    }
+
+    private BooleanExpression isUserGreatInformation(Long userId) {
+        return new CaseBuilder()
+                .when(JPAExpressions.selectOne()
+                        .from(greatInformation)
+                        .where(greatInformation.information.id.eq(information.id)
+                                .and(greatInformation.user.id.eq(userId)))
+                        .exists())
+                .then(true)
+                .otherwise(false);
     }
 
     private BooleanExpression isUserGreatGathering(Long userId) {
