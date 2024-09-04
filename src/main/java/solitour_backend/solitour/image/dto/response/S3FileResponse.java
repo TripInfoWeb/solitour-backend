@@ -5,7 +5,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ImageResponse {
-    private String imageStatus;
-    private String address;
+public class S3FileResponse {
+    private String fileUrl;
 }

@@ -8,7 +8,10 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
+
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +41,12 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
     public UserRepositoryImpl() {
         super(User.class);
     }
+
+    @Value("${user.profile.url.male}")
+    private String maleProfileUrl;
+
+    @Value("${user.profile.url.female}")
+    private String femaleProfileUrl;
 
     QInformation information = QInformation.information;
     QZoneCategory zoneCategoryChild = QZoneCategory.zoneCategory;
@@ -77,7 +86,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                         information.viewCount,
                         bookMarkInformation.user.id.isNotNull(),
                         image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
+                        greatInformation.information.count().coalesce(0L).intValue(),
+                        isUserGreatInformation(userId)
                 ))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -113,7 +123,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                         information.viewCount,
                         bookMarkInformation.user.id.isNotNull(),
                         image.address,
-                        greatInformation.information.count().coalesce(0L).intValue()
+                        greatInformation.information.count().coalesce(0L).intValue(),
+                        isUserGreatInformation(userId)
                 ))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -272,6 +283,16 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         return new PageImpl<>(list, pageable, total);
     }
 
+    @Override
+    public String getProfileUrl(String gender) {
+        if ("male".equalsIgnoreCase(gender)) {
+            return maleProfileUrl;
+        } else if ("female".equalsIgnoreCase(gender)) {
+            return femaleProfileUrl;
+        }
+        return null; // Or return a default URL
+    }
+
     private StringExpression getGatheringStatus() {
         QGatheringApplicants gatheringApplicants = QGatheringApplicants.gatheringApplicants;
         return new CaseBuilder()
@@ -292,6 +313,17 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         return Expressions.numberTemplate(Long.class, "{0}", likeCountSubQuery)
                 .coalesce(0L)
                 .intValue();
+    }
+
+    private BooleanExpression isUserGreatInformation(Long userId) {
+        return new CaseBuilder()
+                .when(JPAExpressions.selectOne()
+                        .from(greatInformation)
+                        .where(greatInformation.information.id.eq(information.id)
+                                .and(greatInformation.user.id.eq(userId)))
+                        .exists())
+                .then(true)
+                .otherwise(false);
     }
 
     private BooleanExpression isUserGreatGathering(Long userId) {

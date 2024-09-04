@@ -1,4 +1,4 @@
-package solitour_backend.solitour.book_mark_information.controller;
+package solitour_backend.solitour.book_mark_gathering.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,21 +10,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
+import solitour_backend.solitour.book_mark_gathering.dto.response.BookMarkGatheringResponse;
+import solitour_backend.solitour.book_mark_gathering.service.BookMarkGatheringService;
 import solitour_backend.solitour.book_mark_information.service.BookMarkInformationService;
 import solitour_backend.solitour.book_mark_information.service.dto.response.BookMarkInformationResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/bookmark/information")
-public class BookMarkInformationController {
+@RequestMapping("/api/bookmark/gathering")
+public class BookMarkGatheringController {
 
-    private final BookMarkInformationService service;
+    private final BookMarkGatheringService service;
 
     @Transactional
     @PostMapping()
-    public ResponseEntity<BookMarkInformationResponse> createUserBookmark(
-            @AuthenticationPrincipal Long userId, @RequestParam Long infoId) {
-        service.createUserBookmark(userId, infoId);
+    public ResponseEntity<BookMarkGatheringResponse> createUserBookmark(
+            @AuthenticationPrincipal Long userId, @RequestParam Long gatheringId) {
+        service.createUserBookmark(userId, gatheringId);
 
         return ResponseEntity.ok().build();
     }
@@ -32,8 +34,8 @@ public class BookMarkInformationController {
     @Transactional
     @DeleteMapping()
     public ResponseEntity<Void> deleteUserBookmark(@AuthenticationPrincipal Long userId,
-                                                   @RequestParam Long infoId) {
-        service.deleteUserBookmark(userId, infoId);
+                                                   @RequestParam Long gatheringId) {
+        service.deleteUserBookmark(userId, gatheringId);
 
         return ResponseEntity.ok().build();
     }

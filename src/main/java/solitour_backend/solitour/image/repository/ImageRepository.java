@@ -1,6 +1,7 @@
 package solitour_backend.solitour.image.repository;
 
 import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import solitour_backend.solitour.image.entity.Image;
 import solitour_backend.solitour.image.image_status.ImageStatus;
@@ -16,4 +17,6 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     void deleteByAddress(String address);
 
     void deleteAllByInformationId(Long informationId);
+
+    boolean existsImageByImageStatusAndInformationId(ImageStatus imageStatus, Long informationId);
 }

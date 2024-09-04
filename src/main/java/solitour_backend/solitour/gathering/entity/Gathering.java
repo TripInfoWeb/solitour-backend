@@ -11,7 +11,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+
 import java.time.LocalDateTime;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -116,5 +118,6 @@ public class Gathering {
         this.allowedSex = allowedSex;
         this.startAge = startAge;
         this.endAge = endAge;
+        this.isDeleted = false;
     }
 }

@@ -22,12 +22,6 @@ public class BookMarkInformationService {
     private final UserRepository userRepository;
     private final InformationRepository informationRepository;
 
-    public BookMarkInformationResponse getUserBookmark(Long userId) {
-        List<BookMarkInformation> bookMarkInformation = bookMarkInformationRepository.findByUserId(userId);
-
-        return new BookMarkInformationResponse(bookMarkInformation);
-    }
-
     public void createUserBookmark(Long userId, Long infoId) {
         User user = userRepository.findByUserId(userId);
         Information information = informationRepository.findById(infoId)
