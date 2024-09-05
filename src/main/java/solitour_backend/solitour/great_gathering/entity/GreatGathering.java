@@ -35,4 +35,8 @@ public class GreatGathering {
     @JoinColumn(name = "gathering_id")
     private Gathering gathering;
 
+    public GreatGathering(User user, Gathering gathering) {
+        this.user = user;
+        this.gathering = gathering;
+    }
 }
