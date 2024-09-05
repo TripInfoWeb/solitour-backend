@@ -247,7 +247,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .leftJoin(gatheringApplicants)
                 .on(gatheringApplicants.gathering.id.eq(gathering.id))
                 .orderBy(gathering.createdAt.desc())
-                .where(gatheringApplicants.user.id.eq(userId));
+                .where(gatheringApplicants.user.id.eq(userId).and(gathering.user.id.eq(userId).not()));
 
         List<GatheringApplicantResponse> list = query
                 .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,

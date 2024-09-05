@@ -32,6 +32,7 @@ import solitour_backend.solitour.user.exception.UserNotExistsException;
 import solitour_backend.solitour.user.service.UserService;
 import solitour_backend.solitour.user.service.dto.response.UserInfoResponse;
 
+@Authenticated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
@@ -44,7 +45,6 @@ public class UserController {
 
     public static final int PAGE_SIZE = 6;
 
-    @Authenticated
     @GetMapping("/info")
     public ResponseEntity<UserInfoResponse> retrieveUserInfo(@AuthenticationPrincipal Long userId) {
         UserInfoResponse response = userService.retrieveUserInfo(userId);
@@ -52,7 +52,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @Authenticated
     @PutMapping("/nickname")
     public ResponseEntity<String> updateNickname(@AuthenticationPrincipal Long userId,
                                                  @RequestBody UpdateNicknameRequest request) {
@@ -68,7 +67,6 @@ public class UserController {
         }
     }
 
-    @Authenticated
     @PutMapping("/age-sex")
     public ResponseEntity<String> updateAgeAndSex(@AuthenticationPrincipal Long userId,
                                                   @RequestBody UpdateAgeAndSex request) {
@@ -90,7 +88,6 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @Authenticated
     @DeleteMapping()
     public ResponseEntity<String> deleteUser(HttpServletResponse response, @AuthenticationPrincipal Long id,
                                              @RequestParam String type,
@@ -109,7 +106,6 @@ public class UserController {
         }
     }
 
-    @Authenticated
     @GetMapping("/mypage/information/owner")
     public ResponseEntity<Page<InformationBriefResponse>> retrieveInformationOwner(
             @RequestParam(defaultValue = "0") int page,
@@ -132,7 +128,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @Authenticated
     @GetMapping("/mypage/gathering/host")
     public ResponseEntity<Page<GatheringBriefResponse>> retrieveGatheringHost(
             @RequestParam(defaultValue = "0") int page,
