@@ -4,6 +4,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import solitour_backend.solitour.auth.exception.TokenNotExistsException;
+import solitour_backend.solitour.book_mark_gathering.exception.GatheringBookMarkNotExistsException;
+import solitour_backend.solitour.book_mark_information.exception.InformationBookMarkNotExistsException;
 import solitour_backend.solitour.category.exception.CategoryNotExistsException;
 import solitour_backend.solitour.error.exception.RequestValidationFailedException;
 import solitour_backend.solitour.gathering.exception.GatheringCategoryNotExistsException;
@@ -14,6 +17,8 @@ import solitour_backend.solitour.gathering_applicants.exception.GatheringApplica
 import solitour_backend.solitour.gathering_applicants.exception.GatheringApplicantsManagerException;
 import solitour_backend.solitour.gathering_applicants.exception.GatheringApplicantsNotExistsException;
 import solitour_backend.solitour.gathering_applicants.exception.GatheringNotManagerException;
+import solitour_backend.solitour.great_gathering.exception.GatheringGreatNotExistsException;
+import solitour_backend.solitour.great_information.exception.InformationGreatNotExistsException;
 import solitour_backend.solitour.image.exception.ImageAlreadyExistsException;
 import solitour_backend.solitour.image.exception.ImageNotExistsException;
 import solitour_backend.solitour.image.exception.ImageRequestValidationFailedException;
@@ -60,6 +65,11 @@ public class GlobalControllerAdvice {
             GatheringNotExistsException.class,
             GatheringApplicantsNotExistsException.class,
             GatheringDeleteException.class,
+            InformationGreatNotExistsException.class,
+            InformationGreatNotExistsException.class,
+            GatheringGreatNotExistsException.class,
+            GatheringBookMarkNotExistsException.class,
+            InformationBookMarkNotExistsException.class
     })
     public ResponseEntity<String> notFoundException(Exception exception) {
         return ResponseEntity
@@ -73,4 +83,14 @@ public class GlobalControllerAdvice {
                 .status(HttpStatus.FORBIDDEN)
                 .body(exception.getMessage());
     }
+
+    @ExceptionHandler({
+            TokenNotExistsException.class
+    })
+    public ResponseEntity<String> unauthorizedException(Exception exception) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(exception.getMessage());
+    }
+
 }

@@ -9,10 +9,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import solitour_backend.solitour.auth.config.Authenticated;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
+import solitour_backend.solitour.book_mark_information.entity.BookMarkInformation;
 import solitour_backend.solitour.book_mark_information.service.BookMarkInformationService;
 import solitour_backend.solitour.book_mark_information.service.dto.response.BookMarkInformationResponse;
 
+@Authenticated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/bookmark/information")
@@ -22,11 +25,11 @@ public class BookMarkInformationController {
 
     @Transactional
     @PostMapping()
-    public ResponseEntity<BookMarkInformationResponse> createUserBookmark(
+    public ResponseEntity<Long> createUserBookmark(
             @AuthenticationPrincipal Long userId, @RequestParam Long infoId) {
-        service.createUserBookmark(userId, infoId);
+        BookMarkInformation bookMarkInformation = service.createUserBookmark(userId, infoId);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(bookMarkInformation.getId());
     }
 
     @Transactional
@@ -35,6 +38,6 @@ public class BookMarkInformationController {
                                                    @RequestParam Long infoId) {
         service.deleteUserBookmark(userId, infoId);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }
