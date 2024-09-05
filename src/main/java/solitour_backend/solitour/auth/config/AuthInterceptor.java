@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+import solitour_backend.solitour.auth.exception.TokenNotExistsException;
+import solitour_backend.solitour.auth.exception.TokenNotValidException;
 import solitour_backend.solitour.auth.support.CookieExtractor;
 import solitour_backend.solitour.auth.support.JwtTokenProvider;
 
@@ -30,22 +32,27 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (authenticated.isPresent()) {
             try {
                 validateToken(request);
-            }catch (Exception e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰이 유효하지 않습니다.");
-                return false;
+            }catch (TokenNotValidException e) {
+                throw new TokenNotExistsException("토큰이 존재하지 않습니다.");
             }
         }
         return true;
     }
 
     private <T extends Annotation> Optional<T> parseAnnotation(HandlerMethod handler, Class<T> clazz) {
-        return Optional.ofNullable(handler.getMethodAnnotation(clazz));
+        T methodAnnotation = handler.getMethodAnnotation(clazz);
+
+        if (methodAnnotation == null) {
+            methodAnnotation = handler.getBeanType().getAnnotation(clazz);
+        }
+
+        return Optional.ofNullable(methodAnnotation);
     }
 
     private void validateToken(HttpServletRequest request) {
         String token = CookieExtractor.findToken("access_token", request.getCookies());
         if (jwtTokenProvider.validateTokenNotUsable(token)) {
-            throw new RuntimeException("토큰이 유효하지 않습니다.");
+            throw new TokenNotValidException("토큰이 유효하지 않습니다.");
         }
     }
 
