@@ -133,18 +133,6 @@ public class InformationService {
                 );
 
         Information saveInformation = informationRepository.save(information);
-        Image thumbImage = new Image(ImageStatus.THUMBNAIL, saveInformation, informationCreateRequest.getThumbNailImageUrl());
-        List<String> contentImagesUrl = informationCreateRequest.getContentImagesUrl();
-
-        if (Objects.nonNull(contentImagesUrl) && !contentImagesUrl.isEmpty()) {
-            List<Image> contentImageList = new ArrayList<>();
-            for (String contentImage : contentImagesUrl) {
-                contentImageList.add(new Image(ImageStatus.CONTENT, saveInformation, contentImage));
-            }
-            imageRepository.saveAll(contentImageList);
-        }
-
-        imageRepository.save(thumbImage);
 
         List<Tag> tags = tagMapper.mapToTags(informationCreateRequest.getTagRegisterRequests());
         List<Tag> saveTags = tagRepository.saveAll(tags);
@@ -152,6 +140,22 @@ public class InformationService {
         for (Tag tag : saveTags) {
             infoTagRepository.save(new InfoTag(tag, saveInformation));
         }
+
+        Image thumbImage = new Image(ImageStatus.THUMBNAIL, saveInformation, informationCreateRequest.getThumbNailImageUrl());
+        imageRepository.save(thumbImage);
+
+        s3Uploader.markImagePermanent(thumbImage.getAddress());
+        List<String> contentImagesUrl = informationCreateRequest.getContentImagesUrl();
+
+        if (Objects.nonNull(contentImagesUrl) && !contentImagesUrl.isEmpty()) {
+            List<Image> contentImageList = new ArrayList<>();
+            for (String contentImage : contentImagesUrl) {
+                contentImageList.add(new Image(ImageStatus.CONTENT, saveInformation, contentImage));
+                s3Uploader.markImagePermanent(contentImage);
+            }
+            imageRepository.saveAll(contentImageList);
+        }
+
 
         return informationMapper.mapToInformationResponse(saveInformation);
     }
@@ -174,8 +178,7 @@ public class InformationService {
                     .toList();
         }
         PlaceResponse placeResponse = placeMapper.mapToPlaceResponse(information.getPlace());
-        ZoneCategoryResponse zoneCategoryResponse = zoneCategoryMapper.mapToZoneCategoryResponse(
-                information.getZoneCategory());
+        ZoneCategoryResponse zoneCategoryResponse = zoneCategoryMapper.mapToZoneCategoryResponse(information.getZoneCategory());
 
         List<Image> images = imageRepository.findAllByInformationId(information.getId());
 
@@ -183,8 +186,7 @@ public class InformationService {
 
         int likeCount = greatInformationRepository.countByInformationId(information.getId());
 
-        List<InformationBriefResponse> informationRecommend = informationRepository.getInformationRecommend(
-                information.getId(), information.getCategory().getId(), userId);
+        List<InformationBriefResponse> informationRecommend = informationRepository.getInformationRecommend(information.getId(), information.getCategory().getId(), userId);
 
         boolean isLike = greatInformationRepository.existsByInformationIdAndUserId(information.getId(), userId);
 

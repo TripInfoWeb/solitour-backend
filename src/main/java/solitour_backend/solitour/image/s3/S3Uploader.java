@@ -1,12 +1,12 @@
 package solitour_backend.solitour.image.s3;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.*;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.UUID;
+import java.util.*;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -33,17 +33,46 @@ public class S3Uploader {
         metadata.setContentLength(multipartFile.getSize());
         metadata.setContentType(multipartFile.getContentType());
 
+        List<Tag> tags = new ArrayList<>();
+        tags.add(new Tag("temp", "true"));
+
+
         try (InputStream inputStream = multipartFile.getInputStream()) {
-            amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata));
+            PutObjectRequest putObjectRequest =
+                    new PutObjectRequest(bucket, fileName, inputStream, metadata).withTagging(new ObjectTagging(tags));
+            amazonS3Client.putObject(putObjectRequest);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다.");
         }
         return amazonS3Client.getUrl(bucket, fileName).toString();
     }
 
+    public void markImagePermanent(String imageUrl) {
+        String fileName = extractFileNameFromUrl(imageUrl);
+        GetObjectTaggingRequest getTaggingRequest = new GetObjectTaggingRequest(bucket, fileName);
+        GetObjectTaggingResult getTaggingResult = amazonS3Client.getObjectTagging(getTaggingRequest);
+        List<Tag> tags = getTaggingResult.getTagSet();
+
+        boolean tagFound = false;
+
+        for (Tag tag : tags) {
+            if (tag.getKey().equals("temp")) {
+                tag.setValue("false");
+                tagFound = true;
+                break;
+            }
+        }
+
+        if (!tagFound) {
+            tags.add(new Tag("temp", "false"));
+        }
+
+        SetObjectTaggingRequest setObjectTaggingRequest = new SetObjectTaggingRequest(bucket, fileName, new ObjectTagging(tags));
+        amazonS3Client.setObjectTagging(setObjectTaggingRequest);
+    }
+
     public void deleteImage(String fileUrl) {
-        String splitStr = ".com/";
-        String fileName = fileUrl.substring(fileUrl.lastIndexOf(splitStr) + splitStr.length());
+        String fileName = extractFileNameFromUrl(fileUrl);
 
         amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, fileName));
     }
@@ -59,5 +88,10 @@ public class S3Uploader {
         } catch (StringIndexOutOfBoundsException se) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 형식의 파일 입니다.");
         }
+    }
+
+    private String extractFileNameFromUrl(String url) {
+        final String splitStr = ".com/";
+        return url.substring(url.lastIndexOf(splitStr) + splitStr.length());
     }
 }

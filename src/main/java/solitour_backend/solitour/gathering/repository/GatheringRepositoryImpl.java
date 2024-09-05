@@ -238,8 +238,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 .leftJoin(bookMarkGathering)
                 .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
                 .leftJoin(category).on(category.id.eq(gathering.gatheringCategory.id))
-                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id)
-                        .and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
+                .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
                 .where(gathering.isFinish.eq(Boolean.FALSE)
                         .and(gathering.isDeleted.eq(Boolean.FALSE))
                         .and(gathering.createdAt.after(LocalDateTime.now().minusMonths(3))))
@@ -269,7 +268,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                         gathering.personCount,
                         gatheringApplicants.count().coalesce(0L).intValue(),
                         isUserGreatGathering(userId)
-                )).limit(6).fetch();
+                )).limit(6L).fetch();
     }
 
     //where 절
@@ -305,7 +304,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
         }
 
         if (Objects.isNull(gatheringPageRequest.getIsExclude())) {
-            whereClause.and(gathering.isFinish.eq(false));
+            whereClause.and(gathering.isFinish.eq(Boolean.FALSE));
         }
 
         if (Objects.nonNull(gatheringPageRequest.getSearch())) {
