@@ -5,6 +5,7 @@ import static solitour_backend.solitour.information.controller.InformationContro
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
@@ -143,10 +144,10 @@ public class GatheringController {
                                                                               @Valid @ModelAttribute GatheringPageRequest gatheringPageRequest,
                                                                               @RequestParam(required = false, name = "tagName") String tag,
                                                                               BindingResult bindingResult,
-                                                                              HttpServletRequest request) {
-        byte[] decodedBytes = Base64.getUrlDecoder().decode(tag);
-        String decodedTag = new String(decodedBytes);
-        String filteredTag = decodedTag.replaceAll("[^a-zA-Z0-9가-힣]", "");
+                                                                              HttpServletRequest request)
+            throws UnsupportedEncodingException {
+        String decodedValue = java.net.URLDecoder.decode(tag, "UTF-8");
+        String filteredTag = decodedValue.replaceAll("[^a-zA-Z0-9가-힣]", "");
 
         Utils.validationRequest(bindingResult);
         Long userId = findUser(request);

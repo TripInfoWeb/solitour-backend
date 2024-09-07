@@ -4,6 +4,7 @@ package solitour_backend.solitour.information.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -136,10 +137,10 @@ public class InformationController {
                                                                                   @Valid @ModelAttribute InformationPageRequest informationPageRequest,
                                                                                   @RequestParam(required = false, name = "tagName") String tag,
                                                                                   BindingResult bindingResult,
-                                                                                  HttpServletRequest request) {
-        byte[] decodedBytes = Base64.getUrlDecoder().decode(tag);
-        String decodedTag = new String(decodedBytes);
-        String filteredTag = decodedTag.replaceAll("[^a-zA-Z0-9가-힣]", "");
+                                                                                  HttpServletRequest request)
+            throws UnsupportedEncodingException {
+        String decodedValue = java.net.URLDecoder.decode(tag, "UTF-8");
+        String filteredTag = decodedValue.replaceAll("[^a-zA-Z0-9가-힣]", "");
 
         Utils.validationRequest(bindingResult);
         Long userId = findUser(request);
