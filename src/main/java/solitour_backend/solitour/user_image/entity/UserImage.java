@@ -35,4 +35,8 @@ public class UserImage {
     public void updateUserImage(String imageUrl) {
         this.address = imageUrl;
     }
+
+    public void changeToDefaultProfile(String defaultImageUrl) {
+        this.address = defaultImageUrl;
+    }
 }

@@ -162,7 +162,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-
     private String getOauthAccessToken(String type, String code, String redirectUrl) {
         String token = "";
         switch (type) {
