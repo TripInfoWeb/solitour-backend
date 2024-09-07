@@ -93,4 +93,8 @@ public class User {
     public void updateUserImage(String imageUrl) {
         this.userImage.updateUserImage(imageUrl);
     }
+
+    public void updateLoginTime() {
+        this.latestLoginAt = LocalDateTime.now();
+    }
 }

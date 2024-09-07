@@ -55,6 +55,7 @@ public class OauthService {
     @Transactional
     public LoginResponse requestAccessToken(String type, String code, String redirectUrl) {
         User user = checkAndSaveUser(type, code, redirectUrl);
+        user.updateLoginTime();
         final int ACCESS_COOKIE_AGE = (int) TimeUnit.MINUTES.toSeconds(30);
         final int REFRESH_COOKIE_AGE = (int) TimeUnit.DAYS.toSeconds(30);
 
@@ -139,7 +140,7 @@ public class OauthService {
                 .isAdmin(false)
                 .userImage(savedUserImage)
                 .name(response.getKakaoAccount().getName())
-                .nickname(response.getKakaoAccount().getProfile().getNickName())
+                .nickname(RandomNickName.generateRandomNickname())
                 .age(Integer.valueOf(response.getKakaoAccount().getBirthYear()))
                 .sex(response.getKakaoAccount().getGender())
                 .email(response.getKakaoAccount().getEmail())
