@@ -57,8 +57,8 @@ public class QnAController {
 
     @Authenticated
     @GetMapping("/{id}")
-    public ResponseEntity<QnA> getQnAById(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
-        QnA qna = qnaService.getQnAById(id, userId);
+    public ResponseEntity<QnaListResponseDto> getQnAById(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
+        QnaListResponseDto qna = qnaService.getQnAById(id, userId);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(qna);
