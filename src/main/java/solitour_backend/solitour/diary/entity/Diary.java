@@ -22,7 +22,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import solitour_backend.solitour.diary.diary_day_content.DiaryDayContent;
-import solitour_backend.solitour.diary.dto.DiaryRequest;
+import solitour_backend.solitour.diary.dto.request.DiaryCreateRequest;
+import solitour_backend.solitour.diary.dto.request.DiaryUpdateRequest;
 import solitour_backend.solitour.user.entity.User;
 
 
@@ -67,9 +68,9 @@ public class Diary {
     @Column(name = "diary_edited_date")
     private LocalDateTime editedAt;
 
-    public void updateDiary(DiaryRequest request) {
+    public void updateDiary(DiaryUpdateRequest request) {
         this.title = request.getTitle();
-        this.titleImage = request.getTitleImage();
+        this.titleImage = request.getSaveTitleImage();
         this.startDatetime = request.getStartDatetime();
         this.endDatetime = request.getEndDatetime();
     }

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,9 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import solitour_backend.solitour.auth.config.Authenticated;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
-import solitour_backend.solitour.diary.dto.DiaryContent;
-import solitour_backend.solitour.diary.dto.DiaryRequest;
-import solitour_backend.solitour.diary.dto.DiaryResponse;
+import solitour_backend.solitour.diary.dto.request.DiaryUpdateRequest;
+import solitour_backend.solitour.diary.dto.response.DiaryContent;
+import solitour_backend.solitour.diary.dto.request.DiaryCreateRequest;
+import solitour_backend.solitour.diary.dto.response.DiaryResponse;
 import solitour_backend.solitour.diary.service.DiaryService;
 
 @RestController
@@ -29,7 +29,6 @@ public class DiaryController {
 
     private final DiaryService diaryService;
     public static final int PAGE_SIZE = 6;
-
 
     @Authenticated
     @GetMapping()
@@ -53,7 +52,7 @@ public class DiaryController {
     @Authenticated
     @PostMapping()
     public ResponseEntity<Long> createDiary(@AuthenticationPrincipal Long userId,
-                                            @RequestBody DiaryRequest request) {
+                                            @RequestBody DiaryCreateRequest request) {
         Long diaryId = diaryService.createDiary(userId, request);
 
         return ResponseEntity.ok(diaryId);
@@ -62,7 +61,7 @@ public class DiaryController {
     @Authenticated
     @PutMapping()
     public ResponseEntity<Long> updateDiary(@AuthenticationPrincipal Long userId, @RequestParam Long diaryId,
-                                            @RequestBody DiaryRequest request) {
+                                            @RequestBody DiaryUpdateRequest request) {
         diaryService.updateDiary(userId, diaryId, request);
 
         return ResponseEntity.ok(diaryId);
@@ -73,6 +72,6 @@ public class DiaryController {
     public ResponseEntity<Void> deleteDiary(@AuthenticationPrincipal Long userId, @RequestParam Long diaryId) {
         diaryService.deleteDiary(userId, diaryId);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.noContent().build();
     }
 }

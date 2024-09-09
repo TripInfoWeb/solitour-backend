@@ -1,4 +1,4 @@
-package solitour_backend.solitour.diary.dto;
+package solitour_backend.solitour.diary.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -3,7 +3,7 @@ package solitour_backend.solitour.diary.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.NoRepositoryBean;
-import solitour_backend.solitour.diary.dto.DiaryContent;
+import solitour_backend.solitour.diary.dto.response.DiaryContent;
 
 @NoRepositoryBean
 public interface DiaryRepositoryCustom {
