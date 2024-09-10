@@ -3,10 +3,16 @@ package solitour_backend.solitour.information.service;
 import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.LIKE_COUNT_SORT;
 import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.VIEW_COUNT_SORT;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -159,11 +165,12 @@ public class InformationService {
     }
 
 
-    public InformationDetailResponse getDetailInformation(Long userId, Long informationId) {
+    public InformationDetailResponse getDetailInformation(Long userId, Long informationId, HttpServletRequest request, HttpServletResponse response) {
         Information information = informationRepository.findById(informationId)
                 .orElseThrow(
                         () ->
                                 new InformationNotExistsException("해당하는 id 의 information 이 존재하지 않습니다."));
+
         List<InfoTag> infoTags = infoTagRepository.findAllByInformationId(information.getId());
 
         UserPostingResponse userPostingResponse = userMapper.mapToUserPostingResponse(information.getUser());
@@ -194,6 +201,8 @@ public class InformationService {
                 .map(UserImage::getAddress)
                 .orElseGet(
                         () -> userRepository.getProfileUrl(user.getSex()));
+
+        updateViewCount(information, request, response, userId);
 
         return new InformationDetailResponse(
                 information.getTitle(),
@@ -454,4 +463,39 @@ public class InformationService {
         return informationRepository.getInformationPageByTag(pageable, userId, parentCategoryId, informationPageRequest,
                 decodedTag);
     }
+
+    public void updateViewCount(Information information, HttpServletRequest request, HttpServletResponse response, Long userId) {
+        String cookieName = "viewed_information_" + userId + "_" + information.getId();
+        Cookie[] cookies = request.getCookies();
+        Cookie postCookie = null;
+
+        if (Objects.nonNull(cookies)) {
+            postCookie = Arrays.stream(cookies)
+                    .filter(cookie -> cookieName.equals(cookie.getName()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        if (Objects.nonNull(postCookie)) {
+            LocalDateTime lastViewedAt = LocalDateTime.parse(postCookie.getValue(), formatter);
+            if (lastViewedAt.isBefore(now.minusDays(1))) {
+                incrementInformationViewCount(information);
+                postCookie.setValue(now.format(formatter));
+                response.addCookie(postCookie);
+            }
+        } else {
+            incrementInformationViewCount(information);
+            Cookie newCookie = new Cookie(cookieName, now.format(formatter));
+            newCookie.setMaxAge(60 * 60 * 24 * 365);
+            response.addCookie(newCookie);
+        }
+    }
+
+    private void incrementInformationViewCount(Information information) {
+        information.upViewCount();
+    }
+
 }

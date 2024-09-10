@@ -124,4 +124,8 @@ public class Gathering {
         this.isDeleted = false;
         this.openChattingUrl = openChattingUrl;
     }
+
+    public void upViewCount() {
+        this.viewCount++;
+    }
 }

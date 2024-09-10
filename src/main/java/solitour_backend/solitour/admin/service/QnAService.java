@@ -60,7 +60,7 @@ public class QnAService {
         return qnaRepository.findByUserId(userId, pageable);
     }
 
-    public QnA getQnAById(Long id, Long userId) {
+    public QnaListResponseDto getQnAById(Long id, Long userId) {
 
         QnA qna = qnaRepository.findById(id).orElse(null);
         if (qna == null) {
@@ -75,7 +75,16 @@ public class QnAService {
 
         List<QnAMessage> qnAMessages = qna.getQnaMessages();
         qna.setQnaMessages(qnAMessages);
-        return qna;
+        QnaListResponseDto qnaListResponseDto = QnaListResponseDto.builder()
+                .title(qna.getTitle())
+                .createdAt(qna.getCreatedAt())
+                .status(qna.getStatus())
+                .updatedAt(qna.getUpdatedAt())
+                .categoryName(qna.getCategoryName())
+                .userId(qna.getUserId())
+                .userNickname(user.getNickname())
+                .build();
+        return qnaListResponseDto;
     }
 
     public void closeQnA(Long id, Long userId) {

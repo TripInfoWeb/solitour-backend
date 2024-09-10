@@ -2,6 +2,7 @@ package solitour_backend.solitour.information.controller;
 
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import java.io.UnsupportedEncodingException;
@@ -57,32 +58,15 @@ public class InformationController {
 
     @GetMapping("/{informationId}")
     public ResponseEntity<InformationDetailResponse> getDetailInformation(@PathVariable Long informationId,
-                                                                          HttpServletRequest request) {
+                                                                          HttpServletRequest request,
+                                                                          HttpServletResponse response) {
         Long userId = findUser(request);
-        InformationDetailResponse informationDetailResponse = informationService.getDetailInformation(userId,
-                informationId);
+        InformationDetailResponse informationDetailResponse = informationService.getDetailInformation(userId, informationId, request, response);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(informationDetailResponse);
     }
-
-//    @Authenticated
-//    @PutMapping("/{informationId}")
-//    public ResponseEntity<InformationResponse> modifyInformation(@PathVariable Long informationId,
-//                                                                 @RequestPart(value = "thumbNailImage", required = false) MultipartFile thumbnail,
-//                                                                 @RequestPart(value = "contentImages", required = false) List<MultipartFile> contentImages,
-//                                                                 @Valid @RequestPart("request") InformationModifyRequest informationModifyRequest,
-//                                                                 BindingResult bindingResult) {
-//        Utils.validationRequest(bindingResult);
-//
-//        InformationResponse informationResponse = informationService.modifyInformation(
-//                informationId, informationModifyRequest, thumbnail, contentImages);
-//
-//        return ResponseEntity
-//                .status(HttpStatus.CREATED)
-//                .body(informationResponse);
-//    }
 
     @Authenticated
     @PutMapping("/{informationId}")

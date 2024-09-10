@@ -3,11 +3,11 @@ package solitour_backend.solitour.gathering.controller;
 import static solitour_backend.solitour.information.controller.InformationController.PAGE_SIZE;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,7 +34,6 @@ import solitour_backend.solitour.auth.support.JwtTokenProvider;
 import solitour_backend.solitour.error.Utils;
 import solitour_backend.solitour.error.exception.RequestValidationFailedException;
 import solitour_backend.solitour.gathering.dto.request.GatheringModifyRequest;
-import solitour_backend.solitour.gathering.dto.request.GatheringNotFinishRequest;
 import solitour_backend.solitour.gathering.dto.request.GatheringPageRequest;
 import solitour_backend.solitour.gathering.dto.request.GatheringRegisterRequest;
 import solitour_backend.solitour.gathering.dto.response.GatheringBriefResponse;
@@ -76,9 +75,10 @@ public class GatheringController {
 
     @GetMapping("/{id}")
     public ResponseEntity<GatheringDetailResponse> getGatheringDetail(@PathVariable Long id,
-                                                                      HttpServletRequest request) {
+                                                                      HttpServletRequest request,
+                                                                      HttpServletResponse response) {
         Long userId = findUser(request);
-        GatheringDetailResponse gatheringDetail = gatheringService.getGatheringDetail(userId, id);
+        GatheringDetailResponse gatheringDetail = gatheringService.getGatheringDetail(userId, id, request, response);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -178,9 +178,7 @@ public class GatheringController {
 
     @PutMapping("/not-finish/{gatheringId}")
     public ResponseEntity<Void> gatheringNotFinish(@AuthenticationPrincipal Long userId,
-                                                   @PathVariable Long gatheringId,
-                                                   BindingResult bindingResult) {
-        Utils.validationRequest(bindingResult);
+                                                   @PathVariable Long gatheringId) {
 
         gatheringService.setGatheringNotFinish(userId, gatheringId);
 
