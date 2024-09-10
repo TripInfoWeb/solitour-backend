@@ -15,10 +15,11 @@ import solitour_backend.solitour.diary.dto.request.DiaryCreateRequest;
 import solitour_backend.solitour.diary.dto.request.DiaryCreateRequest.DiaryDayRequest;
 import solitour_backend.solitour.diary.dto.response.DiaryResponse;
 import solitour_backend.solitour.diary.entity.Diary;
+import solitour_backend.solitour.diary.exception.DiaryNotExistsException;
 import solitour_backend.solitour.diary.feeling_status.FeelingStatus;
 import solitour_backend.solitour.diary.repository.DiaryDayContentRepository;
 import solitour_backend.solitour.diary.repository.DiaryRepository;
-import solitour_backend.solitour.image.dto.request.ImageRequest;
+import solitour_backend.solitour.error.exception.ForbiddenAccessException;
 import solitour_backend.solitour.image.s3.S3Uploader;
 import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.user.repository.UserRepository;
@@ -58,10 +59,10 @@ public class DiaryService {
 
     public DiaryResponse getDiary(Long userId, Long diaryId) {
         Diary diary = diaryRepository.findById(diaryId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 일기가 존재하지 않습니다."));
+                .orElseThrow(() -> new DiaryNotExistsException("해당하는 일기가 존재하지 않습니다."));
 
         if (!diary.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("해당 일기에 대한 권한이 없습니다.");
+            throw new ForbiddenAccessException("해당 일기에 대한 권한이 없습니다.");
         }
 
         return new DiaryResponse(diary);
@@ -70,10 +71,10 @@ public class DiaryService {
     @Transactional
     public void deleteDiary(Long userId, Long diaryId) {
         Diary diary = diaryRepository.findById(diaryId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 일기가 존재하지 않습니다."));
+                .orElseThrow(() -> new DiaryNotExistsException("해당 일기가 존재하지 않습니다."));
 
         if (!diary.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("해당 일기에 대한 권한이 없습니다.");
+            throw new ForbiddenAccessException("해당 일기에 대한 권한이 없습니다.");
         }
 
         deleteAllDiaryImage(diary.getDiaryDayContent());
@@ -83,10 +84,10 @@ public class DiaryService {
     @Transactional
     public void updateDiary(Long userId, Long diaryId, DiaryUpdateRequest request) {
         Diary diary = diaryRepository.findById(diaryId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 일기가 존재하지 않습니다."));
+                .orElseThrow(() -> new DiaryNotExistsException("해당 일기가 존재하지 않습니다."));
 
         if (!diary.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("해당 일기에 대한 권한이 없습니다.");
+            throw new ForbiddenAccessException("해당 일기에 대한 권한이 없습니다.");
         }
 
         updateDiary(diaryId, request);

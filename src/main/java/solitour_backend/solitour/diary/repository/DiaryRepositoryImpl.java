@@ -15,6 +15,7 @@ import solitour_backend.solitour.diary.dto.response.DiaryContent;
 import solitour_backend.solitour.diary.dto.response.DiaryContent.DiaryDayContentResponse;
 import solitour_backend.solitour.diary.entity.Diary;
 import solitour_backend.solitour.diary.entity.QDiary;
+import solitour_backend.solitour.diary.exception.DiaryNotExistsException;
 import solitour_backend.solitour.user.entity.QUser;
 
 public class DiaryRepositoryImpl extends QuerydslRepositorySupport implements DiaryRepositoryCustom {
@@ -51,6 +52,10 @@ public class DiaryRepositoryImpl extends QuerydslRepositorySupport implements Di
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        if (diaries == null) {
+            throw new DiaryNotExistsException("해당 일기가 존재하지 않습니다.");
+        }
 
         List<DiaryContent> diaryContents = diaries.stream()
                 .map(diary -> DiaryContent.builder()
