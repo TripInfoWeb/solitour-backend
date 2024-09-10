@@ -180,7 +180,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(gathering.zoneCategory.id))
                 .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
                 .leftJoin(bookMarkGathering)
-                .on(bookMarkGathering.gathering.id.eq(gathering.id).and(bookMarkGathering.user.id.eq(userId)))
+                .on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
                 .leftJoin(gatheringApplicants).on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
                 .leftJoin(gatheringTag)
                 .on(gatheringTag.gathering.id.eq(gathering.id).and(gatheringTag.tag.name.eq(decodedTag)))
