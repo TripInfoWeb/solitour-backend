@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Builder
 @AllArgsConstructor
-public class QnaListResponseDto {
+public class QnaResponseDto {
     private Long id;
     private String title;
     private LocalDateTime createdAt;
@@ -20,4 +20,5 @@ public class QnaListResponseDto {
     private String categoryName;
     private Long userId;
     private String userNickname;
+    private List<QnAMessage> qnaMessages;
 }

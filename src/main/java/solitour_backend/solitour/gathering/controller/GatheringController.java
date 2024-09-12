@@ -3,10 +3,11 @@ package solitour_backend.solitour.gathering.controller;
 import static solitour_backend.solitour.information.controller.InformationController.PAGE_SIZE;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
@@ -74,9 +75,10 @@ public class GatheringController {
 
     @GetMapping("/{id}")
     public ResponseEntity<GatheringDetailResponse> getGatheringDetail(@PathVariable Long id,
-                                                                      HttpServletRequest request) {
+                                                                      HttpServletRequest request,
+                                                                      HttpServletResponse response) {
         Long userId = findUser(request);
-        GatheringDetailResponse gatheringDetail = gatheringService.getGatheringDetail(userId, id);
+        GatheringDetailResponse gatheringDetail = gatheringService.getGatheringDetail(userId, id, request, response);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -142,10 +144,10 @@ public class GatheringController {
                                                                               @Valid @ModelAttribute GatheringPageRequest gatheringPageRequest,
                                                                               @RequestParam(required = false, name = "tagName") String tag,
                                                                               BindingResult bindingResult,
-                                                                              HttpServletRequest request) {
-        byte[] decodedBytes = Base64.getUrlDecoder().decode(tag);
-        String decodedTag = new String(decodedBytes);
-        String filteredTag = decodedTag.replaceAll("[^a-zA-Z0-9가-힣]", "");
+                                                                              HttpServletRequest request)
+            throws UnsupportedEncodingException {
+        String decodedValue = java.net.URLDecoder.decode(tag, "UTF-8");
+        String filteredTag = decodedValue.replaceAll("[^a-zA-Z0-9가-힣]", "");
 
         Utils.validationRequest(bindingResult);
         Long userId = findUser(request);
@@ -177,6 +179,7 @@ public class GatheringController {
     @PutMapping("/not-finish/{gatheringId}")
     public ResponseEntity<Void> gatheringNotFinish(@AuthenticationPrincipal Long userId,
                                                    @PathVariable Long gatheringId) {
+
         gatheringService.setGatheringNotFinish(userId, gatheringId);
 
         return ResponseEntity

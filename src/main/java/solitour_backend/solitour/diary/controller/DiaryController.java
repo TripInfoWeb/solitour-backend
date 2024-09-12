@@ -17,11 +17,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import solitour_backend.solitour.auth.config.Authenticated;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
-import solitour_backend.solitour.diary.dto.DiaryContent;
-import solitour_backend.solitour.diary.dto.DiaryRequest;
-import solitour_backend.solitour.diary.dto.DiaryResponse;
+import solitour_backend.solitour.diary.dto.request.DiaryUpdateRequest;
+import solitour_backend.solitour.diary.dto.response.DiaryContent;
+import solitour_backend.solitour.diary.dto.request.DiaryCreateRequest;
+import solitour_backend.solitour.diary.dto.response.DiaryResponse;
 import solitour_backend.solitour.diary.service.DiaryService;
 
+@Authenticated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/diary")
@@ -30,8 +32,6 @@ public class DiaryController {
     private final DiaryService diaryService;
     public static final int PAGE_SIZE = 6;
 
-
-    @Authenticated
     @GetMapping()
     public ResponseEntity<Page<DiaryContent>> getAllDiary(@RequestParam(defaultValue = "0") int page,
                                                           @AuthenticationPrincipal Long userId) {
@@ -42,7 +42,6 @@ public class DiaryController {
         return ResponseEntity.ok(response);
     }
 
-    @Authenticated
     @GetMapping("/{diaryId}")
     public ResponseEntity<DiaryResponse> getDiary(@AuthenticationPrincipal Long userId, @PathVariable Long diaryId) {
         DiaryResponse response = diaryService.getDiary(userId, diaryId);
@@ -50,29 +49,26 @@ public class DiaryController {
         return ResponseEntity.ok(response);
     }
 
-    @Authenticated
     @PostMapping()
     public ResponseEntity<Long> createDiary(@AuthenticationPrincipal Long userId,
-                                            @RequestBody DiaryRequest request) {
+                                            @RequestBody DiaryCreateRequest request) {
         Long diaryId = diaryService.createDiary(userId, request);
 
-        return ResponseEntity.ok(diaryId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(diaryId);
     }
 
-    @Authenticated
-    @PutMapping()
-    public ResponseEntity<Long> updateDiary(@AuthenticationPrincipal Long userId, @RequestParam Long diaryId,
-                                            @RequestBody DiaryRequest request) {
+    @PutMapping("/{diaryId}")
+    public ResponseEntity<Long> updateDiary(@AuthenticationPrincipal Long userId, @PathVariable Long diaryId,
+                                            @RequestBody DiaryUpdateRequest request) {
         diaryService.updateDiary(userId, diaryId, request);
 
-        return ResponseEntity.ok(diaryId);
+        return ResponseEntity.noContent().build();
     }
 
-    @Authenticated
-    @DeleteMapping()
-    public ResponseEntity<Void> deleteDiary(@AuthenticationPrincipal Long userId, @RequestParam Long diaryId) {
+    @DeleteMapping("/{diaryId}")
+    public ResponseEntity<Void> deleteDiary(@AuthenticationPrincipal Long userId, @PathVariable Long diaryId) {
         diaryService.deleteDiary(userId, diaryId);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.noContent().build();
     }
 }

@@ -20,4 +20,6 @@ public class InformationPageRequest {
 
     @Min(1)
     private Long zoneCategoryId;
+
+    private String search;
 }

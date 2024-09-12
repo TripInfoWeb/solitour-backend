@@ -8,6 +8,8 @@ import solitour_backend.solitour.auth.exception.TokenNotExistsException;
 import solitour_backend.solitour.book_mark_gathering.exception.GatheringBookMarkNotExistsException;
 import solitour_backend.solitour.book_mark_information.exception.InformationBookMarkNotExistsException;
 import solitour_backend.solitour.category.exception.CategoryNotExistsException;
+import solitour_backend.solitour.diary.exception.DiaryNotExistsException;
+import solitour_backend.solitour.error.exception.ForbiddenAccessException;
 import solitour_backend.solitour.error.exception.RequestValidationFailedException;
 import solitour_backend.solitour.gathering.exception.GatheringCategoryNotExistsException;
 import solitour_backend.solitour.gathering.exception.GatheringDeleteException;
@@ -69,7 +71,8 @@ public class GlobalControllerAdvice {
             InformationGreatNotExistsException.class,
             GatheringGreatNotExistsException.class,
             GatheringBookMarkNotExistsException.class,
-            InformationBookMarkNotExistsException.class
+            InformationBookMarkNotExistsException.class,
+            DiaryNotExistsException.class,
     })
     public ResponseEntity<String> notFoundException(Exception exception) {
         return ResponseEntity
@@ -77,7 +80,9 @@ public class GlobalControllerAdvice {
                 .body(exception.getMessage());
     }
 
-    @ExceptionHandler({GatheringNotManagerException.class})
+    @ExceptionHandler({GatheringNotManagerException.class,
+            ForbiddenAccessException.class
+    })
     public ResponseEntity<String> forbiddenException(Exception exception) {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)

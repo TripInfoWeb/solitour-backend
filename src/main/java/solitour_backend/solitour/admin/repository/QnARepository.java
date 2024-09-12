@@ -10,6 +10,8 @@ import solitour_backend.solitour.admin.entity.QnA;
 
 public interface QnARepository extends JpaRepository<QnA, Long> {
 
+    @Query("SELECT new solitour_backend.solitour.admin.dto.response.QnaListResponseDto(q.id, q.title, q.createdAt, q.status, q.updatedAt, q.categoryName, u.id, u.nickname) " +
+            "FROM QnA q JOIN User u ON q.userId = u.id WHERE q.userId = :userId ORDER BY q.updatedAt ASC")
     Page<QnA> findByUserId(Long userId, Pageable pageable);
 
     // 상태에 관계없이 모든 QnA 항목 검색 (updatedAt 기준 오름차순)

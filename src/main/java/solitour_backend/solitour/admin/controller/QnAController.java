@@ -9,6 +9,7 @@ import solitour_backend.solitour.admin.dto.request.AnswerRegisterRequest;
 import solitour_backend.solitour.admin.dto.request.QnARegisterRequest;
 import solitour_backend.solitour.admin.dto.request.QuestionRegisterRequest;
 import solitour_backend.solitour.admin.dto.response.QnaListResponseDto;
+import solitour_backend.solitour.admin.dto.response.QnaResponseDto;
 import solitour_backend.solitour.admin.entity.QnAMessage;
 import solitour_backend.solitour.admin.entity.QnA;
 import solitour_backend.solitour.admin.service.QnAService;
@@ -57,8 +58,8 @@ public class QnAController {
 
     @Authenticated
     @GetMapping("/{id}")
-    public ResponseEntity<QnA> getQnAById(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
-        QnA qna = qnaService.getQnAById(id, userId);
+    public ResponseEntity<QnaResponseDto> getQnAById(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
+        QnaResponseDto qna = qnaService.getQnAById(id, userId);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(qna);

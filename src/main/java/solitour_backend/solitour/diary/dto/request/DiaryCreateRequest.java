@@ -1,4 +1,4 @@
-package solitour_backend.solitour.diary.dto;
+package solitour_backend.solitour.diary.dto.request;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class DiaryRequest {
+public class DiaryCreateRequest {
     private String title;
     private String titleImage;
     private LocalDateTime startDatetime;
@@ -19,6 +19,7 @@ public class DiaryRequest {
     public static class DiaryDayRequest {
         private String content;
         private String feelingStatus;
+        private String diaryDayContentImages;
         private String place;
     }
 }

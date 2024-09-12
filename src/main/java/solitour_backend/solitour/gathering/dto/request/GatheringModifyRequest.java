@@ -6,8 +6,10 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
 import java.time.LocalDateTime;
 import java.util.List;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -67,4 +69,8 @@ public class GatheringModifyRequest {
     private String zoneCategoryNameChild;
 
     private List<TagRegisterRequest> tagRegisterRequests;
+
+    @NotBlank
+    @Size(min = 1, max = 255)
+    private String openChattingUrl;
 }

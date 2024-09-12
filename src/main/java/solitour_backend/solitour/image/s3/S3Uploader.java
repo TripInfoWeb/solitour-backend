@@ -48,7 +48,7 @@ public class S3Uploader {
     }
 
     public void markImagePermanent(String imageUrl) {
-        String fileName = extractFileNameFromUrl(imageUrl);
+        String fileName = extractFileNameFromUrlUseBucketName(imageUrl);
         GetObjectTaggingRequest getTaggingRequest = new GetObjectTaggingRequest(bucket, fileName);
         GetObjectTaggingResult getTaggingResult = amazonS3Client.getObjectTagging(getTaggingRequest);
         List<Tag> tags = getTaggingResult.getTagSet();
@@ -92,6 +92,11 @@ public class S3Uploader {
 
     private String extractFileNameFromUrl(String url) {
         final String splitStr = ".com/";
+        return url.substring(url.lastIndexOf(splitStr) + splitStr.length());
+    }
+
+    private String extractFileNameFromUrlUseBucketName(String url) {
+        final String splitStr = "solitour-bucket/";
         return url.substring(url.lastIndexOf(splitStr) + splitStr.length());
     }
 }

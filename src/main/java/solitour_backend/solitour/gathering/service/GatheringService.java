@@ -3,10 +3,16 @@ package solitour_backend.solitour.gathering.service;
 import static solitour_backend.solitour.gathering.repository.GatheringRepositoryCustom.LIKE_COUNT_SORT;
 import static solitour_backend.solitour.gathering.repository.GatheringRepositoryCustom.VIEW_COUNT_SORT;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,6 +61,8 @@ import solitour_backend.solitour.user.dto.mapper.UserMapper;
 import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.user.exception.UserNotExistsException;
 import solitour_backend.solitour.user.repository.UserRepository;
+import solitour_backend.solitour.user_image.entity.UserImage;
+import solitour_backend.solitour.user_image.entity.UserImageRepository;
 import solitour_backend.solitour.zone_category.dto.mapper.ZoneCategoryMapper;
 import solitour_backend.solitour.zone_category.dto.response.ZoneCategoryResponse;
 import solitour_backend.solitour.zone_category.entity.ZoneCategory;
@@ -82,9 +90,10 @@ public class GatheringService {
     private final GatheringApplicantsRepository gatheringApplicantsRepository;
     private final GatheringApplicantsMapper gatheringApplicantsMapper;
     private final GatheringCategoryMapper gatheringCategoryMapper;
+    private final UserImageRepository userImageRepository;
 
 
-    public GatheringDetailResponse getGatheringDetail(Long userId, Long gatheringId) {
+    public GatheringDetailResponse getGatheringDetail(Long userId, Long gatheringId, HttpServletRequest request, HttpServletResponse response) {
         Gathering gathering = gatheringRepository.findById(gatheringId)
                 .orElseThrow(
                         () -> new GatheringNotExistsException("해당하는 id의 gathering 이 존재 하지 않습니다"));
@@ -119,7 +128,13 @@ public class GatheringService {
 
         List<GatheringApplicantsResponse> gatheringApplicantsResponses = null;
 
-//        boolean isApplicants = gatheringApplicantsRepository.existsByGatheringIdAndUserId(gathering.getId(), userId);
+        User user = gathering.getUser();
+
+        String userImageUrl = userImageRepository.findById(user.getUserImage().getId())
+                .map(UserImage::getAddress)
+                .orElseGet(
+                        () -> userRepository.getProfileUrl(user.getSex())
+                );
 
         GatheringStatus gatheringStatus = null;
         GatheringApplicants gatheringApplicants = gatheringApplicantsRepository.findByGatheringIdAndUserId(gathering.getId(), userId).orElse(null);
@@ -140,6 +155,8 @@ public class GatheringService {
 
         List<GatheringBriefResponse> gatheringRecommend = gatheringRepository.getGatheringRecommend(gathering.getId(),
                 gathering.getGatheringCategory().getId(), userId);
+
+        updateViewCount(gathering, request, response, userId);
 
         return new GatheringDetailResponse(
                 gathering.getTitle(),
@@ -162,6 +179,8 @@ public class GatheringService {
                 likeCount,
                 nowPersonCount,
                 isLike,
+                gathering.getOpenChattingUrl(),
+                userImageUrl,
                 gatheringApplicantsResponses,
                 gatheringRecommend,
                 gatheringStatus
@@ -215,7 +234,8 @@ public class GatheringService {
                         gatheringRegisterRequest.getDeadline(),
                         gatheringRegisterRequest.getAllowedSex(),
                         gatheringRegisterRequest.getStartAge(),
-                        gatheringRegisterRequest.getEndAge()
+                        gatheringRegisterRequest.getEndAge(),
+                        gatheringRegisterRequest.getOpenChattingUrl()
                 );
         Gathering saveGathering = gatheringRepository.save(gathering);
 
@@ -286,6 +306,7 @@ public class GatheringService {
         gathering.setEndAge(gatheringModifyRequest.getEndAge());
         gathering.setGatheringCategory(gatheringCategory);
         gathering.setZoneCategory(childZoneCategory);
+        gathering.setOpenChattingUrl(gatheringModifyRequest.getOpenChattingUrl());
 
         List<GatheringTag> gatheringTags = gatheringTagRepository.findAllByGathering_Id(gathering.getId());
 
@@ -350,6 +371,7 @@ public class GatheringService {
         return gatheringRepository.getGatheringLikeCountFromCreatedIn3(userId);
     }
 
+    @Transactional
     public void setGatheringFinish(Long userId, Long gatheringId) {
         Gathering gathering = gatheringRepository.findById(gatheringId)
                 .orElseThrow(
@@ -374,6 +396,7 @@ public class GatheringService {
         gathering.setIsFinish(true);
     }
 
+    @Transactional
     public void setGatheringNotFinish(Long userId, Long gatheringId) {
         Gathering gathering = gatheringRepository.findById(gatheringId)
                 .orElseThrow(
@@ -442,6 +465,40 @@ public class GatheringService {
                 gatheringPageRequest.getEndDate())) {
             throw new RequestValidationFailedException("시작 날짜와 종료 날짜는 둘 다 입력되거나 둘 다 비어 있어야 합니다.");
         }
+    }
+
+    public void updateViewCount(Gathering gathering, HttpServletRequest request, HttpServletResponse response, Long userId) {
+        String cookieName = "viewed_gathering_" + userId + "_" + gathering.getId();
+        Cookie[] cookies = request.getCookies();
+        Cookie postCookie = null;
+
+        if (Objects.nonNull(cookies)) {
+            postCookie = Arrays.stream(cookies)
+                    .filter(cookie -> cookieName.equals(cookie.getName()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-ddHH:mm:ss");
+
+        if (Objects.nonNull(postCookie)) {
+            LocalDateTime lastViewedAt = LocalDateTime.parse(postCookie.getValue(), formatter);
+            if (lastViewedAt.isBefore(now.minusDays(1))) {
+                incrementGatheringViewCount(gathering);
+                postCookie.setValue(now.format(formatter));
+                response.addCookie(postCookie);
+            }
+        } else {
+            incrementGatheringViewCount(gathering);
+            Cookie newCookie = new Cookie(cookieName, now.format(formatter));
+            newCookie.setMaxAge(60 * 60 * 24 * 365);
+            response.addCookie(newCookie);
+        }
+    }
+
+    private void incrementGatheringViewCount(Gathering gathering) {
+        gathering.upViewCount();
     }
 
 }

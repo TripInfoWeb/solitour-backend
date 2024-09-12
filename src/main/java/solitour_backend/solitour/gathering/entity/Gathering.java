@@ -99,10 +99,13 @@ public class Gathering {
     @Column(name = "gathering_is_deleted")
     private Boolean isDeleted;
 
+    @Column(name = "gathering_open_chatting_url")
+    private String openChattingUrl;
+
     public Gathering(User user, ZoneCategory zoneCategory, GatheringCategory gatheringCategory, Place place,
                      String title, String content, Integer personCount, Integer viewCount,
                      LocalDateTime scheduleStartDate, LocalDateTime scheduleEndDate, Boolean isFinish,
-                     LocalDateTime deadline, AllowedSex allowedSex, Integer startAge, Integer endAge) {
+                     LocalDateTime deadline, AllowedSex allowedSex, Integer startAge, Integer endAge, String openChattingUrl) {
         this.user = user;
         this.zoneCategory = zoneCategory;
         this.gatheringCategory = gatheringCategory;
@@ -119,5 +122,10 @@ public class Gathering {
         this.startAge = startAge;
         this.endAge = endAge;
         this.isDeleted = false;
+        this.openChattingUrl = openChattingUrl;
+    }
+
+    public void upViewCount() {
+        this.viewCount++;
     }
 }

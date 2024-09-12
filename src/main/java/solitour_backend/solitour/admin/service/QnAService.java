@@ -6,10 +6,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import solitour_backend.solitour.admin.dto.request.AnswerRegisterRequest;
 import solitour_backend.solitour.admin.dto.request.QnARegisterRequest;
 import solitour_backend.solitour.admin.dto.request.QuestionRegisterRequest;
 import solitour_backend.solitour.admin.dto.response.QnaListResponseDto;
+import solitour_backend.solitour.admin.dto.response.QnaResponseDto;
 import solitour_backend.solitour.admin.entity.QnA;
 import solitour_backend.solitour.admin.entity.QnAMessage;
 import solitour_backend.solitour.admin.repository.AnswerRepository;
@@ -17,7 +19,6 @@ import solitour_backend.solitour.admin.repository.QnARepository;
 import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.user.repository.UserRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -60,7 +61,8 @@ public class QnAService {
         return qnaRepository.findByUserId(userId, pageable);
     }
 
-    public QnA getQnAById(Long id, Long userId) {
+    @Transactional
+    public QnaResponseDto getQnAById(Long id, Long userId) {
 
         QnA qna = qnaRepository.findById(id).orElse(null);
         if (qna == null) {
@@ -72,10 +74,19 @@ public class QnAService {
         if (qna.getUserId() != userId && !user.getIsAdmin()) {
             // 권한이 없는 경우 처리
         }
-
-        List<QnAMessage> qnAMessages = qna.getQnaMessages();
-        qna.setQnaMessages(qnAMessages);
-        return qna;
+//        qna.getQnaMessages().size();
+        QnaResponseDto qnaResponseDto = QnaResponseDto.builder()
+                .id(qna.getId())
+                .title(qna.getTitle())
+                .createdAt(qna.getCreatedAt())
+                .status(qna.getStatus())
+                .updatedAt(qna.getUpdatedAt())
+                .categoryName(qna.getCategoryName())
+                .userId(qna.getUserId())
+                .userNickname(user.getNickname())
+                .qnaMessages(qna.getQnaMessages())
+                .build();
+        return qnaResponseDto;
     }
 
     public void closeQnA(Long id, Long userId) {

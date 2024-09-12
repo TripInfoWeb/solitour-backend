@@ -9,9 +9,11 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -63,6 +65,11 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
             whereClause.and(information.category.id.eq(informationPageRequest.getChildCategoryId()));
         } else {
             categoryCondition.and(category.parentCategory.id.eq(parentCategoryId));
+        }
+
+        if (Objects.nonNull(informationPageRequest.getSearch())) {
+            String searchKeyword = informationPageRequest.getSearch().trim().replace(" ", "");
+            whereClause.and(information.title.trim().containsIgnoreCase(searchKeyword));
         }
 
         OrderSpecifier<?> orderSpecifier = getOrderSpecifier(informationPageRequest.getSort());

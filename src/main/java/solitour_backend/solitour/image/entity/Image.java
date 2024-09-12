@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import solitour_backend.solitour.image.image_status.ImageStatus;
@@ -14,6 +15,7 @@ import solitour_backend.solitour.information.entity.Information;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "image")
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)

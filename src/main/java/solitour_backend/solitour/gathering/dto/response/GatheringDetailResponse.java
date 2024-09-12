@@ -44,6 +44,10 @@ public class GatheringDetailResponse {
 
     private Boolean isLike;
 
+    private String openChattingUrl;
+
+    private String userImage;
+
     private List<GatheringApplicantsResponse> gatheringApplicantsResponses;
 
     private List<GatheringBriefResponse> gatheringRecommend;

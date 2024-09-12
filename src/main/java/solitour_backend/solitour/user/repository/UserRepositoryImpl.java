@@ -146,7 +146,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .leftJoin(gatheringCategory)
                 .on(gatheringCategory.id.eq(gathering.gatheringCategory.id))
                 .leftJoin(gatheringApplicants)
-                .on(gatheringApplicants.gathering.id.eq(gathering.id))
+                .on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
                 .orderBy(gathering.createdAt.desc())
                 .where(gathering.user.id.eq(userId));
 
@@ -193,7 +193,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .leftJoin(gatheringCategory)
                 .on(gatheringCategory.id.eq(gathering.gatheringCategory.id))
                 .leftJoin(gatheringApplicants)
-                .on(gatheringApplicants.gathering.id.eq(gathering.id))
+                .on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
                 .leftJoin(bookMarkGathering)
                 .on(bookMarkGathering.gathering.id.eq(gathering.id))
                 .orderBy(gathering.createdAt.desc())
@@ -243,7 +243,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .leftJoin(gatheringCategory)
                 .on(gatheringCategory.id.eq(gathering.gatheringCategory.id))
                 .leftJoin(gatheringApplicants)
-                .on(gatheringApplicants.gathering.id.eq(gathering.id))
+                .on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
                 .leftJoin(gatheringApplicants)
                 .on(gatheringApplicants.gathering.id.eq(gathering.id))
                 .orderBy(gathering.createdAt.desc())

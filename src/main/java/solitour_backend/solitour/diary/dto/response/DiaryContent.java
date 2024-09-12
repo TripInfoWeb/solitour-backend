@@ -1,4 +1,4 @@
-package solitour_backend.solitour.diary.dto;
+package solitour_backend.solitour.diary.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,7 +41,8 @@ public class DiaryContent {
                             new DiaryDayContentDetail(
                                     diaryDayContentDetail.getContent(),
                                     diaryDayContentDetail.getFeelingStatus().name(),
-                                    diaryDayContentDetail.getPlace()
+                                    diaryDayContentDetail.getPlace(),
+                                    diaryDayContentDetail.getContentImage()
                             )
                     ).collect(Collectors.toList());
         }

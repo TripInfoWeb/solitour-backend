@@ -21,7 +21,7 @@ public class InformationCreateRequest {
     private String informationTitle;
 
     @NotBlank
-    @Size(min = 1, max = 20)
+    @Size(min = 1, max = 50)
     private String informationAddress;
 
     private String informationContent;

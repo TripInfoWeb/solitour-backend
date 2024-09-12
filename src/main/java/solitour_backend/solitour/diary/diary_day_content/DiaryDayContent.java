@@ -11,6 +11,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -41,6 +44,9 @@ public class DiaryDayContent {
     @Column(name = "diary_day_content_place")
     private String place;
 
+    @Column(name = "diary_day_content_image")
+    private String contentImage;
+
     @Column(columnDefinition = "LONGTEXT", name = "diary_day_content_content")
     private String content;
 
@@ -48,4 +54,14 @@ public class DiaryDayContent {
     @Convert(converter = FeelingStatusConverter.class)
     private FeelingStatus feelingStatus;
 
+    public List<String> getDiaryDayContentImagesList() {
+        if (contentImage == null || contentImage.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return Arrays.asList(contentImage.split(","));
+    }
+
+    public void setDiaryDayContentImagesList(List<String> imageUrls) {
+        this.contentImage = String.join(",", imageUrls);
+    }
 }

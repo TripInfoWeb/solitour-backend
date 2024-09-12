@@ -2,9 +2,10 @@ package solitour_backend.solitour.information.controller;
 
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
-import java.util.Base64;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,14 +17,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import solitour_backend.solitour.auth.config.Authenticated;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
 import solitour_backend.solitour.auth.support.CookieExtractor;
 import solitour_backend.solitour.auth.support.JwtTokenProvider;
 import solitour_backend.solitour.error.Utils;
 import solitour_backend.solitour.information.dto.request.InformationCreateRequest;
-import solitour_backend.solitour.information.dto.request.InformationModifyRequest;
 import solitour_backend.solitour.information.dto.request.InformationPageRequest;
 import solitour_backend.solitour.information.dto.request.InformationUpdateRequest;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
@@ -59,32 +58,15 @@ public class InformationController {
 
     @GetMapping("/{informationId}")
     public ResponseEntity<InformationDetailResponse> getDetailInformation(@PathVariable Long informationId,
-                                                                          HttpServletRequest request) {
+                                                                          HttpServletRequest request,
+                                                                          HttpServletResponse response) {
         Long userId = findUser(request);
-        InformationDetailResponse informationDetailResponse = informationService.getDetailInformation(userId,
-                informationId);
+        InformationDetailResponse informationDetailResponse = informationService.getDetailInformation(userId, informationId, request, response);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(informationDetailResponse);
     }
-
-//    @Authenticated
-//    @PutMapping("/{informationId}")
-//    public ResponseEntity<InformationResponse> modifyInformation(@PathVariable Long informationId,
-//                                                                 @RequestPart(value = "thumbNailImage", required = false) MultipartFile thumbnail,
-//                                                                 @RequestPart(value = "contentImages", required = false) List<MultipartFile> contentImages,
-//                                                                 @Valid @RequestPart("request") InformationModifyRequest informationModifyRequest,
-//                                                                 BindingResult bindingResult) {
-//        Utils.validationRequest(bindingResult);
-//
-//        InformationResponse informationResponse = informationService.modifyInformation(
-//                informationId, informationModifyRequest, thumbnail, contentImages);
-//
-//        return ResponseEntity
-//                .status(HttpStatus.CREATED)
-//                .body(informationResponse);
-//    }
 
     @Authenticated
     @PutMapping("/{informationId}")
@@ -136,10 +118,10 @@ public class InformationController {
                                                                                   @Valid @ModelAttribute InformationPageRequest informationPageRequest,
                                                                                   @RequestParam(required = false, name = "tagName") String tag,
                                                                                   BindingResult bindingResult,
-                                                                                  HttpServletRequest request) {
-        byte[] decodedBytes = Base64.getUrlDecoder().decode(tag);
-        String decodedTag = new String(decodedBytes);
-        String filteredTag = decodedTag.replaceAll("[^a-zA-Z0-9가-힣]", "");
+                                                                                  HttpServletRequest request)
+            throws UnsupportedEncodingException {
+        String decodedValue = java.net.URLDecoder.decode(tag, "UTF-8");
+        String filteredTag = decodedValue.replaceAll("[^a-zA-Z0-9가-힣]", "");
 
         Utils.validationRequest(bindingResult);
         Long userId = findUser(request);

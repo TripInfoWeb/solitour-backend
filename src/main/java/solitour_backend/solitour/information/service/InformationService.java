@@ -3,29 +3,35 @@ package solitour_backend.solitour.information.service;
 import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.LIKE_COUNT_SORT;
 import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.VIEW_COUNT_SORT;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solitour_backend.solitour.book_mark_information.entity.BookMarkInformationRepository;
+import solitour_backend.solitour.category.dto.mapper.CategoryMapper;
+import solitour_backend.solitour.category.dto.response.CategoryResponse;
 import solitour_backend.solitour.category.entity.Category;
 import solitour_backend.solitour.category.exception.CategoryNotExistsException;
 import solitour_backend.solitour.category.repository.CategoryRepository;
 import solitour_backend.solitour.error.exception.RequestValidationFailedException;
 import solitour_backend.solitour.great_information.repository.GreatInformationRepository;
 import solitour_backend.solitour.image.dto.mapper.ImageMapper;
-import solitour_backend.solitour.image.dto.request.ImageDeleteRequest;
-import solitour_backend.solitour.image.dto.request.ImageUseRequest;
+import solitour_backend.solitour.image.dto.request.ImageRequest;
 import solitour_backend.solitour.image.dto.response.ImageResponse;
 import solitour_backend.solitour.image.entity.Image;
 import solitour_backend.solitour.image.exception.ImageAlreadyExistsException;
 import solitour_backend.solitour.image.exception.ImageNotExistsException;
-import solitour_backend.solitour.image.exception.ImageRequestValidationFailedException;
 import solitour_backend.solitour.image.image_status.ImageStatus;
 import solitour_backend.solitour.image.repository.ImageRepository;
 import solitour_backend.solitour.image.s3.S3Uploader;
@@ -33,7 +39,6 @@ import solitour_backend.solitour.info_tag.entity.InfoTag;
 import solitour_backend.solitour.info_tag.repository.InfoTagRepository;
 import solitour_backend.solitour.information.dto.mapper.InformationMapper;
 import solitour_backend.solitour.information.dto.request.InformationCreateRequest;
-import solitour_backend.solitour.information.dto.request.InformationModifyRequest;
 import solitour_backend.solitour.information.dto.request.InformationPageRequest;
 import solitour_backend.solitour.information.dto.request.InformationUpdateRequest;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
@@ -46,6 +51,7 @@ import solitour_backend.solitour.information.exception.InformationNotExistsExcep
 import solitour_backend.solitour.information.exception.InformationNotManageException;
 import solitour_backend.solitour.information.repository.InformationRepository;
 import solitour_backend.solitour.place.dto.mapper.PlaceMapper;
+import solitour_backend.solitour.place.dto.request.PlaceModifyRequest;
 import solitour_backend.solitour.place.dto.response.PlaceResponse;
 import solitour_backend.solitour.place.entity.Place;
 import solitour_backend.solitour.place.exception.PlaceNotExistsException;
@@ -90,6 +96,7 @@ public class InformationService {
     private final BookMarkInformationRepository bookMarkInformationRepository;
     private final UserImageRepository userImageRepository;
     private final ImageRepository imageRepository;
+    private final CategoryMapper categoryMapper;
 
 
     @Transactional
@@ -161,11 +168,12 @@ public class InformationService {
     }
 
 
-    public InformationDetailResponse getDetailInformation(Long userId, Long informationId) {
+    public InformationDetailResponse getDetailInformation(Long userId, Long informationId, HttpServletRequest request, HttpServletResponse response) {
         Information information = informationRepository.findById(informationId)
                 .orElseThrow(
                         () ->
                                 new InformationNotExistsException("해당하는 id 의 information 이 존재하지 않습니다."));
+
         List<InfoTag> infoTags = infoTagRepository.findAllByInformationId(information.getId());
 
         UserPostingResponse userPostingResponse = userMapper.mapToUserPostingResponse(information.getUser());
@@ -179,6 +187,7 @@ public class InformationService {
         }
         PlaceResponse placeResponse = placeMapper.mapToPlaceResponse(information.getPlace());
         ZoneCategoryResponse zoneCategoryResponse = zoneCategoryMapper.mapToZoneCategoryResponse(information.getZoneCategory());
+        CategoryResponse categoryResponse = categoryMapper.mapToCategoryResponse(information.getCategory());
 
         List<Image> images = imageRepository.findAllByInformationId(information.getId());
 
@@ -190,14 +199,14 @@ public class InformationService {
 
         boolean isLike = greatInformationRepository.existsByInformationIdAndUserId(information.getId(), userId);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(
-                        () -> new UserNotExistsException("해당하는 id의 User 가 없습니다"));
+        User user = information.getUser();
 
-        String userImageUrl = userImageRepository.findById(userId)
+        String userImageUrl = userImageRepository.findById(user.getId())
                 .map(UserImage::getAddress)
                 .orElseGet(
                         () -> userRepository.getProfileUrl(user.getSex()));
+
+        updateViewCount(information, request, response, userId);
 
         return new InformationDetailResponse(
                 information.getTitle(),
@@ -210,6 +219,7 @@ public class InformationService {
                 tagResponses,
                 placeResponse,
                 zoneCategoryResponse,
+                categoryResponse,
                 imageResponseList,
                 likeCount,
                 userImageUrl,
@@ -219,203 +229,164 @@ public class InformationService {
 
     @Transactional
     public InformationResponse updateInformation(Long userId, Long informationId, InformationUpdateRequest informationUpdateRequest) {
-        Information information = informationRepository.findById(informationId)
-                .orElseThrow(
-                        () -> new InformationNotExistsException("해당하는 id의 information 이 존재하지 않습니다."));
-        if (!Objects.equals(information.getUser().getId(), userId)) {
-            throw new InformationNotManageException("권한이 없습니다");
-        }
+        Information information = getInformation(informationId, userId);
 
-        information.setTitle(informationUpdateRequest.getTitle());
-        information.setAddress(informationUpdateRequest.getAddress());
-        information.setContent(informationUpdateRequest.getContent());
-        information.setTip(informationUpdateRequest.getTips());
-
-        Place placeInformation = placeRepository.findById(information.getPlace().getId())
-                .orElseThrow(
-                        () -> new PlaceNotExistsException("해당하는 information 의 place 에서의 id가 존재하지 않습니다"));
-        placeInformation.setName(informationUpdateRequest.getPlaceModifyRequest().getName());
-        placeInformation.setAddress(informationUpdateRequest.getPlaceModifyRequest().getAddress());
-        placeInformation.setXaxis(informationUpdateRequest.getPlaceModifyRequest().getXAxis());
-        placeInformation.setYaxis(informationUpdateRequest.getPlaceModifyRequest().getYAxis());
-        placeInformation.setSearchId(informationUpdateRequest.getPlaceModifyRequest().getSearchId());
-
-        Category categoryInformation = categoryRepository.findById(informationUpdateRequest.getCategoryId())
-                .orElseThrow(
-                        () -> new CategoryNotExistsException("해당하는 category Id 가 존재하지 않습니다."));
-
-        if (Objects.isNull(categoryInformation.getParentCategory())) {
-            throw new RequestValidationFailedException("부모 카테고리는 등록이 안됩니다");
-        }
-        information.setCategory(categoryInformation);
-
-        ZoneCategory parentZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(null,
-                        informationUpdateRequest.getZoneCategoryNameParent())
-                .orElseThrow(
-                        () -> new ZoneCategoryNotExistsException("해당하는 name 에 대한 zoneCategory 가 존재하지 않습니다"));
-
-        ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(
-                        parentZoneCategory.getId(), informationUpdateRequest.getZoneCategoryNameChild())
-                .orElseThrow(
-                        () -> new ZoneCategoryNotExistsException("해당하는 name에 대한 zoneCategory가 존재하지 않습니다"));
-
-        information.setZoneCategory(childZoneCategory);
-
-        List<InfoTag> infoTags = infoTagRepository.findAllByInformationId(information.getId());
-
-        infoTagRepository.deleteAllByInformationId(information.getId());
-
-        for (InfoTag infoTag : infoTags) {
-            tagRepository.deleteById(infoTag.getTag().getTagId());
-        }
-
-        List<Tag> saveTags = tagRepository.saveAll(
-                tagMapper.mapToTags(
-                        informationUpdateRequest.getTagRegisterRequests()));
-
-        for (Tag tag : saveTags) {
-            infoTagRepository.save(new InfoTag(tag, information));
-        }
-
-        if (Objects.nonNull(informationUpdateRequest.getPlaceModifyRequest())) {
-            List<ImageDeleteRequest> deleteImages = informationUpdateRequest.getDeleteImages();
-
-            for (ImageDeleteRequest imageDeleteRequest : deleteImages) {
-                s3Uploader.deleteImage(imageDeleteRequest.getAddress());
-                imageRepository.deleteByAddress(imageDeleteRequest.getAddress());
-            }
-        }
-
-        if (!imageRepository.existsImageByImageStatusAndInformationId(ImageStatus.THUMBNAIL, informationId)) {
-            if (Objects.isNull(informationUpdateRequest.getThumbNailUrl())) {
-                throw new ImageRequestValidationFailedException("썸네일 이미지는 있어야 합니다");
-            }
-
-            imageRepository.save(new Image(ImageStatus.THUMBNAIL, information, informationUpdateRequest.getAddress()));
-        } else {
-            if (Objects.nonNull(informationUpdateRequest.getThumbNailUrl())) {
-                if (!imageRepository.existsImageByAddress(informationUpdateRequest.getThumbNailUrl())) {
-                    throw new ImageAlreadyExistsException("썸네일 이미지가 이미 있습니다");
-                }
-            }
-        }
-
-        if (Objects.nonNull(informationUpdateRequest.getContentImagesUrl())) {
-            List<String> contentImagesUrl = informationUpdateRequest.getContentImagesUrl();
-            for (String contentImageUrl : contentImagesUrl) {
-                imageRepository.save(new Image(ImageStatus.CONTENT, information, contentImageUrl));
-            }
-        }
+        updateInformationDetails(information, informationUpdateRequest);
+        updatePlaceDetails(information, informationUpdateRequest);
+        updateCategory(information, informationUpdateRequest);
+        updateZoneCategory(information, informationUpdateRequest);
+        updateTags(information, informationUpdateRequest);
+        handleImageDeletions(informationUpdateRequest);
+        handleImageAdditions(information, informationUpdateRequest);
+        updateThumbnail(information, informationUpdateRequest);
 
         return informationMapper.mapToInformationResponse(information);
     }
 
+    private Information getInformation(Long informationId, Long userId) {
+        Information information = informationRepository.findById(informationId)
+                .orElseThrow(() -> new InformationNotExistsException("해당하는 id의 information 이 존재하지 않습니다."));
+        if (!Objects.equals(information.getUser().getId(), userId)) {
+            throw new InformationNotManageException("권한이 없습니다");
+        }
+        return information;
+    }
 
-//    @Transactional
-//    public InformationResponse modifyInformation(Long id, InformationModifyRequest informationModifyRequest,
-//                                                 MultipartFile thumbNail, List<MultipartFile> contentImages) {
-//        Information information = informationRepository.findById(id)
-//                .orElseThrow(
-//                        () -> new InformationNotExistsException("해당하는 id의 information 이 존재하지 않습니다."));
-//        information.setTitle(informationModifyRequest.getTitle());
-//        information.setAddress(informationModifyRequest.getAddress());
-//        information.setContent(informationModifyRequest.getContent());
-//        information.setTip(informationModifyRequest.getTips());
-//
-//        Place placeInformation = placeRepository.findById(information.getPlace().getId())
-//                .orElseThrow(
-//                        () -> new PlaceNotExistsException("해당하는 information의 place에서의 id가 존재하지 않습니다"));
-//        placeInformation.setName(informationModifyRequest.getPlaceModifyRequest().getName());
-//        placeInformation.setAddress(informationModifyRequest.getPlaceModifyRequest().getAddress());
-//        placeInformation.setXaxis(informationModifyRequest.getPlaceModifyRequest().getXAxis());
-//        placeInformation.setYaxis(informationModifyRequest.getPlaceModifyRequest().getYAxis());
-//        placeInformation.setSearchId(informationModifyRequest.getPlaceModifyRequest().getSearchId());
-//
-//        Category categoryInformation = categoryRepository.findById(informationModifyRequest.getCategoryId())
-//                .orElseThrow(
-//                        () -> new CategoryNotExistsException("해당하는 cateogry Id 가 존재하지 않습니다."));
-//        information.setCategory(categoryInformation);
-//
-//        ZoneCategory parentZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(null,
-//                        informationModifyRequest.getZoneCategoryNameParent())
-//                .orElseThrow(
-//                        () -> new ZoneCategoryNotExistsException("해당하는 name에 대한 zoneCategory가 존재하지 않습니다"));
-//
-//        ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(
-//                        parentZoneCategory.getId(), informationModifyRequest.getZoneCategoryNameChild())
-//                .orElseThrow(
-//                        () -> new ZoneCategoryNotExistsException("해당하는 name에 대한 zoneCategory가 존재하지 않습니다"));
-//
-//        information.setZoneCategory(childZoneCategory);
-//
-//        List<ImageUseRequest> useImages = informationModifyRequest.getUseImages();
-//
-//        for (ImageUseRequest imageUseRequest : useImages) {
-//            if (!imageRepository.existsImageByAddress(imageUseRequest.getAddress())) {
-//                throw new ImageNotExistsException("계속 사용하려는 주소의 이미지는 없습니다.");
-//            }
-//        }
-//
-//        List<ImageDeleteRequest> deleteImages = informationModifyRequest.getDeleteImages();
-//
-//        for (ImageDeleteRequest imageDeleteRequest : deleteImages) {
-//            if (!imageRepository.existsImageByAddress(imageDeleteRequest.getAddress())) {
-//                throw new ImageNotExistsException("삭제하려는 주소의 이미지가 없습니다.");
-//            }
-//            s3Uploader.deleteImage(imageDeleteRequest.getAddress());
-//            imageRepository.deleteByAddress(imageDeleteRequest.getAddress());
-//        }
-//
-//        List<Image> allByInformationId = imageRepository.findAllByInformationId(
-//                information.getId());
-//
-//        for (Image image : allByInformationId) {
-//            s3Uploader.deleteImage(image.getAddress());
-//        }
-//
-//        if (!Objects.isNull(thumbNail)) {
-//            if (imageRepository.existsByInformationIdAndImageStatus(information.getId(),
-//                    ImageStatus.THUMBNAIL)) {
-//                throw new ImageRequestValidationFailedException("이미 썸네일 이미지가 있습니다");
-//            } else {
-//                String thumbNailImageUrl = s3Uploader.upload(thumbNail, IMAGE_PATH,
-//                        information.getId());
-//                Image thumbImage = new Image(ImageStatus.THUMBNAIL, information, thumbNailImageUrl);
-//                imageRepository.save(thumbImage);
-//            }
-//        } else {
-//            if (!imageRepository.existsByInformationIdAndImageStatus(information.getId(),
-//                    ImageStatus.THUMBNAIL)) {
-//                throw new ImageRequestValidationFailedException("썸네일 이미지가 없습니다");
-//            }
-//        }
-//        if (Objects.nonNull(contentImages)) {
-//            for (MultipartFile multipartFile : contentImages) {
-//                String upload = s3Uploader.upload(multipartFile, IMAGE_PATH, information.getId());
-//                Image contentImage = new Image(ImageStatus.CONTENT, information, upload);
-//
-//                imageRepository.save(contentImage);
-//            }
-//        }
-//
-//        List<InfoTag> infoTags = infoTagRepository.findAllByInformationId(information.getId());
-//
-//        infoTagRepository.deleteAllByInformationId(information.getId());
-//
-//        for (InfoTag infoTag : infoTags) {
-//            tagRepository.deleteById(infoTag.getTag().getTagId());
-//        }
-//
-//        List<Tag> saveTags = tagRepository.saveAll(
-//                tagMapper.mapToTags(
-//                        informationModifyRequest.getTagRegisterRequests()));
-//
-//        for (Tag tag : saveTags) {
-//            infoTagRepository.save(new InfoTag(tag, information));
-//        }
-//
-//        return informationMapper.mapToInformationResponse(information);
-//    }
+    private void updateInformationDetails(Information information, InformationUpdateRequest request) {
+        information.setTitle(request.getTitle());
+        information.setAddress(request.getAddress());
+        information.setContent(request.getContent());
+        information.setTip(request.getTips());
+    }
+
+    private void updatePlaceDetails(Information information, InformationUpdateRequest request) {
+        Place place = placeRepository.findById(information.getPlace().getId())
+                .orElseThrow(() -> new PlaceNotExistsException("해당하는 information 의 place 에서의 id가 존재하지 않습니다"));
+        PlaceModifyRequest placeRequest = request.getPlaceModifyRequest();
+        place.setName(placeRequest.getName());
+        place.setAddress(placeRequest.getAddress());
+        place.setXaxis(placeRequest.getXAxis());
+        place.setYaxis(placeRequest.getYAxis());
+        place.setSearchId(placeRequest.getSearchId());
+    }
+
+    private void updateCategory(Information information, InformationUpdateRequest request) {
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new CategoryNotExistsException("해당하는 category Id 가 존재하지 않습니다."));
+
+        if (Objects.isNull(category.getParentCategory())) {
+            throw new RequestValidationFailedException("부모 카테고리는 등록이 안됩니다");
+        }
+        information.setCategory(category);
+    }
+
+    private void updateZoneCategory(Information information, InformationUpdateRequest request) {
+        ZoneCategory parentZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(null, request.getZoneCategoryNameParent())
+                .orElseThrow(() -> new ZoneCategoryNotExistsException("해당하는 name 에 대한 zoneCategory 가 존재하지 않습니다"));
+
+        ZoneCategory childZoneCategory = zoneCategoryRepository.findByParentZoneCategoryIdAndName(
+                        parentZoneCategory.getId(), request.getZoneCategoryNameChild())
+                .orElseThrow(() -> new ZoneCategoryNotExistsException("해당하는 name에 대한 zoneCategory가 존재하지 않습니다"));
+
+        information.setZoneCategory(childZoneCategory);
+    }
+
+    private void updateTags(Information information, InformationUpdateRequest request) {
+        List<InfoTag> infoTags = infoTagRepository.findAllByInformationId(information.getId());
+
+        infoTagRepository.deleteAllByInformationId(information.getId());
+        for (InfoTag infoTag : infoTags) {
+            tagRepository.deleteById(infoTag.getTag().getTagId());
+        }
+
+        List<Tag> saveTags = tagRepository.saveAll(tagMapper.mapToTags(request.getTagRegisterRequests()));
+        for (Tag tag : saveTags) {
+            infoTagRepository.save(new InfoTag(tag, information));
+        }
+    }
+
+    private void handleImageDeletions(InformationUpdateRequest request) {
+        if (Objects.nonNull(request.getDeleteImagesUrl())) {
+            for (ImageRequest deleteImageUrl : request.getDeleteImagesUrl()) {
+                if (!imageRepository.existsImageByAddress(deleteImageUrl.getAddress())) {
+                    throw new ImageNotExistsException("해당하는 이미지는 없습니다");
+                }
+                imageRepository.deleteByAddress(deleteImageUrl.getAddress());
+            }
+        }
+    }
+
+    private void handleImageAdditions(Information information, InformationUpdateRequest request) {
+        if (Objects.nonNull(request.getNewContentImagesUrl())) {
+            List<Image> contentImageList = new ArrayList<>();
+            for (ImageRequest newContentImageUrl : request.getNewContentImagesUrl()) {
+                contentImageList.add(new Image(ImageStatus.CONTENT, information, newContentImageUrl.getAddress()));
+                s3Uploader.markImagePermanent(newContentImageUrl.getAddress());
+            }
+            imageRepository.saveAll(contentImageList);
+        }
+    }
+
+    private void updateThumbnail(Information information, InformationUpdateRequest request) {
+        if (isInvalidThumbnailUpdate(request)) {
+            validateExistingThumbNailImage(information);
+        } else if (Objects.isNull(request.getNewThumbNailUrl())) {
+            handleThumbnailUpdateWithoutNewUrl(information, request);
+        } else {
+            handleThumbnailUpdateWithNewUrl(information, request);
+        }
+    }
+
+    private boolean isInvalidThumbnailUpdate(InformationUpdateRequest request) {
+        return Objects.isNull(request.getNewThumbNailUrl())
+                && Objects.isNull(request.getNewThumbNailFromContent())
+                && Objects.isNull(request.getMoveThumbNailToContent());
+    }
+
+    private void validateExistingThumbNailImage(Information information) {
+        if (!imageRepository.existsImageByImageStatusAndInformationId(ImageStatus.THUMBNAIL, information.getId())) {
+            throw new ImageNotExistsException("썸네일 이미지가 없습니다");
+        }
+    }
+
+    private void handleThumbnailUpdateWithoutNewUrl(Information information, InformationUpdateRequest request) {
+        if (Objects.nonNull(request.getNewThumbNailFromContent()) && Objects.nonNull(request.getMoveThumbNailToContent())) {
+            swapThumbnailAndContent(information, request);
+        } else if (Objects.nonNull(request.getNewThumbNailFromContent())) {
+            setNewThumbnailFromContent(information, request);
+        }
+    }
+
+    private void handleThumbnailUpdateWithNewUrl(Information information, InformationUpdateRequest request) {
+        if (Objects.nonNull(request.getMoveThumbNailToContent())) {
+            Image thumbNailImage = imageRepository.findImageByAddress(request.getMoveThumbNailToContent().getAddress()).orElseThrow();
+            thumbNailImage.setImageStatus(ImageStatus.CONTENT);
+        } else {
+            if (imageRepository.existsImageByImageStatusAndInformationId(ImageStatus.THUMBNAIL, information.getId())) {
+                throw new ImageAlreadyExistsException("해당 정보에 대한 썸네일 이미지가 존재합니다");
+            }
+        }
+        Image newImage = new Image(ImageStatus.THUMBNAIL, information, request.getNewThumbNailUrl().getAddress());
+        imageRepository.save(newImage);
+        s3Uploader.markImagePermanent(newImage.getAddress());
+    }
+
+    private void swapThumbnailAndContent(Information information, InformationUpdateRequest request) {
+        validateExistingThumbNailImage(information);
+        Image content = imageRepository.findImageByAddress(request.getNewThumbNailFromContent().getAddress()).orElseThrow();
+        content.setImageStatus(ImageStatus.THUMBNAIL);
+        Image thumbNail = imageRepository.findImageByAddress(request.getMoveThumbNailToContent().getAddress()).orElseThrow();
+        thumbNail.setImageStatus(ImageStatus.CONTENT);
+    }
+
+    private void setNewThumbnailFromContent(Information information, InformationUpdateRequest request) {
+        if (imageRepository.existsImageByImageStatusAndInformationId(ImageStatus.THUMBNAIL, information.getId())) {
+            throw new IllegalStateException("THUMBNAIL image already exists.");
+        }
+        Image content = imageRepository.findImageByAddress(request.getNewThumbNailFromContent().getAddress()).orElseThrow();
+        content.setImageStatus(ImageStatus.THUMBNAIL);
+    }
+
 
     @Transactional
     public void deleteInformation(Long userId, Long id) {
@@ -479,8 +450,7 @@ public class InformationService {
             }
         }
 
-        return informationRepository.getInformationPageFilterAndOrder(pageable, informationPageRequest, userId,
-                parentCategoryId);
+        return informationRepository.getInformationPageFilterAndOrder(pageable, informationPageRequest, userId, parentCategoryId);
     }
 
     public List<InformationRankResponse> getRankInformation() {
@@ -497,4 +467,39 @@ public class InformationService {
         return informationRepository.getInformationPageByTag(pageable, userId, parentCategoryId, informationPageRequest,
                 decodedTag);
     }
+
+    public void updateViewCount(Information information, HttpServletRequest request, HttpServletResponse response, Long userId) {
+        String cookieName = "viewed_information_" + userId + "_" + information.getId();
+        Cookie[] cookies = request.getCookies();
+        Cookie postCookie = null;
+
+        if (Objects.nonNull(cookies)) {
+            postCookie = Arrays.stream(cookies)
+                    .filter(cookie -> cookieName.equals(cookie.getName()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-ddHH:mm:ss");
+
+        if (Objects.nonNull(postCookie)) {
+            LocalDateTime lastViewedAt = LocalDateTime.parse(postCookie.getValue(), formatter);
+            if (lastViewedAt.isBefore(now.minusDays(1))) {
+                incrementInformationViewCount(information);
+                postCookie.setValue(now.format(formatter));
+                response.addCookie(postCookie);
+            }
+        } else {
+            incrementInformationViewCount(information);
+            Cookie newCookie = new Cookie(cookieName, now.format(formatter));
+            newCookie.setMaxAge(60 * 60 * 24 * 365);
+            response.addCookie(newCookie);
+        }
+    }
+
+    private void incrementInformationViewCount(Information information) {
+        information.upViewCount();
+    }
+
 }
