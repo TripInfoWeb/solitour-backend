@@ -27,12 +27,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserImageService userImageService;
-    private final UserImageRepository userImageRepository;
-    private final S3Uploader s3Uploader;
-    @Value("${user.profile.url.female}")
-    private String femaleProfileUrl;
-    @Value("${user.profile.url.male}")
-    private String maleProfileUrl;
 
     public UserInfoResponse retrieveUserInfo(Long userId) {
         User user = userRepository.findByUserId(userId);
@@ -53,14 +47,6 @@ public class UserService {
     public void updateAgeAndSex(Long userId, String age, String sex) {
         User user = userRepository.findByUserId(userId);
         user.updateAgeAndSex(age, sex);
-    }
-
-    @Transactional
-    public void deleteUser(Long userId) {
-        User user = userRepository.findByUserId(userId);
-        UserImage userImage = userImageRepository.findById(user.getUserImage().getId()).orElseThrow();
-        changeToDefaultProfile(user, userImage);
-        user.deleteUser();
     }
 
     public Page<InformationBriefResponse> retrieveInformationOwner(Pageable pageable, Long userId) {
@@ -88,28 +74,5 @@ public class UserService {
 
     public Page<GatheringApplicantResponse> retrieveGatheringApplicant(Pageable pageable, Long userId) {
         return userRepository.retrieveGatheringApplicant(pageable, userId);
-    }
-
-    private void changeToDefaultProfile(User user, UserImage userImage) {
-        String defaultImageUrl = getDefaultProfile(user);
-        deleteUserProfileFromS3(userImage,defaultImageUrl);
-    }
-
-    private String getDefaultProfile(User user) {
-        String sex = user.getSex();
-        if(sex.equals("male")){{
-            return maleProfileUrl;
-        }} else {
-            return femaleProfileUrl;
-        }
-    }
-
-    private void deleteUserProfileFromS3(UserImage userImage,String defaultImageUrl) {
-        String userImageUrl = userImage.getAddress();
-        if(userImageUrl.equals(femaleProfileUrl) || userImageUrl.equals(maleProfileUrl)){
-            return;
-        }
-        s3Uploader.deleteImage(userImageUrl);
-        userImage.changeToDefaultProfile(defaultImageUrl);
     }
 }

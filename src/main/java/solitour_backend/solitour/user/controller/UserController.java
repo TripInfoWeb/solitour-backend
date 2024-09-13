@@ -88,24 +88,6 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping()
-    public ResponseEntity<String> deleteUser(HttpServletResponse response, @AuthenticationPrincipal Long id,
-                                             @RequestParam String type,
-                                             @RequestParam String code, @RequestParam String redirectUrl) {
-        String token = getOauthAccessToken(type, code, redirectUrl);
-
-        try {
-            oauthservice.revokeToken(type, token);
-
-            oauthservice.logout(response, id);
-            userService.deleteUser(id);
-
-            return ResponseEntity.ok("User deleted successfully");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
-        }
-    }
-
     @GetMapping("/mypage/information/owner")
     public ResponseEntity<Page<InformationBriefResponse>> retrieveInformationOwner(
             @RequestParam(defaultValue = "0") int page,
@@ -161,19 +143,4 @@ public class UserController {
 
         return ResponseEntity.ok(response);
     }
-
-    private String getOauthAccessToken(String type, String code, String redirectUrl) {
-        String token = "";
-        switch (type) {
-            case "kakao" -> {
-                token = kakaoConnector.requestAccessToken(code, redirectUrl);
-            }
-            case "google" -> {
-                token = googleConnector.requestAccessToken(code, redirectUrl);
-            }
-            default -> throw new RuntimeException("Unsupported oauth type");
-        }
-        return token;
-    }
-
 }

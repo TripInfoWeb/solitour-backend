@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import solitour_backend.solitour.auth.support.kakao.dto.KakaoTokenAndUserResponse;
 import solitour_backend.solitour.auth.support.kakao.dto.KakaoTokenResponse;
 import solitour_backend.solitour.auth.support.kakao.dto.KakaoUserResponse;
 
@@ -29,26 +30,36 @@ public class KakaoConnector {
 
     private final KakaoProvider provider;
 
-    public ResponseEntity<KakaoUserResponse> requestKakaoUserInfo(String code, String redirectUrl) {
-        String kakaoToken = requestAccessToken(code, redirectUrl);
+    public KakaoTokenAndUserResponse requestKakaoUserInfo(String code, String redirectUrl) {
+        KakaoTokenResponse kakaoToken = requestAccessToken(code, redirectUrl);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", String.join(" ", BEARER_TYPE, kakaoToken));
+        headers.set("Authorization", String.join(" ", BEARER_TYPE, kakaoToken.getAccessToken()));
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        return REST_TEMPLATE.exchange(provider.getUserInfoUrl(), HttpMethod.GET, entity,
+        ResponseEntity<KakaoUserResponse> responseEntity = REST_TEMPLATE.exchange(provider.getUserInfoUrl(), HttpMethod.GET, entity,
                 KakaoUserResponse.class);
+
+        return new KakaoTokenAndUserResponse(kakaoToken,responseEntity.getBody());
+
     }
 
-    public String requestAccessToken(String code, String redirectUrl) {
+    public KakaoTokenResponse requestAccessToken(String code, String redirectUrl) {
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(
                 createBody(code, redirectUrl), createHeaders());
 
-        ResponseEntity<KakaoTokenResponse> response = REST_TEMPLATE.postForEntity(
+        return REST_TEMPLATE.postForEntity(
                 provider.getAccessTokenUrl(),
-                entity, KakaoTokenResponse.class);
+                entity, KakaoTokenResponse.class).getBody();
+    }
 
-        return extractAccessToken(response);
+    public String refreshToken(String refreshToken) {
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(
+                createRefreshBody(refreshToken), createHeaders());
+
+        return REST_TEMPLATE.postForEntity(
+                provider.getAccessTokenUrl(),
+                entity, KakaoTokenResponse.class).getBody().getAccessToken();
     }
 
     private HttpHeaders createHeaders() {
@@ -68,11 +79,13 @@ public class KakaoConnector {
         return body;
     }
 
-    private String extractAccessToken(ResponseEntity<KakaoTokenResponse> responseEntity) {
-        KakaoTokenResponse response = Optional.ofNullable(responseEntity.getBody())
-                .orElseThrow(() -> new RuntimeException("카카오 토큰을 가져오는데 실패했습니다."));
-
-        return response.getAccessToken();
+    private MultiValueMap<String, String> createRefreshBody(String refreshToken) {
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("client_id", provider.getClientId());
+        body.add("client_secret", provider.getClientSecret());
+        body.add("grant_type", provider.getRefreshGrantType());
+        body.add("refresh_token", refreshToken);
+        return body;
     }
 
     public HttpStatusCode requestRevoke(String token) throws IOException {
@@ -89,5 +102,4 @@ public class KakaoConnector {
         headers.set("Authorization", String.join(" ", BEARER_TYPE, token));
         return headers;
     }
-
 }

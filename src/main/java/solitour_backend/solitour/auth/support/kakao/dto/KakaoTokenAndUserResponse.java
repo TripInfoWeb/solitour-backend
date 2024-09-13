@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class KakaoTokenResponse {
+public class KakaoTokenAndUserResponse {
 
-    private String accessToken;
-    private String refreshToken;
+    private KakaoTokenResponse kakaoTokenResponse;
+    private KakaoUserResponse kakaoUserResponse;
 }

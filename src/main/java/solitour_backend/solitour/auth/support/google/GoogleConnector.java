@@ -18,6 +18,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import solitour_backend.solitour.auth.support.google.dto.GoogleTokenResponse;
 import solitour_backend.solitour.auth.support.google.dto.GoogleUserResponse;
+import solitour_backend.solitour.auth.support.kakao.dto.KakaoTokenResponse;
 
 @Getter
 @RequiredArgsConstructor
@@ -61,6 +62,15 @@ public class GoogleConnector {
         return response.getStatusCode();
     }
 
+    public String refreshToken(String refreshToken) {
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(
+                createRefreshBody(refreshToken), createLoginHeaders());
+
+        return REST_TEMPLATE.postForEntity(
+                provider.getAccessTokenUrl(),
+                entity, KakaoTokenResponse.class).getBody().getAccessToken();
+    }
+
     private HttpHeaders createLoginHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -75,6 +85,15 @@ public class GoogleConnector {
         body.add("client_secret", provider.getClientSecret());
         body.add("redirect_uri", redirectUrl);
         body.add("grant_type", provider.getGrantType());
+        return body;
+    }
+
+    private MultiValueMap<String, String> createRefreshBody(String refreshToken) {
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("client_id", provider.getClientId());
+        body.add("client_secret", provider.getClientSecret());
+        body.add("grant_type", provider.getRefreshGrantType());
+        body.add("refresh_token", refreshToken);
         return body;
     }
 
@@ -96,5 +115,4 @@ public class GoogleConnector {
 
         return response.getAccessToken();
     }
-
 }

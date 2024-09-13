@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import solitour_backend.solitour.auth.entity.Token;
+import solitour_backend.solitour.auth.entity.TokenRepository;
 import solitour_backend.solitour.auth.service.dto.response.AccessTokenResponse;
 import solitour_backend.solitour.auth.service.dto.response.LoginResponse;
 import solitour_backend.solitour.auth.service.dto.response.OauthLinkResponse;
@@ -22,11 +24,15 @@ import solitour_backend.solitour.auth.support.google.GoogleProvider;
 import solitour_backend.solitour.auth.support.google.dto.GoogleUserResponse;
 import solitour_backend.solitour.auth.support.kakao.KakaoConnector;
 import solitour_backend.solitour.auth.support.kakao.KakaoProvider;
+import solitour_backend.solitour.auth.support.kakao.dto.KakaoTokenAndUserResponse;
+import solitour_backend.solitour.auth.support.kakao.dto.KakaoTokenResponse;
 import solitour_backend.solitour.auth.support.kakao.dto.KakaoUserResponse;
+import solitour_backend.solitour.image.s3.S3Uploader;
 import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.user.user_status.UserStatus;
 import solitour_backend.solitour.user_image.entity.UserImage;
+import solitour_backend.solitour.user_image.entity.UserImageRepository;
 import solitour_backend.solitour.user_image.service.UserImageService;
 
 @RequiredArgsConstructor
@@ -41,10 +47,14 @@ public class OauthService {
     private final GoogleConnector googleConnector;
     private final GoogleProvider googleProvider;
     private final UserImageService userImageService;
+    private final TokenRepository tokenRepository;
+    private final UserImageRepository userImageRepository;
+    private final S3Uploader s3Uploader;
     @Value("${user.profile.url.male}")
     private String USER_PROFILE_MALE;
     @Value("${user.profile.url.female}")
     private String USER_PROFILE_FEMALE;
+
 
 
     public OauthLinkResponse generateAuthUrl(String type, String redirectUrl) {
@@ -81,11 +91,17 @@ public class OauthService {
 
     private User checkAndSaveUser(String type, String code, String redirectUrl) {
         if (Objects.equals(type, "kakao")) {
-            KakaoUserResponse response = kakaoConnector.requestKakaoUserInfo(code, redirectUrl)
-                    .getBody();
-            String id = response.getId().toString();
-            return userRepository.findByOauthId(id)
-                    .orElseGet(() -> saveKakaoUser(response));
+            KakaoTokenAndUserResponse response = kakaoConnector.requestKakaoUserInfo(code, redirectUrl);
+            KakaoTokenResponse tokenResponse = response.getKakaoTokenResponse();
+            KakaoUserResponse kakaoUserResponse = response.getKakaoUserResponse();
+
+            String id = kakaoUserResponse.getId().toString();
+            User user =  userRepository.findByOauthId(id)
+                    .orElseGet(() -> saveKakaoUser(kakaoUserResponse));
+
+            tokenService.saveToken(tokenResponse, user);
+
+            return user;
         }
         if (Objects.equals(type, "google")) {
             GoogleUserResponse response = googleConnector.requestGoogleUserInfo(code, redirectUrl)
@@ -96,6 +112,15 @@ public class OauthService {
         } else {
             throw new RuntimeException("지원하지 않는 oauth 타입입니다.");
         }
+    }
+
+    private void saveToken(KakaoTokenResponse tokenResponse, User user) {
+        Token token  = Token.builder()
+                .user(user)
+                .oauthToken(tokenResponse.getRefreshToken())
+                .build();
+
+        tokenRepository.save(token);
     }
 
     private User saveGoogleUser(GoogleUserResponse response) {
@@ -210,4 +235,34 @@ public class OauthService {
         }
     }
 
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findByUserId(userId);
+        UserImage userImage = userImageRepository.findById(user.getUserImage().getId()).orElseThrow();
+        changeToDefaultProfile(user, userImage);
+        user.deleteUser();
+    }
+
+    private void changeToDefaultProfile(User user, UserImage userImage) {
+        String defaultImageUrl = getDefaultProfile(user);
+        deleteUserProfileFromS3(userImage,defaultImageUrl);
+    }
+
+    private String getDefaultProfile(User user) {
+        String sex = user.getSex();
+        if(sex.equals("male")){{
+            return USER_PROFILE_MALE;
+        }} else {
+            return USER_PROFILE_FEMALE;
+        }
+    }
+
+    private void deleteUserProfileFromS3(UserImage userImage,String defaultImageUrl) {
+        String userImageUrl = userImage.getAddress();
+        if(userImageUrl.equals(USER_PROFILE_MALE) || userImageUrl.equals(USER_PROFILE_FEMALE)){
+            return;
+        }
+        s3Uploader.deleteImage(userImageUrl);
+        userImage.changeToDefaultProfile(defaultImageUrl);
+    }
 }

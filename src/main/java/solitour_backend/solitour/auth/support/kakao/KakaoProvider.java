@@ -17,6 +17,7 @@ public class KakaoProvider {
     private final String accessTokenUrl;
     private final String userInfoUrl;
     private final String grantType;
+    private final String refreshGrantType;
     private final String revokeUrl;
     private final String scope;
 
@@ -27,6 +28,7 @@ public class KakaoProvider {
                          @Value("${oauth2.kakao.url.token}") String accessTokenUrl,
                          @Value("${oauth2.kakao.url.userinfo}") String userInfoUrl,
                          @Value("${oauth2.kakao.grant-type}") String grantType,
+                         @Value("${oauth2.kakao.refresh-grant-type}") String refreshGrantType,
                          @Value("${oauth2.kakao.url.revoke}") String revokeUrl,
                          @Value("${oauth2.kakao.scope}") String scope) {
         this.clientId = clientId;
@@ -35,6 +37,7 @@ public class KakaoProvider {
         this.accessTokenUrl = accessTokenUrl;
         this.userInfoUrl = userInfoUrl;
         this.grantType = grantType;
+        this.refreshGrantType = refreshGrantType;
         this.revokeUrl = revokeUrl;
         this.scope = scope;
     }

@@ -9,6 +9,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solitour_backend.solitour.user.entity.User;
@@ -16,6 +18,8 @@ import solitour_backend.solitour.user.entity.User;
 @Getter
 @NoArgsConstructor()
 @Entity
+@Builder
+@AllArgsConstructor
 @Table(name = "token")
 public class Token {
 
@@ -28,8 +32,11 @@ public class Token {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
+    @Column(nullable = false,name = "refresh_token")
     private String refreshToken;
+
+    @Column(nullable = false,name = "oauth_token")
+    private String oauthToken;
 
     public Token(User user, String refreshToken) {
         this.user = user;

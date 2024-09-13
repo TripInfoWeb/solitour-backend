@@ -18,6 +18,7 @@ public class GoogleProvider {
     private final String userInfoUrl;
     private final String revokeUrl;
     private final String grantType;
+    private final String refreshGrantType;
     private final String scope;
 
     public GoogleProvider(@Value("${oauth2.google.client.id}") String clientId,
@@ -27,6 +28,7 @@ public class GoogleProvider {
                           @Value("${oauth2.google.url.userinfo}") String userInfoUrl,
                           @Value("${oauth2.google.url.revoke}") String revokeUrl,
                           @Value("${oauth2.google.grant-type}") String grantType,
+                          @Value("${oauth2.google.refresh-grant-type}") String refreshGrantType,
                           @Value("${oauth2.google.scope}") String scope) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
@@ -35,6 +37,7 @@ public class GoogleProvider {
         this.userInfoUrl = userInfoUrl;
         this.revokeUrl = revokeUrl;
         this.grantType = grantType;
+        this.refreshGrantType = refreshGrantType;
         this.scope = scope;
     }
 
