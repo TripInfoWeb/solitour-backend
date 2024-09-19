@@ -57,7 +57,8 @@ CREATE TABLE `token`
 (
     `token_id`      BIGINT       NOT NULL AUTO_INCREMENT,
     `user_id`       BIGINT       NOT NULL,
-    `refresh_token` VARCHAR(250) NOT NULL,
+    `refresh_token` VARCHAR(250) NULL,
+    `oauth_token`   VARCHAR(250) NULL,
     CONSTRAINT PK_TOKEN PRIMARY KEY (`token_id`),
     CONSTRAINT FK_USER_TO_TOKEN FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
 );

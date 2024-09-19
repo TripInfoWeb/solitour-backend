@@ -99,7 +99,8 @@ public class OauthService {
             User user =  userRepository.findByOauthId(id)
                     .orElseGet(() -> saveKakaoUser(kakaoUserResponse));
 
-            tokenService.saveToken(tokenResponse, user);
+            Token token = tokenRepository.findByUserId(user.getId())
+                    .orElseGet(() -> tokenService.saveToken(tokenResponse, user));
 
             return user;
         }

@@ -30,13 +30,14 @@ public class TokenService {
     }
 
     @Transactional
-    public void saveToken(KakaoTokenResponse tokenResponse, User user) {
+    public Token saveToken(KakaoTokenResponse tokenResponse, User user) {
         Token token = Token.builder()
                 .user(user)
                 .oauthToken(tokenResponse.getRefreshToken())
-                .refreshToken("test")
                 .build();
 
         tokenRepository.save(token);
+
+        return token;
     }
 }

@@ -24,6 +24,7 @@ import solitour_backend.solitour.auth.support.google.GoogleConnector;
 import solitour_backend.solitour.auth.support.kakao.KakaoConnector;
 import solitour_backend.solitour.gathering.dto.response.GatheringApplicantResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringBriefResponse;
+import solitour_backend.solitour.gathering.dto.response.GatheringMypageResponse;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.user.dto.UpdateAgeAndSex;
 import solitour_backend.solitour.user.dto.UpdateNicknameRequest;
@@ -111,22 +112,22 @@ public class UserController {
     }
 
     @GetMapping("/mypage/gathering/host")
-    public ResponseEntity<Page<GatheringBriefResponse>> retrieveGatheringHost(
+    public ResponseEntity<Page<GatheringMypageResponse>> retrieveGatheringHost(
             @RequestParam(defaultValue = "0") int page,
             @AuthenticationPrincipal Long userId) {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<GatheringBriefResponse> response = userService.retrieveGatheringHost(pageable, userId);
+        Page<GatheringMypageResponse> response = userService.retrieveGatheringHost(pageable, userId);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/mypage/gathering/bookmark")
-    public ResponseEntity<Page<GatheringBriefResponse>> retrieveGatheringBookmark(
+    public ResponseEntity<Page<GatheringMypageResponse>> retrieveGatheringBookmark(
             @RequestParam(defaultValue = "0") int page,
             @AuthenticationPrincipal Long userId) {
 
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<GatheringBriefResponse> response = userService.retrieveGatheringBookmark(pageable,
+        Page<GatheringMypageResponse> response = userService.retrieveGatheringBookmark(pageable,
                 userId);
 
         return ResponseEntity.ok(response);

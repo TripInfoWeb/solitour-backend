@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import solitour_backend.solitour.gathering.dto.response.GatheringApplicantResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringBriefResponse;
+import solitour_backend.solitour.gathering.dto.response.GatheringMypageResponse;
 import solitour_backend.solitour.image.s3.S3Uploader;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.user.entity.User;
@@ -64,11 +65,11 @@ public class UserService {
         user.updateUserImage(response.getImageUrl());
     }
 
-    public Page<GatheringBriefResponse> retrieveGatheringHost(Pageable pageable, Long userId) {
+    public Page<GatheringMypageResponse> retrieveGatheringHost(Pageable pageable, Long userId) {
         return userRepository.retrieveGatheringHost(pageable, userId);
     }
 
-    public Page<GatheringBriefResponse> retrieveGatheringBookmark(Pageable pageable, Long userId) {
+    public Page<GatheringMypageResponse> retrieveGatheringBookmark(Pageable pageable, Long userId) {
         return userRepository.retrieveGatheringBookmark(pageable, userId);
     }
 

@@ -19,7 +19,8 @@ import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import solitour_backend.solitour.book_mark_gathering.entity.QBookMarkGathering;
 import solitour_backend.solitour.book_mark_information.entity.QBookMarkInformation;
 import solitour_backend.solitour.gathering.dto.response.GatheringApplicantResponse;
-import solitour_backend.solitour.gathering.dto.response.GatheringBriefResponse;
+import solitour_backend.solitour.gathering.dto.response.GatheringMypageResponse;
+import solitour_backend.solitour.gathering.dto.response.GatheringMypageResponse;
 import solitour_backend.solitour.gathering.entity.Gathering;
 import solitour_backend.solitour.gathering.entity.QGathering;
 import solitour_backend.solitour.gathering_applicants.entity.GatheringStatus;
@@ -108,7 +109,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .leftJoin(image).on(image.information.id.eq(information.id)
                         .and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
                 .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
-                .where(information.user.id.eq(userId).and(bookMarkInformation.user.id.eq(userId)));
+                .where(bookMarkInformation.user.id.eq(userId));
 
         List<InformationBriefResponse> list = query
                 .groupBy(information.id, zoneCategoryParent.id, zoneCategoryChild.id,
@@ -136,7 +137,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
     }
 
     @Override
-    public Page<GatheringBriefResponse> retrieveGatheringHost(Pageable pageable, Long userId) {
+    public Page<GatheringMypageResponse> retrieveGatheringHost(Pageable pageable, Long userId) {
         NumberExpression<Integer> likeCount = countGreatGatheringByGatheringById();
         BooleanExpression isBookMark = isGatheringBookmark(userId);
 
@@ -150,110 +151,11 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .orderBy(gathering.createdAt.desc())
                 .where(gathering.user.id.eq(userId));
 
-        List<GatheringBriefResponse> list = query
+        List<GatheringMypageResponse> list = query
                 .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,
                         gatheringCategory.id)
                 .select(Projections.constructor(
-                        GatheringBriefResponse.class,
-                        gathering.id,
-                        gathering.title,
-                        zoneCategoryParent.name,
-                        zoneCategoryChild.name,
-                        gathering.viewCount,
-                        isBookMark,
-                        likeCount,
-                        gatheringCategory.name,
-                        gathering.user.nickname,
-                        gathering.scheduleStartDate,
-                        gathering.scheduleEndDate,
-                        gathering.deadline,
-                        gathering.allowedSex,
-                        gathering.startAge,
-                        gathering.endAge,
-                        gathering.personCount,
-                        gatheringApplicants.count().coalesce(0L).intValue(),
-                        isUserGreatGathering(userId)
-                ))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-        long total = query.fetchCount();
-
-        return new PageImpl<>(list, pageable, total);
-    }
-
-    @Override
-    public Page<GatheringBriefResponse> retrieveGatheringBookmark(Pageable pageable, Long userId) {
-        NumberExpression<Integer> likeCount = countGreatGatheringByGatheringById();
-        BooleanExpression isBookMark = isGatheringBookmark(userId);
-
-        JPQLQuery<Gathering> query = from(gathering)
-                .leftJoin(zoneCategoryParent)
-                .on(zoneCategoryParent.id.eq(gathering.zoneCategory.parentZoneCategory.id))
-                .leftJoin(gatheringCategory)
-                .on(gatheringCategory.id.eq(gathering.gatheringCategory.id))
-                .leftJoin(gatheringApplicants)
-                .on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
-                .leftJoin(bookMarkGathering)
-                .on(bookMarkGathering.gathering.id.eq(gathering.id))
-                .orderBy(gathering.createdAt.desc())
-                .where(bookMarkGathering.user.id.eq(userId));
-
-        List<GatheringBriefResponse> list = query
-                .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,
-                        gatheringCategory.id)
-                .select(Projections.constructor(
-                        GatheringBriefResponse.class,
-                        gathering.id,
-                        gathering.title,
-                        zoneCategoryParent.name,
-                        zoneCategoryChild.name,
-                        gathering.viewCount,
-                        isBookMark,
-                        likeCount,
-                        gatheringCategory.name,
-                        gathering.user.nickname,
-                        gathering.scheduleStartDate,
-                        gathering.scheduleEndDate,
-                        gathering.deadline,
-                        gathering.allowedSex,
-                        gathering.startAge,
-                        gathering.endAge,
-                        gathering.personCount,
-                        gatheringApplicants.count().coalesce(0L).intValue(),
-                        isUserGreatGathering(userId)
-                ))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-        long total = query.fetchCount();
-
-        return new PageImpl<>(list, pageable, total);
-    }
-
-    @Override
-    public Page<GatheringApplicantResponse> retrieveGatheringApplicant(Pageable pageable, Long userId) {
-        NumberExpression<Integer> likeCount = countGreatGatheringByGatheringById();
-        BooleanExpression isBookMark = isGatheringBookmark(userId);
-        StringExpression gatheringStatus = getGatheringStatus();
-
-        JPQLQuery<Gathering> query = from(gathering)
-                .leftJoin(zoneCategoryParent)
-                .on(zoneCategoryParent.id.eq(gathering.zoneCategory.parentZoneCategory.id))
-                .leftJoin(gatheringCategory)
-                .on(gatheringCategory.id.eq(gathering.gatheringCategory.id))
-                .leftJoin(gatheringApplicants)
-                .on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
-                .leftJoin(gatheringApplicants)
-                .on(gatheringApplicants.gathering.id.eq(gathering.id))
-                .orderBy(gathering.createdAt.desc())
-                .where(gatheringApplicants.user.id.eq(userId).and(gathering.user.id.eq(userId).not()));
-
-        List<GatheringApplicantResponse> list = query
-                .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,
-                        gatheringCategory.id, gatheringApplicants.id)
-                .select(Projections.constructor(
-                        GatheringApplicantResponse.class,
+                        GatheringMypageResponse.class,
                         gathering.id,
                         gathering.title,
                         zoneCategoryParent.name,
@@ -272,6 +174,106 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                         gathering.personCount,
                         gatheringApplicants.count().coalesce(0L).intValue(),
                         isUserGreatGathering(userId),
+                        gathering.isFinish
+                ))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+        long total = query.fetchCount();
+
+        return new PageImpl<>(list, pageable, total);
+    }
+
+    @Override
+    public Page<GatheringMypageResponse> retrieveGatheringBookmark(Pageable pageable, Long userId) {
+        NumberExpression<Integer> likeCount = countGreatGatheringByGatheringById();
+        BooleanExpression isBookMark = isGatheringBookmark(userId);
+
+        JPQLQuery<Gathering> query = from(gathering)
+                .leftJoin(zoneCategoryParent)
+                .on(zoneCategoryParent.id.eq(gathering.zoneCategory.parentZoneCategory.id))
+                .leftJoin(gatheringCategory)
+                .on(gatheringCategory.id.eq(gathering.gatheringCategory.id))
+                .leftJoin(gatheringApplicants)
+                .on(gatheringApplicants.gathering.id.eq(gathering.id).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
+                .leftJoin(bookMarkGathering)
+                .on(bookMarkGathering.gathering.id.eq(gathering.id))
+                .orderBy(gathering.createdAt.desc())
+                .where(bookMarkGathering.user.id.eq(userId));
+
+        List<GatheringMypageResponse> list = query
+                .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,
+                        gatheringCategory.id)
+                .select(Projections.constructor(
+                        GatheringMypageResponse.class,
+                        gathering.id,
+                        gathering.title,
+                        zoneCategoryParent.name,
+                        zoneCategoryChild.name,
+                        gathering.viewCount,
+                        isBookMark,
+                        likeCount,
+                        gatheringCategory.name,
+                        gathering.user.nickname,
+                        gathering.scheduleStartDate,
+                        gathering.scheduleEndDate,
+                        gathering.deadline,
+                        gathering.allowedSex,
+                        gathering.startAge,
+                        gathering.endAge,
+                        gathering.personCount,
+                        gatheringApplicants.count().coalesce(0L).intValue(),
+                        isUserGreatGathering(userId),
+                        gathering.isFinish
+                ))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+        long total = query.fetchCount();
+
+        return new PageImpl<>(list, pageable, total);
+    }
+
+    @Override
+    public Page<GatheringApplicantResponse> retrieveGatheringApplicant(Pageable pageable, Long userId) {
+        NumberExpression<Integer> likeCount = countGreatGatheringByGatheringById();
+        BooleanExpression isBookMark = isGatheringBookmark(userId);
+        StringExpression gatheringStatus = getGatheringStatus();
+        NumberExpression<Integer> gatheringApplicantCount = countGatheringApplicant(userId);
+
+
+        JPQLQuery<Gathering> query = from(gathering)
+                .leftJoin(zoneCategoryParent)
+                .on(zoneCategoryParent.id.eq(gathering.zoneCategory.parentZoneCategory.id))
+                .leftJoin(gatheringCategory)
+                .on(gatheringCategory.id.eq(gathering.gatheringCategory.id))
+                .leftJoin(gatheringApplicants)
+                .on(gatheringApplicants.gathering.id.eq(gathering.id))
+                .orderBy(gathering.createdAt.desc())
+                .where(gatheringApplicants.user.id.eq(userId).and(gathering.user.id.eq(userId).not()));
+
+        List<GatheringApplicantResponse> list = query
+                .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,
+                            gatheringCategory.id, gatheringApplicants.id)
+                .select(Projections.constructor(
+                        GatheringApplicantResponse.class,
+                        gathering.id,
+                        gathering.title,
+                        zoneCategoryParent.name,
+                        zoneCategoryChild.name,
+                        gathering.viewCount,
+                        isBookMark,
+                        likeCount,
+                        gatheringCategory.name,
+                        gathering.user.nickname,
+                        gathering.scheduleStartDate,
+                        gathering.scheduleEndDate,
+                        gathering.deadline,
+                        gathering.allowedSex,
+                        gathering.startAge,
+                        gathering.endAge,
+                        gathering.personCount,
+                        gatheringApplicantCount,                        isUserGreatGathering(userId),
                         gatheringStatus,
                         gathering.isFinish
                 ))
@@ -281,6 +283,19 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         long total = query.fetchCount();
 
         return new PageImpl<>(list, pageable, total);
+    }
+
+    private NumberExpression<Integer> countGatheringApplicant(Long userId) {
+        QGatheringApplicants gatheringApplicants = QGatheringApplicants.gatheringApplicants;
+
+        JPQLQuery<Long> countApplicant = JPAExpressions
+                .select(gatheringApplicants.count())
+                .from(gatheringApplicants)
+                .where(gatheringApplicants.user.id.eq(userId).and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)));
+
+        return Expressions.numberTemplate(Long.class, "{0}", countApplicant)
+                .coalesce(0L)
+                .intValue();
     }
 
     @Override
