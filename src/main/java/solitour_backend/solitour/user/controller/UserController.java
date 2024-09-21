@@ -40,9 +40,6 @@ import solitour_backend.solitour.user.service.dto.response.UserInfoResponse;
 public class UserController {
 
     private final UserService userService;
-    private final OauthService oauthservice;
-    private final KakaoConnector kakaoConnector;
-    private final GoogleConnector googleConnector;
 
     public static final int PAGE_SIZE = 6;
 

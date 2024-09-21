@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import jdk.jshell.spi.ExecutionControl.UserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
@@ -29,6 +30,9 @@ import solitour_backend.solitour.auth.support.kakao.dto.KakaoTokenResponse;
 import solitour_backend.solitour.auth.support.kakao.dto.KakaoUserResponse;
 import solitour_backend.solitour.image.s3.S3Uploader;
 import solitour_backend.solitour.user.entity.User;
+import solitour_backend.solitour.user.exception.BlockedUserException;
+import solitour_backend.solitour.user.exception.DeletedUserException;
+import solitour_backend.solitour.user.exception.DormantUserException;
 import solitour_backend.solitour.user.repository.UserRepository;
 import solitour_backend.solitour.user.user_status.UserStatus;
 import solitour_backend.solitour.user_image.entity.UserImage;
@@ -77,7 +81,7 @@ public class OauthService {
         Cookie accessCookie = createCookie("access_token", token, ACCESS_COOKIE_AGE);
         Cookie refreshCookie = createCookie("refresh_token", refreshToken, REFRESH_COOKIE_AGE);
 
-        return new LoginResponse(accessCookie, refreshCookie);
+        return new LoginResponse(accessCookie, refreshCookie,user.getUserStatus());
     }
 
     private Cookie createCookie(String name, String value, int maxAge) {
@@ -99,6 +103,8 @@ public class OauthService {
             User user =  userRepository.findByOauthId(id)
                     .orElseGet(() -> saveKakaoUser(kakaoUserResponse));
 
+            checkUserStatus(user);
+
             Token token = tokenRepository.findByUserId(user.getId())
                     .orElseGet(() -> tokenService.saveToken(tokenResponse, user));
 
@@ -112,6 +118,15 @@ public class OauthService {
                     .orElseGet(() -> saveGoogleUser(response));
         } else {
             throw new RuntimeException("지원하지 않는 oauth 타입입니다.");
+        }
+    }
+
+    private void checkUserStatus(User user) {
+        UserStatus userStatus = user.getUserStatus();
+        switch (userStatus){
+            case BLOCK -> throw new BlockedUserException("차단된 계정입니다.");
+            case DELETE -> throw new DeletedUserException("탈퇴한 계정입니다.");
+            case DORMANT -> throw new DormantUserException("휴면 계정입니다.");
         }
     }
 
@@ -160,7 +175,7 @@ public class OauthService {
         UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
 
         User user = User.builder()
-                .userStatus(UserStatus.ACTIVATE)
+                .userStatus(UserStatus.INACTIVATE)
                 .oauthId(String.valueOf(response.getId()))
                 .provider("kakao")
                 .isAdmin(false)
