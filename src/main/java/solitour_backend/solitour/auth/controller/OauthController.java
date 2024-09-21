@@ -24,6 +24,7 @@ import solitour_backend.solitour.auth.service.dto.response.LoginResponse;
 import solitour_backend.solitour.auth.service.dto.response.OauthLinkResponse;
 import solitour_backend.solitour.auth.support.google.GoogleConnector;
 import solitour_backend.solitour.auth.support.kakao.KakaoConnector;
+import solitour_backend.solitour.user.user_status.UserStatus;
 
 
 @RequiredArgsConstructor
@@ -43,8 +44,8 @@ public class OauthController {
     }
 
     @GetMapping(value = "/login", params = {"type", "code", "redirectUrl"})
-    public ResponseEntity<LoginResponse> login(HttpServletResponse response, @RequestParam String type,
-                                               @RequestParam String code, @RequestParam String redirectUrl) {
+    public ResponseEntity<UserStatus> login(HttpServletResponse response, @RequestParam String type,
+                                            @RequestParam String code, @RequestParam String redirectUrl) {
         LoginResponse loginResponse = oauthService.requestAccessToken(type, code, redirectUrl);
 
         String accessCookieHeader = setCookieHeader(loginResponse.getAccessToken());
@@ -53,7 +54,7 @@ public class OauthController {
         response.addHeader("Set-Cookie", accessCookieHeader);
         response.addHeader("Set-Cookie", refreshCookieHeader);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(loginResponse.getLoginStatus());
     }
 
     @PostMapping("/logout")
@@ -77,7 +78,8 @@ public class OauthController {
 
     @Authenticated
     @DeleteMapping()
-    public ResponseEntity<String> deleteUser(HttpServletResponse response, @AuthenticationPrincipal Long id, @RequestParam String type) {
+    public ResponseEntity<String> deleteUser(HttpServletResponse response, @AuthenticationPrincipal Long id,
+                                             @RequestParam String type) {
         Token token = tokenRepository.findByUserId(id)
                 .orElseThrow(() -> new TokenNotExistsException("토큰이 존재하지 않습니다"));
         String oauthRefreshToken = getOauthAccessToken(type, token.getOauthToken());

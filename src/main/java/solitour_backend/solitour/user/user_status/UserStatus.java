@@ -6,6 +6,8 @@ import lombok.Getter;
 @Getter
 public enum UserStatus {
     ACTIVATE("활성화"),
+    INACTIVATE("비활성화"),
+    BLOCK("차단"),
     DORMANT("휴먼"),
     DELETE("삭제"),
     MANAGER("관리자");
