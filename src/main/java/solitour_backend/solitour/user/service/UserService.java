@@ -33,6 +33,8 @@ public class UserService {
     private String femaleProfileUrl;
     @Value("${user.profile.male}")
     private String maleProfileUrl;
+    @Value("${user.profile.none}")
+    private String noneProfileUrl;
 
     public UserInfoResponse retrieveUserInfo(Long userId) {
         User user = userRepository.findByUserId(userId);
