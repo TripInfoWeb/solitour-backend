@@ -17,7 +17,7 @@ public class GatheringBriefResponse {
     private Integer likeCount;
 
     private String gatheringCategoryName;
-    private String userName;
+    private String nickname;
 
     private LocalDateTime scheduleStartDate;
     private LocalDateTime scheduleEndDate;

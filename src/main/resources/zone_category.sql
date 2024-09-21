@@ -276,5 +276,6 @@ VALUES (16, '전주시'),
        (16, '무주군'),
        (16, '장수군');
 
-# INSERT INTO `zone_category` (`parent_zone_category_id`, `zone_category_name`)
-# VALUES (17, '세종');
+INSERT INTO `zone_category` (`parent_zone_category_id`, `zone_category_name`) VALUES (NULL, '세종');
+INSERT INTO `zone_category` (`parent_zone_category_id`, `zone_category_name`) VALUES (245, '세종');
+
