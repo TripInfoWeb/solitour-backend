@@ -28,6 +28,11 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserImageService userImageService;
+    private final S3Uploader s3Uploader;
+    @Value("${user.profile.url.female}")
+    private String femaleProfileUrl;
+    @Value("${user.profile.male}")
+    private String maleProfileUrl;
 
     public UserInfoResponse retrieveUserInfo(Long userId) {
         User user = userRepository.findByUserId(userId);
@@ -60,9 +65,34 @@ public class UserService {
 
     @Transactional
     public void updateUserProfile(Long userId, MultipartFile userProfile) {
-        UserImageResponse response = userImageService.registerInformation(userId, userProfile);
+        UserImageResponse response = userImageService.updateUserProfile(userId, userProfile);
         User user = userRepository.findByUserId(userId);
+        checkUserProfile(user.getUserImage().getAddress());
         user.updateUserImage(response.getImageUrl());
+    }
+
+    @Transactional
+    public void deleteUserProfile(Long userId) {
+        User user = userRepository.findByUserId(userId);
+        resetUserProfile(user,user.getUserImage().getAddress(),user.getSex());
+    }
+
+    private void resetUserProfile(User user, String imageUrl,String sex) {
+       checkUserProfile(imageUrl);
+       if(sex.equals("male")){
+           user.updateUserImage(maleProfileUrl);
+       } else if (sex.equals("female")) {
+           user.updateUserImage(femaleProfileUrl);
+       }else{
+           user.updateUserImage(noneProfileUrl);
+       }
+    }
+
+    private void checkUserProfile(String imageUrl) {
+        if(imageUrl.equals(femaleProfileUrl) || imageUrl.equals(maleProfileUrl )|| imageUrl.equals(noneProfileUrl)){ {
+            return;
+        }
+        s3Uploader.deleteImage(imageUrl);
     }
 
     public Page<GatheringMypageResponse> retrieveGatheringHost(Pageable pageable, Long userId) {

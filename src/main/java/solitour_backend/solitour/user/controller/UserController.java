@@ -40,10 +40,6 @@ import solitour_backend.solitour.user.service.dto.response.UserInfoResponse;
 public class UserController {
 
     private final UserService userService;
-    private final OauthService oauthservice;
-    private final KakaoConnector kakaoConnector;
-    private final GoogleConnector googleConnector;
-
     public static final int PAGE_SIZE = 6;
 
     @GetMapping("/info")
@@ -85,6 +81,13 @@ public class UserController {
     public ResponseEntity<Void> updateUserProfile(@AuthenticationPrincipal Long userId,
                                                   @RequestPart(value = "userProfile", required = false) MultipartFile userProfile) {
         userService.updateUserProfile(userId, userProfile);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/profile")
+    public ResponseEntity<Void> deleteUserProfile(@AuthenticationPrincipal Long userId) {
+        userService.deleteUserProfile(userId);
 
         return ResponseEntity.ok().build();
     }

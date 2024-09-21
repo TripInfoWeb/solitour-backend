@@ -27,7 +27,7 @@ public class UserImageController {
                                                              @RequestPart("userImage") MultipartFile userImage,
                                                              BindingResult bindingResult) {
         Utils.validationRequest(bindingResult);
-        UserImageResponse informationResponse = userImageService.registerInformation(
+        UserImageResponse informationResponse = userImageService.updateUserProfile(
                 imageRequest.getUserId(), userImage);
 
         return ResponseEntity

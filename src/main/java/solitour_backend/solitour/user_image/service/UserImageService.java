@@ -29,7 +29,7 @@ public class UserImageService {
     }
 
     @Transactional
-    public UserImageResponse registerInformation(Long userId, MultipartFile userImage) {
+    public UserImageResponse updateUserProfile(Long userId, MultipartFile userImage) {
 
         String userImageUrl = s3Uploader.upload(userImage, IMAGE_PATH, userId);
 
