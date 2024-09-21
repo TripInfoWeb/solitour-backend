@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import solitour_backend.solitour.user.dto.request.UpdateUserInfoRequest;
 import solitour_backend.solitour.user.user_status.UserStatus;
 import solitour_backend.solitour.user.user_status.UserStatusConverter;
 import solitour_backend.solitour.user_image.entity.UserImage;
@@ -102,5 +103,12 @@ public class User {
 
     public void updateLoginTime() {
         this.latestLoginAt = LocalDateTime.now();
+    }
+
+    public void updateUserInfo(UpdateUserInfoRequest request) {
+        this.name = request.getName();
+        this.userStatus = UserStatus.ACTIVE;
+        this.age = Integer.valueOf(request.getAge());
+        this.sex = request.getSex();
     }
 }

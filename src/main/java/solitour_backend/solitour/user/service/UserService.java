@@ -12,6 +12,7 @@ import solitour_backend.solitour.gathering.dto.response.GatheringBriefResponse;
 import solitour_backend.solitour.gathering.dto.response.GatheringMypageResponse;
 import solitour_backend.solitour.image.s3.S3Uploader;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
+import solitour_backend.solitour.user.dto.request.UpdateUserInfoRequest;
 import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.user.exception.NicknameAlreadyExistsException;
 import solitour_backend.solitour.user.repository.UserRepository;
@@ -38,16 +39,10 @@ public class UserService {
     @Transactional
     public void updateNickname(Long userId, String nickname) {
         if (userRepository.existsByNickname(nickname)) {
-            throw new NicknameAlreadyExistsException("Nickname already exists");
+            throw new NicknameAlreadyExistsException("이미 존재하는 닉네임입니다.");
         }
         User user = userRepository.findByUserId(userId);
         user.updateNickname(nickname);
-    }
-
-    @Transactional
-    public void updateAgeAndSex(Long userId, String age, String sex) {
-        User user = userRepository.findByUserId(userId);
-        user.updateAgeAndSex(age, sex);
     }
 
     public Page<InformationBriefResponse> retrieveInformationOwner(Pageable pageable, Long userId) {
@@ -75,5 +70,11 @@ public class UserService {
 
     public Page<GatheringApplicantResponse> retrieveGatheringApplicant(Pageable pageable, Long userId) {
         return userRepository.retrieveGatheringApplicant(pageable, userId);
+    }
+
+    @Transactional
+    public void updateUserInfo(Long userId, UpdateUserInfoRequest request) {
+        User user = userRepository.findByUserId(userId);
+        user.updateUserInfo(request);
     }
 }

@@ -55,8 +55,6 @@ public class OauthService {
     @Value("${user.profile.url.female}")
     private String USER_PROFILE_FEMALE;
 
-
-
     public OauthLinkResponse generateAuthUrl(String type, String redirectUrl) {
         String oauthLink = getAuthLink(type, redirectUrl);
         return new OauthLinkResponse(oauthLink);
@@ -115,21 +113,12 @@ public class OauthService {
         }
     }
 
-    private void saveToken(KakaoTokenResponse tokenResponse, User user) {
-        Token token  = Token.builder()
-                .user(user)
-                .oauthToken(tokenResponse.getRefreshToken())
-                .build();
-
-        tokenRepository.save(token);
-    }
-
     private User saveGoogleUser(GoogleUserResponse response) {
         String imageUrl = getGoogleUserImage(response);
         UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
 
         User user = User.builder()
-                .userStatus(UserStatus.ACTIVATE)
+                .userStatus(UserStatus.INACTIVATE)
                 .oauthId(response.getResourceName())
                 .provider("google")
                 .isAdmin(false)
@@ -156,7 +145,7 @@ public class OauthService {
     }
 
     private User saveKakaoUser(KakaoUserResponse response) {
-        String imageUrl = getKakaoUserImage(response);
+        String imageUrl = response.getKakaoAccount().getProfile().getProfileImageUrl();
         UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
 
         User user = User.builder()
@@ -165,10 +154,7 @@ public class OauthService {
                 .provider("kakao")
                 .isAdmin(false)
                 .userImage(savedUserImage)
-                .name(response.getKakaoAccount().getName())
                 .nickname(RandomNickName.generateRandomNickname())
-                .age(Integer.valueOf(response.getKakaoAccount().getBirthYear()))
-                .sex(response.getKakaoAccount().getGender())
                 .email(response.getKakaoAccount().getEmail())
                 .createdAt(LocalDateTime.now())
                 .build();
