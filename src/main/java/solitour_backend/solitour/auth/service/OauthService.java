@@ -54,6 +54,8 @@ public class OauthService {
     private String USER_PROFILE_MALE;
     @Value("${user.profile.url.female}")
     private String USER_PROFILE_FEMALE;
+    @Value("${user.profile.url.none}")
+    private String USER_PROFILE_NONE;
 
     public OauthLinkResponse generateAuthUrl(String type, String redirectUrl) {
         String oauthLink = getAuthLink(type, redirectUrl);
@@ -141,11 +143,11 @@ public class OauthService {
         if (Objects.equals(gender, "female")) {
             return USER_PROFILE_FEMALE;
         }
-        return "none";
+        return USER_PROFILE_NONE;
     }
 
     private User saveKakaoUser(KakaoUserResponse response) {
-        String imageUrl = response.getKakaoAccount().getProfile().getProfileImageUrl();
+        String imageUrl = getKakaoUserImage(response);
         UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
 
         User user = User.builder()
@@ -169,7 +171,7 @@ public class OauthService {
         if (Objects.equals(gender, "female")) {
             return USER_PROFILE_FEMALE;
         }
-        return "none";
+        return USER_PROFILE_NONE;
     }
 
     private String getAuthLink(String type, String redirectUrl) {
