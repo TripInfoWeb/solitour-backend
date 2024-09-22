@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
@@ -240,7 +241,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         NumberExpression<Integer> likeCount = countGreatGatheringByGatheringById();
         BooleanExpression isBookMark = isGatheringBookmark(userId);
         StringExpression gatheringStatus = getGatheringStatus();
-        NumberExpression<Integer> gatheringApplicantCount = countGatheringApplicant(userId);
+        NumberExpression<Integer> gatheringApplicantCount = countGatheringApplicant(gathering.id);
 
         JPQLQuery<Gathering> query = from(gathering)
                 .leftJoin(zoneCategoryParent)
@@ -273,7 +274,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                         gathering.startAge,
                         gathering.endAge,
                         gathering.personCount,
-                        gatheringApplicantCount, isUserGreatGathering(userId),
+                        gatheringApplicantCount,
+                        isUserGreatGathering(userId),
                         gatheringStatus,
                         gathering.isFinish
                 ))
@@ -285,18 +287,17 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         return new PageImpl<>(list, pageable, total);
     }
 
-    private NumberExpression<Integer> countGatheringApplicant(Long userId) {
+    private NumberExpression<Integer> countGatheringApplicant(NumberPath<Long> gatheringId) {
         QGatheringApplicants gatheringApplicants = QGatheringApplicants.gatheringApplicants;
 
-        JPQLQuery<Long> countApplicant = JPAExpressions
-                .select(gatheringApplicants.count())
+        JPQLQuery<Integer> countApplicant = JPAExpressions
+                .select(gatheringApplicants.count().intValue())
                 .from(gatheringApplicants)
-                .where(gatheringApplicants.user.id.eq(userId)
+                .where(gatheringApplicants.gathering.id.eq(gatheringId)
                         .and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)));
 
-        return Expressions.numberTemplate(Long.class, "{0}", countApplicant)
-                .coalesce(0L)
-                .intValue();
+        return Expressions.numberTemplate(Integer.class, "{0}", countApplicant)
+                .coalesce(0);
     }
 
     @Override
