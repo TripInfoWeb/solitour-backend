@@ -92,9 +92,10 @@ public class UserService {
 
     private void changeUserProfile(User user, UpdateUserInfoRequest request) {
         String sex = request.getSex();
-        if(sex.equals("male")){
+
+        if(user.getUserImage().equals(noneProfileUrl) && sex.equals("male")){
             user.updateUserImage(maleProfileUrl);
-        } else if (sex.equals("female")) {
+        } else if (user.getUserImage().equals(noneProfileUrl) && sex.equals("female")) {
             user.updateUserImage(femaleProfileUrl);
         }
     }
