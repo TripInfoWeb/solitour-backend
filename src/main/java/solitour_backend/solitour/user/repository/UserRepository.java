@@ -7,16 +7,10 @@ import solitour_backend.solitour.user.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long>, UserRepositoryCustom {
 
-    @Query("SELECT u FROM User u JOIN FETCH u.userImage WHERE u.nickname = :nickname AND u.userStatus = '활성화'")
-    Optional<User> findByNickname(String nickname);
-
-    @Query("SELECT u FROM User u JOIN FETCH u.userImage WHERE u.email = :email AND u.userStatus = '활성화'")
-    Optional<User> findByEmail(String email);
-
-    @Query("SELECT u FROM User u JOIN FETCH u.userImage WHERE u.id = :userId AND u.userStatus = '활성화'")
+    @Query("SELECT u FROM User u JOIN FETCH u.userImage WHERE u.id = :userId AND u.userStatus = '활성화' OR u.userStatus = '비활성화'")
     User findByUserId(Long userId);
 
-    @Query("SELECT u FROM User u JOIN FETCH u.userImage WHERE u.oauthId = :oauthId AND u.userStatus = '활성화'")
+    @Query("SELECT u FROM User u JOIN FETCH u.userImage WHERE u.oauthId = :oauthId AND u.userStatus = '활성화' OR u.userStatus = '비활성화'")
     Optional<User> findByOauthId(String oauthId);
 
     boolean existsByNickname(String nickname);
