@@ -91,7 +91,7 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                         zoneCategoryChild.name,
                         information.category.name,
                         information.viewCount,
-                        isInformationBookmark(userId),
+                        isInformationBookmark(userId, information.id),
                         image.address,
                         countGreatInformationByInformationById(information.id),
                         isUserGreatInformation(userId)
@@ -122,7 +122,7 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                         zoneCategoryChild.name,
                         category.parentCategory.name,
                         information.viewCount,
-                        isInformationBookmark(userId),
+                        isInformationBookmark(userId, information.id),
                         image.address,
                         countGreatInformationByInformationById(information.id), // 파라미터 전달
                         isUserGreatInformation(userId)
@@ -148,7 +148,7 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                         zoneCategoryChild.name,
                         information.category.name,
                         information.viewCount,
-                        isInformationBookmark(userId),
+                        isInformationBookmark(userId, information.id),
                         image.address,
                         countGreatInformationByInformationById(information.id),
                         isUserGreatInformation(userId)
@@ -272,11 +272,11 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                 .otherwise(false);
     }
 
-    private BooleanExpression isInformationBookmark(Long userId) {
+    private BooleanExpression isInformationBookmark(Long userId, NumberPath<Long> informationId) {
         return new CaseBuilder()
                 .when(JPAExpressions.selectOne()
                         .from(bookMarkInformation)
-                        .where(bookMarkInformation.information.id.eq(information.id)
+                        .where(bookMarkInformation.information.id.eq(informationId)
                                 .and(bookMarkInformation.user.id.eq(userId)))
                         .exists())
                 .then(true)

@@ -69,7 +69,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                         zoneCategoryParent.name,
                         zoneCategoryChild.name,
                         gathering.viewCount,
-                        isGatheringBookmark(userId),
+                        isGatheringBookmark(userId, gathering.id),
                         countGreatGatheringByGatheringById(gathering.id),
                         gathering.gatheringCategory.name,
                         gathering.user.nickname,
@@ -113,7 +113,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                         zoneCategoryParent.name,
                         zoneCategoryChild.name,
                         gathering.viewCount,
-                        isGatheringBookmark(userId),
+                        isGatheringBookmark(userId, gathering.id),
                         countGreatGatheringByGatheringById(gathering.id),
                         gathering.gatheringCategory.name,
                         gathering.user.nickname,
@@ -229,7 +229,7 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                         zoneCategoryParent.name,
                         zoneCategoryChild.name,
                         gathering.viewCount,
-                        isGatheringBookmark(userId),
+                        isGatheringBookmark(userId, gathering.id),
                         countGreatGatheringByGatheringById(gathering.id),
                         gathering.gatheringCategory.name,
                         gathering.user.nickname,
@@ -327,11 +327,11 @@ public class GatheringRepositoryImpl extends QuerydslRepositorySupport implement
                 .otherwise(false);
     }
 
-    private BooleanExpression isGatheringBookmark(Long userId) {
+    private BooleanExpression isGatheringBookmark(Long userId, NumberPath<Long> gatheringId) {
         return new CaseBuilder()
                 .when(JPAExpressions.selectOne()
                         .from(bookMarkGathering)
-                        .where(bookMarkGathering.gathering.id.eq(gathering.id)
+                        .where(bookMarkGathering.gathering.id.eq(gatheringId)
                                 .and(bookMarkGathering.user.id.eq(userId)))
                         .exists())
                 .then(true)
