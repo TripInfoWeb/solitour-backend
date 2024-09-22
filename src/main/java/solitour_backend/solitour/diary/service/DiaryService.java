@@ -94,7 +94,7 @@ public class DiaryService {
     }
 
     private void updateDiary(Long diaryId, DiaryUpdateRequest request) {
-        Diary diary = diaryRepository.findById(diaryId).orElseThrow(() -> new RuntimeException("Diary not found"));
+        Diary diary = diaryRepository.findById(diaryId).orElseThrow(() -> new DiaryNotExistsException("해당 일기가 존재하지 않습니다."));
         deleteDiaryImage(request);
         diary.getDiaryDayContent().clear();
         diary.updateDiary(request);

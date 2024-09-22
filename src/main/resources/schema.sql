@@ -305,7 +305,7 @@ CREATE TABLE `diary_day_content`
 (
     `diary_day_content_id`             BIGINT      NOT NULL AUTO_INCREMENT,
     `diary_id`                         BIGINT      NOT NULL,
-    `diary_day_content_place`          VARCHAR(20) NOT NULL,
+    `diary_day_content_place`          VARCHAR(50) NOT NULL,
     `diary_day_content_content`        TEXT        NOT NULL,
     `diary_day_content_feeling_status` VARCHAR(20) NOT NULL,
     `diary_day_content_image`          TEXT DEFAULT NULL,
