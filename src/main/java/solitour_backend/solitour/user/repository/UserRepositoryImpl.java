@@ -149,7 +149,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .on(gatheringApplicants.gathering.id.eq(gathering.id)
                         .and(gatheringApplicants.gatheringStatus.eq(GatheringStatus.CONSENT)))
                 .orderBy(gathering.createdAt.desc())
-                .where(gathering.user.id.eq(userId));
+                .where(gathering.user.id.eq(userId).and(gathering.isDeleted.eq(false)));
 
         List<GatheringMypageResponse> list = query
                 .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,
@@ -200,7 +200,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .leftJoin(bookMarkGathering)
                 .on(bookMarkGathering.gathering.id.eq(gathering.id))
                 .orderBy(gathering.createdAt.desc())
-                .where(bookMarkGathering.user.id.eq(userId));
+                .where(bookMarkGathering.user.id.eq(userId).and(gathering.isDeleted.eq(false)));
 
         List<GatheringMypageResponse> list = query
                 .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,
@@ -250,7 +250,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .leftJoin(gatheringApplicants)
                 .on(gatheringApplicants.gathering.id.eq(gathering.id))
                 .orderBy(gathering.createdAt.desc())
-                .where(gatheringApplicants.user.id.eq(userId).and(gathering.user.id.eq(userId).not()));
+                .where(gatheringApplicants.user.id.eq(userId).and(gathering.user.id.eq(userId).not()).and(gathering.isDeleted.eq(false)));
 
         List<GatheringApplicantResponse> list = query
                 .groupBy(gathering.id, zoneCategoryParent.id, zoneCategoryChild.id,
