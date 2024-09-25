@@ -29,6 +29,6 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: 테스트
-        run : ./gradlew clean test -PspringProfile=test
+        run : ./gradlew clean test -PspringProfile=test --no-build-cache
 
 
