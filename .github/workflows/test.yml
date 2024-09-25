@@ -28,7 +28,21 @@ jobs:
       - name: gradlew 실행 권한 부여
         run: chmod +x ./gradlew
 
+      - name: Gradle packages 캐시
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle
+
+      - name: Gradle wrapper 캐시
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+
       - name: 테스트
-        run : ./gradlew clean test -PspringProfile=test --no-build-cache --info
+        run : ./gradlew clean test -PspringProfile=test --info
 
 
