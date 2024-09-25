@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solitour_backend.solitour.auth.entity.Token;
 import solitour_backend.solitour.auth.entity.TokenRepository;
+import solitour_backend.solitour.auth.exception.RevokeFailException;
+import solitour_backend.solitour.auth.exception.UnsupportedLoginTypeException;
 import solitour_backend.solitour.auth.service.dto.response.AccessTokenResponse;
 import solitour_backend.solitour.auth.service.dto.response.LoginResponse;
 import solitour_backend.solitour.auth.service.dto.response.OauthLinkResponse;
@@ -27,6 +29,12 @@ import solitour_backend.solitour.auth.support.kakao.KakaoProvider;
 import solitour_backend.solitour.auth.support.kakao.dto.KakaoTokenAndUserResponse;
 import solitour_backend.solitour.auth.support.kakao.dto.KakaoTokenResponse;
 import solitour_backend.solitour.auth.support.kakao.dto.KakaoUserResponse;
+import solitour_backend.solitour.auth.support.kakao.dto.request.CreateUserInfoRequest;
+import solitour_backend.solitour.auth.support.naver.NaverConnector;
+import solitour_backend.solitour.auth.support.naver.NaverProvider;
+import solitour_backend.solitour.auth.support.naver.dto.NaverTokenAndUserResponse;
+import solitour_backend.solitour.auth.support.naver.dto.NaverTokenResponse;
+import solitour_backend.solitour.auth.support.naver.dto.NaverUserResponse;
 import solitour_backend.solitour.image.s3.S3Uploader;
 import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.user.exception.BlockedUserException;
@@ -49,6 +57,8 @@ public class OauthService {
     private final KakaoProvider kakaoProvider;
     private final GoogleConnector googleConnector;
     private final GoogleProvider googleProvider;
+    private final NaverConnector naverConnector;
+    private final NaverProvider naverProvider;
     private final UserImageService userImageService;
     private final TokenRepository tokenRepository;
     private final UserImageRepository userImageRepository;
@@ -318,22 +328,25 @@ public class OauthService {
     }
 
     private String getDefaultProfile(User user) {
-        String sex = user.getSex();
-        if (sex.equals("male")) {
-            {
+        if (user.getSex() != null) {
+            if (user.getSex().equals("male")) {
                 return USER_PROFILE_MALE;
+            } else {
+                return USER_PROFILE_FEMALE;
             }
-        } else {
-            return USER_PROFILE_FEMALE;
         }
+        return USER_PROFILE_NONE;
     }
 
-    private void deleteUserProfileFromS3(UserImage userImage, String defaultImageUrl) {
-        String userImageUrl = userImage.getAddress();
-        if (userImageUrl.equals(USER_PROFILE_MALE) || userImageUrl.equals(USER_PROFILE_FEMALE)) {
-            return;
+        private void deleteUserProfileFromS3 (UserImage userImage, String defaultImageUrl){
+            String userImageUrl = userImage.getAddress();
+            if (userImageUrl.equals(USER_PROFILE_MALE) || userImageUrl.equals(USER_PROFILE_FEMALE)
+                    || userImageUrl.equals(
+                    USER_PROFILE_NONE)) {
+                return;
+            }
+            s3Uploader.deleteImage(userImageUrl);
+            userImage.changeToDefaultProfile(defaultImageUrl);
         }
-        s3Uploader.deleteImage(userImageUrl);
-        userImage.changeToDefaultProfile(defaultImageUrl);
+
     }
-}
