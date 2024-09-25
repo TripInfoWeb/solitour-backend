@@ -105,7 +105,23 @@ public class OauthService {
             checkUserStatus(user);
 
             Token token = tokenRepository.findByUserId(user.getId())
-                    .orElseGet(() -> tokenService.saveToken(tokenResponse, user));
+                    .orElseGet(() -> tokenService.saveToken(tokenResponse.getRefreshToken(), user));
+
+            return user;
+        }
+        if (Objects.equals(type, "naver")) {
+            NaverTokenAndUserResponse response = naverConnector.requestNaverUserInfo(code);
+            NaverTokenResponse tokenResponse = response.getNaverTokenResponse();
+            NaverUserResponse naverUserResponse = response.getNaverUserResponse();
+
+            String id = naverUserResponse.getResponse().getId().toString();
+            User user = userRepository.findByOauthId(id)
+                    .orElseGet(() -> saveNaverUser(naverUserResponse));
+
+            checkUserStatus(user);
+
+            Token token = tokenRepository.findByUserId(user.getId())
+                    .orElseGet(() -> tokenService.saveToken(tokenResponse.getRefreshToken(), user));
 
             return user;
         }
@@ -116,7 +132,38 @@ public class OauthService {
             return userRepository.findByOauthId(id)
                     .orElseGet(() -> saveGoogleUser(response));
         } else {
-            throw new RuntimeException("지원하지 않는 oauth 타입입니다.");
+            throw new UnsupportedLoginTypeException("지원하지 않는 oauth 로그인입니다.");
+        }
+    }
+
+    private User saveNaverUser(NaverUserResponse naverUserResponse) {
+        String convertedSex = convertSex(naverUserResponse.getResponse().getGender());
+        String imageUrl = getDefaultUserImage(convertedSex);
+        UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
+
+        User user = User.builder()
+                .userStatus(UserStatus.ACTIVATE)
+                .oauthId(String.valueOf(naverUserResponse.getResponse().getId()))
+                .provider("naver")
+                .isAdmin(false)
+                .userImage(savedUserImage)
+                .nickname(RandomNickName.generateRandomNickname())
+                .email(naverUserResponse.getResponse().getEmail())
+                .name(naverUserResponse.getResponse().getName())
+                .age(Integer.parseInt(naverUserResponse.getResponse().getBirthyear()))
+                .sex(convertedSex)
+                .createdAt(LocalDateTime.now())
+                .build();
+        return userRepository.save(user);
+    }
+
+    private String convertSex(String gender) {
+        if (gender.equals("M")) {
+            return "male";
+        } else if (gender.equals("F")) {
+            return "female";
+        } else {
+            return "none";
         }
     }
 
@@ -127,15 +174,6 @@ public class OauthService {
             case DELETE -> throw new DeletedUserException("탈퇴한 계정입니다.");
             case DORMANT -> throw new DormantUserException("휴면 계정입니다.");
         }
-    }
-
-    private void saveToken(KakaoTokenResponse tokenResponse, User user) {
-        Token token = Token.builder()
-                .user(user)
-                .oauthToken(tokenResponse.getRefreshToken())
-                .build();
-
-        tokenRepository.save(token);
     }
 
     private User saveGoogleUser(GoogleUserResponse response) {
@@ -186,8 +224,8 @@ public class OauthService {
         return userRepository.save(user);
     }
 
-    private String getKakaoUserImage(KakaoUserResponse response) {
-        String gender = response.getKakaoAccount().getGender();
+
+    private String getDefaultUserImage(String gender) {
         if (Objects.equals(gender, "male")) {
             return USER_PROFILE_MALE;
         }
@@ -201,7 +239,8 @@ public class OauthService {
         return switch (type) {
             case "kakao" -> kakaoProvider.generateAuthUrl(redirectUrl);
             case "google" -> googleProvider.generateAuthUrl(redirectUrl);
-            default -> throw new RuntimeException("지원하지 않는 oauth 타입입니다.");
+            case "naver" -> naverProvider.generateAuthUrl(redirectUrl);
+            default -> throw new UnsupportedLoginTypeException("지원하지 않는 oauth 로그인입니다.");
         };
     }
 
@@ -231,19 +270,18 @@ public class OauthService {
         response.addCookie(cookie);
     }
 
+
     public void revokeToken(String type, String token) throws IOException {
         HttpStatusCode responseCode;
         switch (type) {
             case "kakao" -> responseCode = kakaoConnector.requestRevoke(token);
             case "google" -> responseCode = googleConnector.requestRevoke(token);
-            default -> throw new RuntimeException("Unsupported oauth type");
+            case "naver" -> responseCode = naverConnector.requestRevoke(token);
+            default -> throw new UnsupportedLoginTypeException("지원하지 않는 oauth 로그인입니다.");
         }
 
-        if (responseCode.is2xxSuccessful()) {
-            System.out.println("Token successfully revoked");
-        } else {
-            System.out.println("Failed to revoke token, response code: " + responseCode);
-            throw new RuntimeException("Failed to revoke token");
+        if (!responseCode.is2xxSuccessful()) {
+            throw new RevokeFailException("회원탈퇴에 실패하였습니다.");
         }
     }
 
