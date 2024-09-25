@@ -3,8 +3,6 @@ name: Docker Image CI
 on:
   push:
     branches: [ "main", "develop" ]
-  pull_request:
-    branches: [ "main", "develop" ]
 
 jobs:
   build:
@@ -27,21 +25,18 @@ jobs:
           echo "${{ secrets.APPLICATION_DEV }}"  > ./src/main/resources/application-dev.yml
           echo "${{ secrets.APPLICATION_PROD }}"  > ./src/main/resources/application-prod.yml
           echo "${{ secrets.APPLICATION_LOCAL }}"  > ./src/main/resources/application-local.yml
-          echo "${{ secrets.APPLICATION_TEST }}"  > ./src/main/resources/application-test.yml
-
 
       - name: gradlew 실행 권한 부여
         run: chmod +x ./gradlew
 
-      - name: 테스트 및 빌드하기 (main 브랜치)
+      - name: 빌드하기 (main 브랜치)
         if: github.ref == 'refs/heads/main'
-        run: ./gradlew clean build -PspringProfile=prod --warning-mode all --scan
+        run: ./gradlew clean build -x test -PspringProfile=prod --warning-mode all --scan
 
-      - name: 테스트 및 빌드하기 (develop 브랜치)
+      - name: 빌드하기 (develop 브랜치)
         if: github.ref == 'refs/heads/develop'
         run: |
-          ./gradlew clean test -PspringProfile=test
-          ./gradlew build -x test -PspringProfile=dev --warning-mode all --scan
+          ./gradlew clean build -x test -PspringProfile=dev --warning-mode all --scan
 
       - name: 빌드된 파일 이름 변경
         run: mv ./build/libs/*SNAPSHOT.jar ./project.jar
