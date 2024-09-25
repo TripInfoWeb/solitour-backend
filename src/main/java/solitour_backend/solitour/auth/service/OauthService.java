@@ -83,6 +83,25 @@ public class OauthService {
         return new LoginResponse(accessCookie, refreshCookie, user.getUserStatus());
     }
 
+    @Transactional
+    public LoginResponse requestkakaoAccessToken(String code, String redirectUrl,
+                                                 CreateUserInfoRequest createUserInfoRequest) {
+        User user = checkAndSaveKakaoUser(code, redirectUrl, createUserInfoRequest);
+        user.updateLoginTime();
+        final int ACCESS_COOKIE_AGE = (int) TimeUnit.MINUTES.toSeconds(30);
+        final int REFRESH_COOKIE_AGE = (int) TimeUnit.DAYS.toSeconds(30);
+
+        String token = jwtTokenProvider.createAccessToken(user.getId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+
+        tokenService.synchronizeRefreshToken(user, refreshToken);
+
+        Cookie accessCookie = createCookie("access_token", token, ACCESS_COOKIE_AGE);
+        Cookie refreshCookie = createCookie("refresh_token", refreshToken, REFRESH_COOKIE_AGE);
+
+        return new LoginResponse(accessCookie, refreshCookie, user.getUserStatus());
+    }
+
     private Cookie createCookie(String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
         cookie.setSecure(true);
@@ -90,6 +109,23 @@ public class OauthService {
         cookie.setMaxAge(maxAge);
         cookie.setPath("/");
         return cookie;
+    }
+
+    private User checkAndSaveKakaoUser(String code, String redirectUrl, CreateUserInfoRequest createUserInfoRequest) {
+        KakaoTokenAndUserResponse response = kakaoConnector.requestKakaoUserInfo(code, redirectUrl);
+        KakaoTokenResponse tokenResponse = response.getKakaoTokenResponse();
+        KakaoUserResponse kakaoUserResponse = response.getKakaoUserResponse();
+
+        String id = kakaoUserResponse.getId().toString();
+        User user = userRepository.findByOauthId(id)
+                .orElseGet(() -> saveActiveKakaoUser(kakaoUserResponse, createUserInfoRequest));
+
+        checkUserStatus(user);
+
+        Token token = tokenRepository.findByUserId(user.getId())
+                .orElseGet(() -> tokenService.saveToken(tokenResponse.getRefreshToken(), user));
+
+        return user;
     }
 
     private User checkAndSaveUser(String type, String code, String redirectUrl) {
@@ -169,8 +205,29 @@ public class OauthService {
         return USER_PROFILE_NONE;
     }
 
+    private User saveActiveKakaoUser(KakaoUserResponse kakaoUserResponse, CreateUserInfoRequest createUserInfoRequest) {
+        String imageUrl = getDefaultUserImage(createUserInfoRequest.getSex());
+        UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
+
+        User user = User.builder()
+                .userStatus(UserStatus.ACTIVATE)
+                .oauthId(String.valueOf(kakaoUserResponse.getId()))
+                .provider("kakao")
+                .isAdmin(false)
+                .userImage(savedUserImage)
+                .name(createUserInfoRequest.getName())
+                .sex(createUserInfoRequest.getSex())
+                .nickname(RandomNickName.generateRandomNickname())
+                .email(kakaoUserResponse.getKakaoAccount().getEmail())
+                .name(createUserInfoRequest.getName())
+                .age(Integer.valueOf(createUserInfoRequest.getAge()))
+                .createdAt(LocalDateTime.now())
+                .build();
+        return userRepository.save(user);
+    }
+
     private User saveKakaoUser(KakaoUserResponse response) {
-        String imageUrl = getKakaoUserImage(response);
+        String imageUrl = getDefaultUserImage(response.getKakaoAccount().getGender());
         UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
 
         User user = User.builder()
