@@ -99,8 +99,8 @@ public class OauthController {
 
     @Authenticated
     @DeleteMapping()
-    public ResponseEntity<String> deleteUser(HttpServletResponse response, @AuthenticationPrincipal Long id,
-                                             @RequestParam String type) {
+    public ResponseEntity<Void> deleteUser(HttpServletResponse response, @AuthenticationPrincipal Long id,
+                                           @RequestParam String type) {
         Token token = tokenRepository.findByUserId(id)
                 .orElseThrow(() -> new TokenNotExistsException("토큰이 존재하지 않습니다"));
         String oauthRefreshToken = getOauthAccessToken(type, token.getOauthToken());
@@ -110,11 +110,11 @@ public class OauthController {
 
             oauthService.logout(response, id);
             oauthService.deleteUser(id);
-
-            return ResponseEntity.ok("User deleted successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+            throw new UserRevokeErrorException("회원 탈퇴 중 오류가 발생했습니다");
         }
+
+        return ResponseEntity.noContent().build();
     }
 
     private String setCookieHeader(Cookie cookie) {
@@ -128,10 +128,13 @@ public class OauthController {
             case "kakao" -> {
                 token = kakaoConnector.refreshToken(refreshToken);
             }
-            case "google" -> {
-                token = googleConnector.refreshToken(refreshToken);
+            case "naver" -> {
+                token = naverConnector.refreshToken(refreshToken);
             }
-            default -> throw new RuntimeException("Unsupported oauth type");
+//            case "google" -> {
+//                token = googleConnector.refreshToken(refreshToken);
+//            }
+            default -> throw new UnsupportedLoginTypeException("지원하지 않는 로그인 타입입니다");
         }
         return token;
     }

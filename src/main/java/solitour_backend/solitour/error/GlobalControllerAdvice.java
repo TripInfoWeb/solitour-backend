@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import solitour_backend.solitour.auth.exception.TokenNotExistsException;
+import solitour_backend.solitour.auth.exception.UnsupportedLoginTypeException;
+import solitour_backend.solitour.auth.exception.UserRevokeErrorException;
 import solitour_backend.solitour.book_mark_gathering.exception.GatheringBookMarkNotExistsException;
 import solitour_backend.solitour.book_mark_information.exception.InformationBookMarkNotExistsException;
 import solitour_backend.solitour.category.exception.CategoryNotExistsException;
@@ -40,7 +42,8 @@ public class GlobalControllerAdvice {
             RequestValidationFailedException.class,
             ImageRequestValidationFailedException.class,
             GatheringApplicantsManagerException.class,
-            InformationNotManageException.class
+            InformationNotManageException.class,
+            UnsupportedLoginTypeException.class
     })
     public ResponseEntity<String> validationException(Exception exception) {
         return ResponseEntity
@@ -109,6 +112,14 @@ public class GlobalControllerAdvice {
     public ResponseEntity<String> unauthorizedException(Exception exception) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
+                .body(exception.getMessage());
+    }
+    @ExceptionHandler({
+            UserRevokeErrorException.class
+    })
+    public ResponseEntity<String> serverErrorException(Exception exception) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(exception.getMessage());
     }
 
