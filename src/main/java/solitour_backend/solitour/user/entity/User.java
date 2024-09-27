@@ -1,5 +1,6 @@
 package solitour_backend.solitour.user.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -15,7 +16,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import solitour_backend.solitour.user.dto.request.UpdateUserInfoRequest;
+import solitour_backend.solitour.auth.entity.Term;
+import solitour_backend.solitour.user.dto.request.AgreeUserInfoRequest;
+import solitour_backend.solitour.user.dto.request.DisagreeUserInfoRequest;
 import solitour_backend.solitour.user.user_status.UserStatus;
 import solitour_backend.solitour.user.user_status.UserStatusConverter;
 import solitour_backend.solitour.user_image.entity.UserImage;
@@ -46,6 +49,9 @@ public class User {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_image_id")
     private UserImage userImage;
+
+    @OneToOne(mappedBy = "user",cascade = CascadeType.ALL)
+    private Term term;
 
     @Column(name = "user_nickname")
     private String nickname;
@@ -105,10 +111,14 @@ public class User {
         this.latestLoginAt = LocalDateTime.now();
     }
 
-    public void updateUserInfo(UpdateUserInfoRequest request) {
+    public void agreeUserInfo(AgreeUserInfoRequest request) {
         this.name = request.getName();
         this.userStatus = UserStatus.ACTIVATE;
         this.age = Integer.valueOf(request.getAge());
         this.sex = request.getSex();
+    }
+
+    public void disagreeUserInfo(DisagreeUserInfoRequest request) {
+        this.userStatus = UserStatus.INACTIVATE;
     }
 }

@@ -258,7 +258,7 @@ public class OauthService {
         UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
 
         User user = User.builder()
-                .userStatus(UserStatus.ACTIVATE)
+                .userStatus(UserStatus.PENDING)
                 .oauthId(String.valueOf(kakaoUserResponse.getId()))
                 .provider("kakao")
                 .isAdmin(false)
@@ -279,7 +279,7 @@ public class OauthService {
         UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
 
         User user = User.builder()
-                .userStatus(UserStatus.INACTIVATE)
+                .userStatus(UserStatus.PENDING)
                 .oauthId(String.valueOf(response.getId()))
                 .provider("kakao")
                 .isAdmin(false)
@@ -376,15 +376,15 @@ public class OauthService {
         return USER_PROFILE_NONE;
     }
 
-        private void deleteUserProfileFromS3 (UserImage userImage, String defaultImageUrl){
-            String userImageUrl = userImage.getAddress();
-            if (userImageUrl.equals(USER_PROFILE_MALE) || userImageUrl.equals(USER_PROFILE_FEMALE)
-                    || userImageUrl.equals(
-                    USER_PROFILE_NONE)) {
-                return;
-            }
-            s3Uploader.deleteImage(userImageUrl);
-            userImage.changeToDefaultProfile(defaultImageUrl);
+    private void deleteUserProfileFromS3(UserImage userImage, String defaultImageUrl) {
+        String userImageUrl = userImage.getAddress();
+        if (userImageUrl.equals(USER_PROFILE_MALE) || userImageUrl.equals(USER_PROFILE_FEMALE)
+                || userImageUrl.equals(
+                USER_PROFILE_NONE)) {
+            return;
         }
-
+        s3Uploader.deleteImage(userImageUrl);
+        userImage.changeToDefaultProfile(defaultImageUrl);
     }
+
+}
