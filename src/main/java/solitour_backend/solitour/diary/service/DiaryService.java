@@ -103,6 +103,7 @@ public class DiaryService {
 
     private void saveDiaryDayContent(Diary savedDiary, DiaryCreateRequest request) {
         for (DiaryDayRequest dayRequest : request.getDiaryDayRequests()) {
+            s3Uploader.markImagePermanent(dayRequest.getDiaryDayContentImages());
             DiaryDayContent diaryDayContent = DiaryDayContent.builder()
                     .diary(savedDiary)
                     .content(dayRequest.getContent())

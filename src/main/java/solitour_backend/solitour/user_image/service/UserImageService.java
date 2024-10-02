@@ -32,6 +32,7 @@ public class UserImageService {
     public UserImageResponse updateUserProfile(Long userId, MultipartFile userImage) {
 
         String userImageUrl = s3Uploader.upload(userImage, IMAGE_PATH, userId);
+        s3Uploader.markImagePermanent(userImageUrl);
 
         return new UserImageResponse(userImageUrl);
     }
