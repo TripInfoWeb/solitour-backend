@@ -5,6 +5,7 @@ import lombok.Getter;
 
 @Getter
 public enum UserStatus {
+    PENDING("대기"),
     ACTIVATE("활성화"),
     INACTIVATE("비활성화"),
     BLOCK("차단"),

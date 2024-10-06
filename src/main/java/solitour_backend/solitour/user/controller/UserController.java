@@ -22,7 +22,8 @@ import solitour_backend.solitour.gathering.dto.response.GatheringApplicantRespon
 import solitour_backend.solitour.gathering.dto.response.GatheringMypageResponse;
 import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.user.dto.UpdateNicknameRequest;
-import solitour_backend.solitour.user.dto.request.UpdateUserInfoRequest;
+import solitour_backend.solitour.user.dto.request.AgreeUserInfoRequest;
+import solitour_backend.solitour.user.dto.request.DisagreeUserInfoRequest;
 import solitour_backend.solitour.user.exception.NicknameAlreadyExistsException;
 import solitour_backend.solitour.user.exception.UserNotExistsException;
 import solitour_backend.solitour.user.service.UserService;
@@ -44,10 +45,18 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/info")
-    public ResponseEntity<Void> updateUserInfo(@AuthenticationPrincipal Long userId,
-                                               @RequestBody UpdateUserInfoRequest request) {
-        userService.updateUserInfo(userId, request);
+    @PutMapping("/info/agree")
+    public ResponseEntity<Void> agreeUserInfo(@AuthenticationPrincipal Long userId,
+                                               @RequestBody AgreeUserInfoRequest request) {
+        userService.agreeUserInfo(userId, request);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/info/disagree")
+    public ResponseEntity<Void> disagreeUserInfo(@AuthenticationPrincipal Long userId,
+                                               @RequestBody DisagreeUserInfoRequest request) {
+        userService.disagreeUserInfo(userId, request);
 
         return ResponseEntity.noContent().build();
     }

@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import solitour_backend.solitour.auth.config.Authenticated;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
 import solitour_backend.solitour.auth.exception.TokenNotExistsException;
-import solitour_backend.solitour.auth.exception.TokenNotValidException;
 import solitour_backend.solitour.auth.support.CookieExtractor;
 import solitour_backend.solitour.auth.support.JwtTokenProvider;
 import solitour_backend.solitour.error.Utils;

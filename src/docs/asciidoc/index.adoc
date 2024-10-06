@@ -1,0 +1,11 @@
+= Solitour -Resource
+
+:doctype: book
+:toc: left
+:toclevels: 3
+:sectnums:
+:numbered:
+
+
+// [[api]]
+// includ::ee.adoc[]

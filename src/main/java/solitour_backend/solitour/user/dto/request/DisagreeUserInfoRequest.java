@@ -5,8 +5,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Getter
-public class UpdateUserInfoRequest {
-    private String name;
-    private String age;
-    private String sex;
+public class DisagreeUserInfoRequest {
+    private Boolean termConditionAgreement;
+    private Boolean privacyPolicyAgreement;
 }

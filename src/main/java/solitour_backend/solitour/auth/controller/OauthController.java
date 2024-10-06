@@ -85,7 +85,6 @@ public class OauthController {
         return ResponseEntity.ok().build();
     }
 
-
     @PostMapping("/token/refresh")
     public ResponseEntity<Void> reissueAccessToken(HttpServletResponse response,
                                                    @AuthenticationRefreshPrincipal Long memberId) {
