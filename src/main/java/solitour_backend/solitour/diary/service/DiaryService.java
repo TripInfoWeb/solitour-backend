@@ -94,7 +94,8 @@ public class DiaryService {
     }
 
     private void updateDiary(Long diaryId, DiaryUpdateRequest request) {
-        Diary diary = diaryRepository.findById(diaryId).orElseThrow(() -> new DiaryNotExistsException("해당 일기가 존재하지 않습니다."));
+        Diary diary = diaryRepository.findById(diaryId)
+                .orElseThrow(() -> new DiaryNotExistsException("해당 일기가 존재하지 않습니다."));
         deleteDiaryImage(request);
         diary.getDiaryDayContent().clear();
         diary.updateDiary(request);
@@ -103,7 +104,7 @@ public class DiaryService {
 
     private void saveDiaryDayContent(Diary savedDiary, DiaryCreateRequest request) {
         for (DiaryDayRequest dayRequest : request.getDiaryDayRequests()) {
-            s3Uploader.markImagePermanent(dayRequest.getDiaryDayContentImages());
+            makeDiaryImagePermanent(dayRequest.getDiaryDayContentImages());
             DiaryDayContent diaryDayContent = DiaryDayContent.builder()
                     .diary(savedDiary)
                     .content(dayRequest.getContent())
@@ -112,6 +113,15 @@ public class DiaryService {
                     .place(dayRequest.getPlace())
                     .build();
             diaryDayContentRepository.save(diaryDayContent);
+        }
+    }
+
+    private void makeDiaryImagePermanent(String diaryDayContentImages) {
+        if (!diaryDayContentImages.isEmpty()) {
+            String[] contentImages = diaryDayContentImages.split(",");
+            for (String contentImage : contentImages) {
+                s3Uploader.markImagePermanent(contentImage);
+            }
         }
     }
 
