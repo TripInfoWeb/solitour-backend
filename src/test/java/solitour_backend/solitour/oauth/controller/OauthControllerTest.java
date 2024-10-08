@@ -177,7 +177,7 @@ class OauthControllerTest {
                         .queryParam("redirectUrl", "redirectUrl")
                 )
                 .andExpectAll(
-                        status().isForbidden());
+                        status().isLocked());
     }
 
 }
