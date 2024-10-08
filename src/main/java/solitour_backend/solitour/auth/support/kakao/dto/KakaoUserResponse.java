@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KakaoUserResponse {
 
+    public  KakaoUserResponse(Long id){
+        this.id = id;
+    }
     //회원 번호
     @JsonProperty("id")
     public Long id;

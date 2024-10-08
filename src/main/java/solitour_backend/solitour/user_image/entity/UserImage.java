@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -25,9 +26,9 @@ public class UserImage {
     private String address;
 
     @Column(name = "user_image_created_date")
-    private LocalDate createdDate;
+    private LocalDateTime createdDate;
 
-    public UserImage(String address, LocalDate createdDate) {
+    public UserImage(String address, LocalDateTime createdDate) {
         this.address = address;
         this.createdDate = createdDate;
     }
