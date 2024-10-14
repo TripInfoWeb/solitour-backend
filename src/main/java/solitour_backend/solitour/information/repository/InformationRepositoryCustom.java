@@ -16,10 +16,6 @@ public interface InformationRepositoryCustom {
     String VIEW_COUNT_SORT = "views";
     Page<InformationBriefResponse> getPageInformationFilterAndOrder(Pageable pageable, InformationPageRequest informationPageRequest, Long userId, Long parentCategoryId);
 
-//    Page<InformationBriefResponse> getInformationPageFilterAndOrder(Pageable pageable,
-//                                                                    InformationPageRequest informationPageRequest,
-//                                                                    Long userId, Long parentCategoryId);
-
     List<InformationRankResponse> getInformationRank();
 
     List<InformationMainResponse> getInformationLikeCountFromCreatedIn3(Long userId);

@@ -133,88 +133,32 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
         return greatInformation.id.count().intValue();
     }
 
-//    @Override
-//    public Page<InformationBriefResponse> getInformationPageFilterAndOrder(Pageable pageable,
-//                                                                           InformationPageRequest informationPageRequest,
-//                                                                           Long userId, Long parentCategoryId) {
-//        BooleanBuilder whereClause = new BooleanBuilder();
-//
-//        if (Objects.nonNull(informationPageRequest.getZoneCategoryId())) {
-//            whereClause.and(
-//                    information.zoneCategory.parentZoneCategory.id.eq(informationPageRequest.getZoneCategoryId()));
-//        }
-//
-//        BooleanBuilder categoryCondition = new BooleanBuilder();
-//
-//        if (Objects.nonNull(informationPageRequest.getChildCategoryId())) {
-//            whereClause.and(information.category.id.eq(informationPageRequest.getChildCategoryId()));
-//        } else {
-//            categoryCondition.and(category.parentCategory.id.eq(parentCategoryId));
-//        }
-//
-//        if (Objects.nonNull(informationPageRequest.getSearch())) {
-//            String searchKeyword = informationPageRequest.getSearch().trim().replace(" ", "");
-//            whereClause.and(information.title.trim().containsIgnoreCase(searchKeyword));
-//        }
-//
-//
-//        long total = from(information)
-//                .where(whereClause)
-//                .select(information.id).fetchCount();
-//        System.out.println("page 네이션 총 데이터 갯수 : " + total);
-//        List<InformationBriefResponse> list = from(information)
-//                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-//                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-//                .leftJoin(image)
-//                .on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
-//                .join(category).on(category.id.eq(information.category.id).and(categoryCondition))
-//                .where(whereClause)
-//                .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id)
-//                .orderBy(getOrderSpecifier(informationPageRequest.getSort(), information.id))
-//                .select(Projections.constructor(
-//                        InformationBriefResponse.class,
-//                        information.id,
-//                        information.title,
-//                        zoneCategoryParent.name,
-//                        zoneCategoryChild.name,
-//                        information.category.name,
-//                        information.viewCount,
-//                        isInformationBookmark(userId, information.id),
-//                        image.address,
-//                        countGreatInformationByInformationById(information.id),
-//                        isUserGreatInformation(userId)
-//                )).offset(pageable.getOffset())
-//                .limit(pageable.getPageSize())
-//                .fetch();
-//        System.out.println(list.size());
-//        System.out.println(list);
-//
-//        return new PageImpl<>(list, pageable, total);
-//    }
-
 
     @Override
     public List<InformationMainResponse> getInformationLikeCountFromCreatedIn3(Long userId) {
         return from(information)
                 .leftJoin(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(image).on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryChild.parentZoneCategory.id.eq(zoneCategoryParent.id))
                 .leftJoin(category).on(category.id.eq(information.category.id))
+                .leftJoin(categoryParent).on(categoryParent.id.eq(category.parentCategory.id))
+                .leftJoin(image).on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .leftJoin(bookMarkInformation).on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
+                .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
                 .where(information.createdDate.after(LocalDateTime.now().minusMonths(3)))
-                .groupBy(information.id, zoneCategoryParent.name, zoneCategoryChild.name, image.address)
-                .orderBy(countGreatInformationByInformationByIdSubQuery(information.id).desc())
+                .groupBy(information.id, information.createdDate, information.viewCount, zoneCategoryChild.name, bookMarkInformation.id, image.address)
+                .orderBy(countGreatInformation(greatInformation).desc())
                 .select(Projections.constructor(
                         InformationMainResponse.class,
                         information.id,
                         information.title,
                         zoneCategoryParent.name,
                         zoneCategoryChild.name,
-                        category.parentCategory.name,
+                        information.category.name,
                         information.viewCount,
-                        isInformationBookmarkSubQuery(userId, information.id),
+                        isBookMarkBooleanExpression(bookMarkInformation),
                         image.address,
-                        countGreatInformationByInformationByIdSubQuery(information.id), // 파라미터 전달
-                        isUserGreatInformationSubQuery(userId)
+                        countGreatInformation(greatInformation),
+                        isGreatBooleanExpression(userId, greatInformation)
                 )).limit(6).fetch();
     }
 
@@ -222,12 +166,15 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
     public List<InformationBriefResponse> getInformationRecommend(Long informationId, Long childCategoryId,
                                                                   Long userId) {
         return from(information)
-                .join(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-                .leftJoin(zoneCategoryParent).on(zoneCategoryParent.id.eq(zoneCategoryChild.parentZoneCategory.id))
-                .leftJoin(image).on(image.information.id.eq(information.id)
-                        .and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .leftJoin(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryChild.parentZoneCategory.id.eq(zoneCategoryParent.id))
+                .leftJoin(category).on(category.id.eq(information.category.id))
+                .leftJoin(categoryParent).on(categoryParent.id.eq(category.parentCategory.id))
+                .leftJoin(image).on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .leftJoin(bookMarkInformation).on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
+                .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
                 .where(information.category.id.eq(childCategoryId).and(information.id.ne(informationId)))
-                .groupBy(information.id, zoneCategoryChild.id, zoneCategoryParent.id, image.id)
+                .groupBy(information.id, information.createdDate, information.viewCount, zoneCategoryChild.name, bookMarkInformation.id, image.address)
                 .orderBy(information.createdDate.desc())
                 .select(Projections.constructor(
                         InformationBriefResponse.class,
@@ -237,10 +184,10 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                         zoneCategoryChild.name,
                         information.category.name,
                         information.viewCount,
-                        isInformationBookmarkSubQuery(userId, information.id),
+                        isBookMarkBooleanExpression(bookMarkInformation),
                         image.address,
-                        countGreatInformationByInformationByIdSubQuery(information.id),
-                        isUserGreatInformationSubQuery(userId)
+                        countGreatInformation(greatInformation),
+                        isGreatBooleanExpression(userId, greatInformation)
                 ))
                 .limit(3L)
                 .fetch();
@@ -319,7 +266,7 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                 .leftJoin(greatInformation)
                 .on(greatInformation.information.id.eq(information.id))
                 .groupBy(information.id, information.title)
-                .orderBy(countGreatInformationByInformationByIdSubQuery(information.id).desc())
+                .orderBy(countGreatInformation(greatInformation).desc())
                 .limit(5)
                 .select(Projections.constructor(
                         InformationRankResponse.class,
@@ -344,7 +291,7 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
         JPQLQuery<Long> likeCountSubQuery = JPAExpressions
                 .select(greatInformationSub.count())
                 .from(greatInformationSub)
-                .where(greatInformationSub.information.id.eq(informationId));  // 파라미터로 받은 NumberPath와 비교
+                .where(greatInformationSub.information.id.eq(informationId));
 
         return Expressions.numberTemplate(Long.class, "{0}", likeCountSubQuery)
                 .coalesce(0L)
@@ -357,17 +304,6 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
                         .from(greatInformation)
                         .where(greatInformation.information.id.eq(information.id)
                                 .and(greatInformation.user.id.eq(userId)))
-                        .exists())
-                .then(true)
-                .otherwise(false);
-    }
-
-    private BooleanExpression isInformationBookmarkSubQuery(Long userId, NumberPath<Long> informationId) {
-        return new CaseBuilder()
-                .when(JPAExpressions.selectOne()
-                        .from(bookMarkInformation)
-                        .where(bookMarkInformation.information.id.eq(informationId)
-                                .and(bookMarkInformation.user.id.eq(userId)))
                         .exists())
                 .then(true)
                 .otherwise(false);
