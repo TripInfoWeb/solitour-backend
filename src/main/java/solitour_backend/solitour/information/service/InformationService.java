@@ -458,7 +458,7 @@ public class InformationService {
             }
         }
 
-        return informationRepository.getInformationPageFilterAndOrder(pageable, informationPageRequest, userId, parentCategoryId);
+        return informationRepository.getPageInformationFilterAndOrder(pageable, informationPageRequest, userId, parentCategoryId);
     }
 
     public List<InformationRankResponse> getRankInformation() {

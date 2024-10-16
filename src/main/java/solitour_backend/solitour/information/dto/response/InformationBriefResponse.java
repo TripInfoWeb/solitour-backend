@@ -2,9 +2,11 @@ package solitour_backend.solitour.information.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
 @AllArgsConstructor
+@ToString
 public class InformationBriefResponse {
 
     private Long informationId;

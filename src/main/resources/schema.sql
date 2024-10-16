@@ -25,7 +25,6 @@ DROP TABLE IF EXISTS `user_image`;
 DROP TABLE IF EXISTS `diary_day_content`;
 DROP TABLE IF EXISTS `diary`;
 
-
 CREATE TABLE `user_image`
 (
     `user_image_id`           BIGINT       NOT NULL AUTO_INCREMENT,
@@ -57,8 +56,8 @@ CREATE TABLE `user`
 
 CREATE TABLE `token`
 (
-    `token_id`      BIGINT NOT NULL AUTO_INCREMENT,
-    `user_id`       BIGINT NOT NULL,
+    `token_id`      BIGINT       NOT NULL AUTO_INCREMENT,
+    `user_id`       BIGINT       NOT NULL,
     `refresh_token` VARCHAR(250) NULL,
     `oauth_token`   VARCHAR(250) NULL,
     CONSTRAINT PK_TOKEN PRIMARY KEY (`token_id`),

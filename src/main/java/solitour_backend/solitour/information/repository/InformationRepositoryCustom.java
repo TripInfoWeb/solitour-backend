@@ -14,10 +14,7 @@ import solitour_backend.solitour.information.dto.response.InformationRankRespons
 public interface InformationRepositoryCustom {
     String LIKE_COUNT_SORT = "likes";
     String VIEW_COUNT_SORT = "views";
-
-    Page<InformationBriefResponse> getInformationPageFilterAndOrder(Pageable pageable,
-                                                                    InformationPageRequest informationPageRequest,
-                                                                    Long userId, Long parentCategoryId);
+    Page<InformationBriefResponse> getPageInformationFilterAndOrder(Pageable pageable, InformationPageRequest informationPageRequest, Long userId, Long parentCategoryId);
 
     List<InformationRankResponse> getInformationRank();
 

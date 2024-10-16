@@ -222,6 +222,15 @@ public class OauthService {
         }
     }
 
+    private void saveToken(KakaoTokenResponse tokenResponse, User user) {
+        Token token = Token.builder()
+                .user(user)
+                .oauthToken(tokenResponse.getRefreshToken())
+                .build();
+
+        tokenRepository.save(token);
+    }
+
     private User saveGoogleUser(GoogleUserResponse response) {
         String imageUrl = getGoogleUserImage(response);
         UserImage savedUserImage = userImageService.saveUserImage(imageUrl);
@@ -336,7 +345,6 @@ public class OauthService {
         cookie.setPath("/");
         response.addCookie(cookie);
     }
-
 
     public void revokeToken(String type, String token) throws IOException {
         HttpStatusCode responseCode;
