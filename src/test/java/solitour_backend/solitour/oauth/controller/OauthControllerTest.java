@@ -170,6 +170,36 @@ class OauthControllerTest {
                 );
     }
 
+    @DisplayName("회원탈퇴")
+    @Test
+    void deleteUser() throws Exception {
+        Cookie accessCookie = new MockCookie("access_token", "accessToken");
+        Cookie refreshCookie = new MockCookie("refresh_token", "refreshToken");
+        passLogin();
+        BDDMockito.given(kakaoConnector.refreshToken(any()))
+                .willReturn("refreshToken");
+
+        doNothing().when(oauthService).revokeToken("kakao", "refreshToken");
+        doNothing().when(oauthService).logout(any(), any());
+        doNothing().when(oauthService).deleteUser(1L);
+
+        mockMvc.perform(delete("/api/auth/oauth2")
+                        .queryParam("type", "kakao")
+                        .cookie(accessCookie)
+                        .cookie(refreshCookie)
+                )
+                .andExpectAll(
+                        status().isNoContent()
+                )
+                .andDo(
+                        document("oauthDelete",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint())
+                        )
+                );
+    }
+
+
     @DisplayName("Oauth 타입이 존재하지 않는경우 404코드가 반환된다")
     @Test
     void unsupportedLoginType() throws Exception {
@@ -238,6 +268,20 @@ class OauthControllerTest {
 
         BDDMockito.given(oauthService.reissueAccessToken(1L))
                 .willReturn(new AccessTokenResponse(accessCookie));
+        BDDMockito.given(jwtTokenProvider.validateTokenNotUsable(any()))
+                .willReturn(false);
+        BDDMockito.given(jwtTokenProvider.getPayload(any()))
+                .willReturn(1L);
+        BDDMockito.given(tokenRepository.findByUserId(1L))
+                .willReturn(Optional.of(token));
+    }
+
+    private void passLogin() {
+        User user = User.builder()
+                .oauthId("oauthId")
+                .build();
+        Token token = new Token(user, "accessToken");
+
         BDDMockito.given(jwtTokenProvider.validateTokenNotUsable(any()))
                 .willReturn(false);
         BDDMockito.given(jwtTokenProvider.getPayload(any()))
