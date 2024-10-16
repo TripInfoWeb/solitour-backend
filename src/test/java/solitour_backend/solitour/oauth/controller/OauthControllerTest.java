@@ -1,22 +1,27 @@
 package solitour_backend.solitour.oauth.controller;
 
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.modifyUris;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static org.mockito.Mockito.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.transaction.Transactional;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,16 +33,25 @@ import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDoc
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockCookie;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import solitour_backend.solitour.auth.entity.Token;
+import solitour_backend.solitour.auth.entity.TokenRepository;
 import solitour_backend.solitour.auth.exception.UnsupportedLoginTypeException;
 import solitour_backend.solitour.auth.service.OauthService;
+import solitour_backend.solitour.auth.service.TokenService;
+import solitour_backend.solitour.auth.service.dto.response.AccessTokenResponse;
 import solitour_backend.solitour.auth.service.dto.response.LoginResponse;
 import solitour_backend.solitour.auth.service.dto.response.OauthLinkResponse;
+import solitour_backend.solitour.auth.support.JwtTokenProvider;
+import solitour_backend.solitour.auth.support.kakao.KakaoConnector;
+import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.user.exception.BlockedUserException;
 import solitour_backend.solitour.user.exception.DeletedUserException;
 import solitour_backend.solitour.user.exception.DormantUserException;
@@ -57,9 +71,22 @@ class OauthControllerTest {
     @MockBean
     private OauthService oauthService;
 
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockBean
+    private TokenRepository tokenRepository;
+
+    @MockBean
+    private KakaoConnector kakaoConnector;
+
     private final String kakaoRedirectUrl = "http://localhost:8080/oauth2/callback/kakao";
 
     private final String kakaoOauthLink = "https://kauth.kakao.com/oauth/authorize?response_type=code&redirect_uri=http://localhost:8080/oauth2/callback/kakao&client_id=cleintId";
+
+    @MockBean
+    private TokenService tokenService;
+
 
     @BeforeEach
     void setUp(WebApplicationContext webApplicationContext,
@@ -120,6 +147,29 @@ class OauthControllerTest {
                 );
     }
 
+    @DisplayName("재발급")
+    @Test
+    void reissueRefreshToken() throws Exception {
+        Cookie accessCookie = new MockCookie("access_token", "accessToken");
+        Cookie refreshCookie = new MockCookie("refresh_token", "refreshToken");
+        passRefreshLogin(accessCookie);
+
+        mockMvc.perform(post("/api/auth/oauth2/token/refresh")
+                        .cookie(accessCookie)
+                        .cookie(refreshCookie)
+                )
+                .andExpectAll(
+                        status().isOk(),
+                        header().exists("Set-Cookie")
+                )
+                .andDo(
+                        document("oauthReissue",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint())
+                        )
+                );
+    }
+
     @DisplayName("Oauth 타입이 존재하지 않는경우 404코드가 반환된다")
     @Test
     void unsupportedLoginType() throws Exception {
@@ -164,7 +214,7 @@ class OauthControllerTest {
                 .andExpectAll(
                         status().isForbidden());
     }
-    
+
     @DisplayName("휴면 회원일 경우 423코드가 반환된다")
     @Test
     void lockedUser() throws Exception {
@@ -178,6 +228,22 @@ class OauthControllerTest {
                 )
                 .andExpectAll(
                         status().isLocked());
+    }
+
+    private void passRefreshLogin(Cookie accessCookie) {
+        User user = User.builder()
+                .oauthId("oauthId")
+                .build();
+        Token token = new Token(user, "refreshToken");
+
+        BDDMockito.given(oauthService.reissueAccessToken(1L))
+                .willReturn(new AccessTokenResponse(accessCookie));
+        BDDMockito.given(jwtTokenProvider.validateTokenNotUsable(any()))
+                .willReturn(false);
+        BDDMockito.given(jwtTokenProvider.getPayload(any()))
+                .willReturn(1L);
+        BDDMockito.given(tokenRepository.findByUserId(1L))
+                .willReturn(Optional.of(token));
     }
 
 }
