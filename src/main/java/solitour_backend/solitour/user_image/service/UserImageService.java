@@ -1,6 +1,7 @@
 package solitour_backend.solitour.user_image.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,7 @@ public class UserImageService {
 
     @Transactional
     public UserImage saveUserImage(String imageUrl) {
-        UserImage userImage = new UserImage(imageUrl, LocalDate.now());
+        UserImage userImage = new UserImage(imageUrl, LocalDateTime.now());
 
         userImageRepository.save(userImage);
 

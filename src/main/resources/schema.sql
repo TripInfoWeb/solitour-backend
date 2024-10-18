@@ -29,7 +29,7 @@ CREATE TABLE `user_image`
 (
     `user_image_id`           BIGINT       NOT NULL AUTO_INCREMENT,
     `user_image_address`      VARCHAR(200) NOT NULL,
-    `user_image_created_date` DATE         NOT NULL,
+    `user_image_created_date` DATETIME     NOT NULL,
     CONSTRAINT PK_user_image PRIMARY KEY (`user_image_id`)
 );
 
