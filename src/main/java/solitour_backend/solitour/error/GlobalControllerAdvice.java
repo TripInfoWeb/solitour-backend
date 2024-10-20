@@ -28,6 +28,8 @@ import solitour_backend.solitour.image.exception.ImageNotExistsException;
 import solitour_backend.solitour.image.exception.ImageRequestValidationFailedException;
 import solitour_backend.solitour.information.exception.InformationNotExistsException;
 import solitour_backend.solitour.information.exception.InformationNotManageException;
+import solitour_backend.solitour.information_comment.exception.CommentNotOwnerException;
+import solitour_backend.solitour.information_comment.exception.InformationCommentNotExistsException;
 import solitour_backend.solitour.user.exception.BlockedUserException;
 import solitour_backend.solitour.user.exception.DeletedUserException;
 import solitour_backend.solitour.user.exception.DormantUserException;
@@ -79,6 +81,7 @@ public class GlobalControllerAdvice {
             GatheringBookMarkNotExistsException.class,
             InformationBookMarkNotExistsException.class,
             DiaryNotExistsException.class,
+            InformationCommentNotExistsException.class
     })
     public ResponseEntity<String> notFoundException(Exception exception) {
         return ResponseEntity
@@ -89,7 +92,8 @@ public class GlobalControllerAdvice {
     @ExceptionHandler({GatheringNotManagerException.class,
             ForbiddenAccessException.class,
             BlockedUserException.class,
-            DeletedUserException.class
+            DeletedUserException.class,
+            CommentNotOwnerException.class
     })
     public ResponseEntity<String> forbiddenException(Exception exception) {
         return ResponseEntity
