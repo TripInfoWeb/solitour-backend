@@ -1,15 +1,10 @@
 package solitour_backend.solitour.information_comment.dto.respose;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-import solitour_backend.solitour.information_comment.entity.InformationComment;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @AllArgsConstructor

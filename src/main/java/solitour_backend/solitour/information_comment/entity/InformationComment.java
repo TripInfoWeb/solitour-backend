@@ -2,15 +2,15 @@ package solitour_backend.solitour.information_comment.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import solitour_backend.solitour.category.entity.Category;
 import solitour_backend.solitour.information.entity.Information;
 import solitour_backend.solitour.information_comment.dto.request.InformationCommentRequest;
-import solitour_backend.solitour.place.entity.Place;
 import solitour_backend.solitour.user.entity.User;
-import solitour_backend.solitour.zone_category.entity.ZoneCategory;
 
 import java.time.LocalDateTime;
 

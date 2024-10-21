@@ -51,7 +51,7 @@ public class InformationCommentService {
     }
 
     public Page<InformationCommentListResponse> getPageInformationComment(Pageable pageable, Long informationId) {
-        return informationCommentRepository.getPageInformationComment(pageable,informationId);
+        return informationCommentRepository.getPageInformationComment(pageable, informationId);
     }
 
     @Transactional
