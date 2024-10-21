@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import solitour_backend.solitour.category.entity.Category;
+import solitour_backend.solitour.information_comment.entity.InformationComment;
 import solitour_backend.solitour.place.entity.Place;
 import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.zone_category.entity.ZoneCategory;
@@ -42,7 +43,6 @@ public class Information {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "place_id")
     private Place place;
-
 
     @Column(name = "information_title")
     private String title;

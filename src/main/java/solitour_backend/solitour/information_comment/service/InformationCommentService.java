@@ -2,12 +2,15 @@ package solitour_backend.solitour.information_comment.service;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solitour_backend.solitour.information.entity.Information;
 import solitour_backend.solitour.information.exception.InformationNotExistsException;
 import solitour_backend.solitour.information.repository.InformationRepository;
 import solitour_backend.solitour.information_comment.dto.request.InformationCommentRequest;
+import solitour_backend.solitour.information_comment.dto.respose.InformationCommentListResponse;
 import solitour_backend.solitour.information_comment.dto.respose.InformationCommentResponse;
 import solitour_backend.solitour.information_comment.entity.InformationComment;
 import solitour_backend.solitour.information_comment.exception.CommentNotOwnerException;
@@ -29,8 +32,8 @@ public class InformationCommentService {
     private final InformationCommentRepository informationCommentRepository;
 
     @Transactional
-    public InformationCommentResponse createInformationComment(Long userId, @Valid InformationCommentRequest informationCommentRequest) {
-        Information information = informationRepository.findByUserId(userId)
+    public InformationCommentResponse createInformationComment(Long userId, Long informationId, @Valid InformationCommentRequest informationCommentRequest) {
+        Information information = informationRepository.findById(informationId)
                 .orElseThrow(() -> new InformationNotExistsException("해당하는 정보가 없습니다."));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotExistsException("해당하는 사용자가 없습니다."));
@@ -45,6 +48,10 @@ public class InformationCommentService {
         InformationComment savedInformationComment = informationCommentRepository.save(informationComment);
 
         return new InformationCommentResponse(savedInformationComment.getId());
+    }
+
+    public Page<InformationCommentListResponse> getPageInformationComment(Pageable pageable, Long informationId) {
+        return informationCommentRepository.getPageInformationComment(pageable,informationId);
     }
 
     @Transactional
