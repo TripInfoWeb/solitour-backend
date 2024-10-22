@@ -43,7 +43,6 @@ public class InformationComment {
     @Column(name = "information_comment_created_date")
     private LocalDateTime createdDate;
 
-    @CreatedDate
     @Column(name = "information_comment_updated_date")
     private LocalDateTime updatedDate;
 

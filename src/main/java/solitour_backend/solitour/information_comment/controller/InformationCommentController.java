@@ -8,9 +8,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import solitour_backend.solitour.auth.config.Authenticated;
 import solitour_backend.solitour.auth.config.AuthenticationPrincipal;
+import solitour_backend.solitour.error.Utils;
 import solitour_backend.solitour.information_comment.dto.request.InformationCommentRequest;
 import solitour_backend.solitour.information_comment.dto.respose.InformationCommentListResponse;
 import solitour_backend.solitour.information_comment.dto.respose.InformationCommentResponse;
@@ -28,7 +30,9 @@ public class InformationCommentController {
     @PostMapping("/{informationId}")
     public ResponseEntity<InformationCommentResponse> createInformationComment(@AuthenticationPrincipal Long userId,
                                                                                @PathVariable Long informationId,
-                                                                               @Valid @RequestBody InformationCommentRequest informationCommentRequest) {
+                                                                               @Valid @RequestBody InformationCommentRequest informationCommentRequest,
+                                                                               BindingResult bindingResult) {
+        Utils.validationRequest(bindingResult);
 
         InformationCommentResponse informationCommentResponse = informationCommentService.createInformationComment(userId, informationId, informationCommentRequest);
 
