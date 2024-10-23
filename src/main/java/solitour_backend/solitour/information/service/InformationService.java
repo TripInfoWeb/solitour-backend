@@ -18,6 +18,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +55,10 @@ import solitour_backend.solitour.information.entity.Information;
 import solitour_backend.solitour.information.exception.InformationNotExistsException;
 import solitour_backend.solitour.information.exception.InformationNotManageException;
 import solitour_backend.solitour.information.repository.InformationRepository;
+import solitour_backend.solitour.information_comment.dto.respose.InformationCommentListResponse;
+import solitour_backend.solitour.information_comment.entity.InformationComment;
+import solitour_backend.solitour.information_comment.repository.InformationCommentRepository;
+import solitour_backend.solitour.information_comment.service.InformationCommentService;
 import solitour_backend.solitour.place.dto.mapper.PlaceMapper;
 import solitour_backend.solitour.place.dto.request.PlaceModifyRequest;
 import solitour_backend.solitour.place.dto.response.PlaceResponse;
@@ -101,7 +107,7 @@ public class InformationService {
     private final UserImageRepository userImageRepository;
     private final ImageRepository imageRepository;
     private final CategoryMapper categoryMapper;
-
+    private final InformationCommentService informationCommentService;
 
     @Transactional
     public InformationResponse registerInformation(Long userId, InformationCreateRequest informationCreateRequest) {
@@ -210,6 +216,8 @@ public class InformationService {
                 .orElseGet(
                         () -> userRepository.getProfileUrl(user.getSex()));
 
+        int INFORMATION_COMMENT_PAGE_SIZE = 5;
+        Page<InformationCommentListResponse> comments = informationCommentService.getPageInformationComment(PageRequest.of(0, INFORMATION_COMMENT_PAGE_SIZE), information.getId());
         try {
             updateViewCount(information, request, response, userId);
         } catch (Exception e) {
@@ -232,7 +240,9 @@ public class InformationService {
                 likeCount,
                 userImageUrl,
                 isLike,
-                informationRecommend);
+                informationRecommend,
+                comments
+        );
     }
 
     @Transactional

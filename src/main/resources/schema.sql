@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS `info_tag`;
 DROP TABLE IF EXISTS `gathering_tag`;
 DROP TABLE IF EXISTS `comment`;
 DROP TABLE IF EXISTS `image`;
+Drop TABLE IF EXISTS `information_comment`;
 DROP TABLE IF EXISTS `information`;
 DROP TABLE IF EXISTS `gathering_applicants`;
 DROP TABLE IF EXISTS `gathering`;
@@ -314,7 +315,6 @@ CREATE TABLE `diary_day_content`
     CONSTRAINT `FK_diary_day_content_TO_diary` FOREIGN KEY (`diary_id`) REFERENCES `diary` (`diary_id`)
 );
 
-
 CREATE TABLE `term`
 (
     `term_id`                  BIGINT   NOT NULL AUTO_INCREMENT,
@@ -324,4 +324,18 @@ CREATE TABLE `term`
     `term_created_at`          DATETIME NOT NULL,
     PRIMARY KEY (`term_id`),
     CONSTRAINT `FK_term_TO_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
+);
+
+CREATE TABLE `information_comment`
+(
+    `information_comment_id`           BIGINT   NOT NULL AUTO_INCREMENT,
+    `information_id`                   BIGINT   NOT NULL,
+    `user_id`                          BIGINT   NOT NULL,
+    `information_comment_content`      TEXT     NOT NULL,
+    `information_comment_created_date` DATETIME NOT NULL,
+    `information_comment_updated_date` DATETIME NULL,
+
+    PRIMARY KEY (`information_comment_id`),
+    CONSTRAINT `FK_information_comment_TO_information` FOREIGN KEY (`information_id`) REFERENCES `information` (`information_id`),
+    CONSTRAINT `FK_information_comment_TO_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
 );

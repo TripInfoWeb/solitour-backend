@@ -5,8 +5,12 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import solitour_backend.solitour.category.dto.response.CategoryResponse;
 import solitour_backend.solitour.image.dto.response.ImageResponse;
+import solitour_backend.solitour.information_comment.dto.respose.InformationCommentListResponse;
+import solitour_backend.solitour.information_comment.dto.respose.InformationCommentResponse;
 import solitour_backend.solitour.place.dto.response.PlaceResponse;
 import solitour_backend.solitour.tag.dto.response.TagResponse;
 import solitour_backend.solitour.user.dto.UserPostingResponse;
@@ -34,4 +38,5 @@ public class InformationDetailResponse {
     private String userImage;
     private Boolean isLike;
     private List<InformationBriefResponse> recommendInformation;
+    private Page<InformationCommentListResponse> informationCommentResponses;
 }
