@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import solitour_backend.solitour.information.entity.Information;
 import solitour_backend.solitour.information_comment.dto.request.InformationCommentRequest;
@@ -43,11 +44,11 @@ public class InformationComment {
     @Column(name = "information_comment_created_date")
     private LocalDateTime createdDate;
 
+    @LastModifiedDate
     @Column(name = "information_comment_updated_date")
     private LocalDateTime updatedDate;
 
     public void updateComment(@Valid InformationCommentRequest informationCommentRequest) {
         this.content = informationCommentRequest.getComment();
-        this.updatedDate = LocalDateTime.now();
     }
 }

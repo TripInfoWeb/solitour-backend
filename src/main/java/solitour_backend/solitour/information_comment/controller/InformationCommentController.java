@@ -34,7 +34,8 @@ public class InformationCommentController {
                                                                                BindingResult bindingResult) {
         Utils.validationRequest(bindingResult);
 
-        InformationCommentResponse informationCommentResponse = informationCommentService.createInformationComment(userId, informationId, informationCommentRequest);
+        InformationCommentResponse informationCommentResponse = informationCommentService.createInformationComment(
+                userId, informationId, informationCommentRequest);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -42,12 +43,14 @@ public class InformationCommentController {
     }
 
     @GetMapping("/{informationId}")
-    public ResponseEntity<Page<InformationCommentListResponse>> getPageInformationComment(@RequestParam(defaultValue = "0") int page,
-                                                                                          @PathVariable Long informationId) {
+    public ResponseEntity<Page<InformationCommentListResponse>> getPageInformationComment(
+            @RequestParam(defaultValue = "0") int page,
+            @PathVariable Long informationId) {
 
         final int PAGE_SIZE = 5;
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<InformationCommentListResponse> pageInformation = informationCommentService.getPageInformationComment(pageable, informationId);
+        Page<InformationCommentListResponse> pageInformation = informationCommentService.getPageInformationComment(
+                pageable, informationId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -58,7 +61,9 @@ public class InformationCommentController {
     @PutMapping("/{informationCommentId}")
     public ResponseEntity<Void> modifyInformationComment(@AuthenticationPrincipal Long userId,
                                                          @PathVariable Long informationCommentId,
-                                                         @Valid @RequestBody InformationCommentRequest informationCommentRequest) {
+                                                         @Valid @RequestBody InformationCommentRequest informationCommentRequest,
+                                                         BindingResult bindingResult) {
+        Utils.validationRequest(bindingResult);
 
         informationCommentService.modifyInformationComment(userId, informationCommentId, informationCommentRequest);
 
