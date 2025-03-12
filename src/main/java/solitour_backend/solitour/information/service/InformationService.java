@@ -3,6 +3,9 @@ package solitour_backend.solitour.information.service;
 import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.LIKE_COUNT_SORT;
 import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.VIEW_COUNT_SORT;
 
+import com.amazonaws.cache.Cache;
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -16,6 +19,8 @@ import java.util.Objects;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -85,7 +90,6 @@ import solitour_backend.solitour.zone_category.repository.ZoneCategoryRepository
 
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class InformationService {
 
     private final InformationRepository informationRepository;
@@ -108,6 +112,43 @@ public class InformationService {
     private final ImageRepository imageRepository;
     private final CategoryMapper categoryMapper;
     private final InformationCommentService informationCommentService;
+    private final AsyncLoadingCache<String, List<InformationRankResponse>> asyncRankCache;
+
+    public InformationService(InformationRepository informationRepository, CategoryRepository categoryRepository,
+                              ZoneCategoryRepository zoneCategoryRepository, PlaceRepository placeRepository,
+                              TagRepository tagRepository, TagMapper tagMapper, InfoTagRepository infoTagRepository,
+                              InformationMapper informationMapper, UserRepository userRepository, S3Uploader s3Uploader,
+                              PlaceMapper placeMapper, ZoneCategoryMapper zoneCategoryMapper, ImageMapper imageMapper,
+                              UserMapper userMapper, GreatInformationRepository greatInformationRepository,
+                              BookMarkInformationRepository bookMarkInformationRepository, UserImageRepository userImageRepository,
+                              ImageRepository imageRepository, CategoryMapper categoryMapper,
+                              InformationCommentService informationCommentService) {
+        this.informationRepository = informationRepository;
+        this.categoryRepository = categoryRepository;
+        this.zoneCategoryRepository = zoneCategoryRepository;
+        this.placeRepository = placeRepository;
+        this.tagRepository = tagRepository;
+        this.tagMapper = tagMapper;
+        this.infoTagRepository = infoTagRepository;
+        this.informationMapper = informationMapper;
+        this.userRepository = userRepository;
+        this.s3Uploader = s3Uploader;
+        this.placeMapper = placeMapper;
+        this.zoneCategoryMapper = zoneCategoryMapper;
+        this.imageMapper = imageMapper;
+        this.userMapper = userMapper;
+        this.greatInformationRepository = greatInformationRepository;
+        this.bookMarkInformationRepository = bookMarkInformationRepository;
+        this.userImageRepository = userImageRepository;
+        this.imageRepository = imageRepository;
+        this.categoryMapper = categoryMapper;
+        this.informationCommentService = informationCommentService;
+        this.asyncRankCache = Caffeine.newBuilder()
+                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .maximumSize(100)
+                .buildAsync((key, executor) -> fetchRankFromDatabaseAsync());
+    }
+
 
     @Transactional
     public InformationResponse registerInformation(Long userId, InformationCreateRequest informationCreateRequest) {
@@ -472,7 +513,12 @@ public class InformationService {
     }
 
     public List<InformationRankResponse> getRankInformation() {
-        return informationRepository.getInformationRank();
+//        return informationRepository.getInformationRank();
+          return asyncRankCache.get("top_ranks").join();
+    }
+
+    private CompletableFuture<List<InformationRankResponse>> fetchRankFromDatabaseAsync() {
+        return CompletableFuture.supplyAsync(() -> informationRepository.getInformationRank());
     }
 
     public List<InformationMainResponse> getMainPageInformation(Long userId) {
