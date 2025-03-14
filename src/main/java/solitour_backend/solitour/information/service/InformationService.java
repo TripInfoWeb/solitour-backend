@@ -4,8 +4,9 @@ import static solitour_backend.solitour.information.repository.InformationReposi
 import static solitour_backend.solitour.information.repository.InformationRepositoryCustom.VIEW_COUNT_SORT;
 
 import com.amazonaws.cache.Cache;
-import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -15,15 +16,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -61,8 +57,6 @@ import solitour_backend.solitour.information.exception.InformationNotExistsExcep
 import solitour_backend.solitour.information.exception.InformationNotManageException;
 import solitour_backend.solitour.information.repository.InformationRepository;
 import solitour_backend.solitour.information_comment.dto.respose.InformationCommentListResponse;
-import solitour_backend.solitour.information_comment.entity.InformationComment;
-import solitour_backend.solitour.information_comment.repository.InformationCommentRepository;
 import solitour_backend.solitour.information_comment.service.InformationCommentService;
 import solitour_backend.solitour.place.dto.mapper.PlaceMapper;
 import solitour_backend.solitour.place.dto.request.PlaceModifyRequest;
@@ -89,6 +83,7 @@ import solitour_backend.solitour.zone_category.exception.ZoneCategoryNotExistsEx
 import solitour_backend.solitour.zone_category.repository.ZoneCategoryRepository;
 
 @Service
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class InformationService {
 
@@ -112,42 +107,6 @@ public class InformationService {
     private final ImageRepository imageRepository;
     private final CategoryMapper categoryMapper;
     private final InformationCommentService informationCommentService;
-    private final AsyncLoadingCache<String, List<InformationRankResponse>> asyncRankCache;
-
-    public InformationService(InformationRepository informationRepository, CategoryRepository categoryRepository,
-                              ZoneCategoryRepository zoneCategoryRepository, PlaceRepository placeRepository,
-                              TagRepository tagRepository, TagMapper tagMapper, InfoTagRepository infoTagRepository,
-                              InformationMapper informationMapper, UserRepository userRepository, S3Uploader s3Uploader,
-                              PlaceMapper placeMapper, ZoneCategoryMapper zoneCategoryMapper, ImageMapper imageMapper,
-                              UserMapper userMapper, GreatInformationRepository greatInformationRepository,
-                              BookMarkInformationRepository bookMarkInformationRepository, UserImageRepository userImageRepository,
-                              ImageRepository imageRepository, CategoryMapper categoryMapper,
-                              InformationCommentService informationCommentService) {
-        this.informationRepository = informationRepository;
-        this.categoryRepository = categoryRepository;
-        this.zoneCategoryRepository = zoneCategoryRepository;
-        this.placeRepository = placeRepository;
-        this.tagRepository = tagRepository;
-        this.tagMapper = tagMapper;
-        this.infoTagRepository = infoTagRepository;
-        this.informationMapper = informationMapper;
-        this.userRepository = userRepository;
-        this.s3Uploader = s3Uploader;
-        this.placeMapper = placeMapper;
-        this.zoneCategoryMapper = zoneCategoryMapper;
-        this.imageMapper = imageMapper;
-        this.userMapper = userMapper;
-        this.greatInformationRepository = greatInformationRepository;
-        this.bookMarkInformationRepository = bookMarkInformationRepository;
-        this.userImageRepository = userImageRepository;
-        this.imageRepository = imageRepository;
-        this.categoryMapper = categoryMapper;
-        this.informationCommentService = informationCommentService;
-        this.asyncRankCache = Caffeine.newBuilder()
-                .expireAfterWrite(5, TimeUnit.MINUTES)
-                .maximumSize(100)
-                .buildAsync((key, executor) -> fetchRankFromDatabaseAsync());
-    }
 
 
     @Transactional
@@ -479,7 +438,6 @@ public class InformationService {
 
     }
 
-
     public Page<InformationBriefResponse> getPageInformation(Pageable pageable, Long userId, Long parentCategoryId,
                                                              InformationPageRequest informationPageRequest) {
         if (!categoryRepository.existsByIdAndParentCategoryId(parentCategoryId, null)) {
@@ -512,13 +470,9 @@ public class InformationService {
         return informationRepository.getPageInformationFilterAndOrder(pageable, informationPageRequest, userId, parentCategoryId);
     }
 
+    @Cacheable(value = "RankReadMapper.findRank")
     public List<InformationRankResponse> getRankInformation() {
-//        return informationRepository.getInformationRank();
-          return asyncRankCache.get("top_ranks").join();
-    }
-
-    private CompletableFuture<List<InformationRankResponse>> fetchRankFromDatabaseAsync() {
-        return CompletableFuture.supplyAsync(() -> informationRepository.getInformationRank());
+        return informationRepository.getInformationRank();
     }
 
     public List<InformationMainResponse> getMainPageInformation(Long userId) {
