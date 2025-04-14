@@ -118,7 +118,8 @@ CREATE TABLE `information`
     CONSTRAINT FK_category_TO_information FOREIGN KEY (`category_id`) REFERENCES `category` (`category_id`),
     CONSTRAINT FK_zone_category_TO_information FOREIGN KEY (`zone_category_id`) REFERENCES `zone_category` (`zone_category_id`),
     CONSTRAINT FK_user_TO_information FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`),
-    CONSTRAINT FK_place_TO_information FOREIGN KEY (`place_id`) REFERENCES `place` (`place_id`)
+    CONSTRAINT FK_place_TO_information FOREIGN KEY (`place_id`) REFERENCES `place` (`place_id`),
+    FULLTEXT INDEX idx_title_ft (information_title) WITH PARSER ngram
 );
 
 CREATE TABLE `gathering`
