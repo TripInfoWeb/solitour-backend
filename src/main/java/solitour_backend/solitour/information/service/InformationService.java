@@ -54,6 +54,7 @@ import solitour_backend.solitour.information.dto.response.InformationResponse;
 import solitour_backend.solitour.information.entity.Information;
 import solitour_backend.solitour.information.exception.InformationNotExistsException;
 import solitour_backend.solitour.information.exception.InformationNotManageException;
+import solitour_backend.solitour.information.repository.InformationNativeRepository;
 import solitour_backend.solitour.information.repository.InformationRepository;
 import solitour_backend.solitour.information_comment.dto.respose.InformationCommentListResponse;
 import solitour_backend.solitour.information_comment.entity.InformationComment;
@@ -108,6 +109,7 @@ public class InformationService {
     private final ImageRepository imageRepository;
     private final CategoryMapper categoryMapper;
     private final InformationCommentService informationCommentService;
+    private final InformationNativeRepository informationNativeRepository;
 
     @Transactional
     public InformationResponse registerInformation(Long userId, InformationCreateRequest informationCreateRequest) {
@@ -467,6 +469,12 @@ public class InformationService {
                 throw new RequestValidationFailedException("잘못된 정렬 코드입니다.");
             }
         }
+        if (Objects.nonNull(informationPageRequest.getSearch()) &&
+                !informationPageRequest.getSearch().trim().isEmpty()) {
+            return informationNativeRepository
+                    .searchByFullTextIndex(pageable, informationPageRequest, userId, parentCategoryId);
+        }
+
 
         return informationRepository.getPageInformationFilterAndOrder(pageable, informationPageRequest, userId, parentCategoryId);
     }

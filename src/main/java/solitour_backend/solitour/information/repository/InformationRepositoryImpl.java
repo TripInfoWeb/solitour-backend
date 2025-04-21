@@ -7,15 +7,10 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -38,9 +33,8 @@ import solitour_backend.solitour.zone_category.entity.QZoneCategory;
 @Slf4j
 public class InformationRepositoryImpl extends QuerydslRepositorySupport implements InformationRepositoryCustom {
 
-    public InformationRepositoryImpl(InformationNativeRepository informationNativeRepository) {
+    public InformationRepositoryImpl() {
         super(Information.class);
-        this.informationNativeRepository = informationNativeRepository;
     }
 
     QInformation information = QInformation.information;
@@ -52,18 +46,13 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
     QCategory category = QCategory.category;
     QCategory categoryParent = new QCategory("categoryParent");
     QInfoTag infoTag = QInfoTag.infoTag;
-    @PersistenceContext
-    private EntityManager entityManager;
-    private InformationNativeRepository informationNativeRepository;
-
 
     public Page<InformationBriefResponse> getPageInformationFilterAndOrder(Pageable pageable, InformationPageRequest informationPageRequest, Long userId, Long parentCategoryId) {
         BooleanBuilder whereClause = new BooleanBuilder();
-        String searchKeyword = null;
-        List<InformationBriefResponse> list;
-
         if (Objects.nonNull(informationPageRequest.getZoneCategoryId())) {
-            whereClause.and(zoneCategoryParent.id.eq(informationPageRequest.getZoneCategoryId()));
+            whereClause.and(
+                    zoneCategoryParent.id.eq(informationPageRequest.getZoneCategoryId())
+            );
         }
 
         if (Objects.nonNull(informationPageRequest.getChildCategoryId())) {
@@ -71,104 +60,51 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
         } else {
             whereClause.and(categoryParent.id.eq(parentCategoryId));
         }
-
         if (Objects.nonNull(informationPageRequest.getSearch())) {
-            searchKeyword = informationPageRequest.getSearch().trim();
-
-            BooleanExpression fullTextCondition = Expressions.booleanTemplate(
-                    "MATCH({0}) AGAINST ({1} IN BOOLEAN MODE)",
-                    information.title,
-                    searchKeyword
-            );
-            whereClause.and(fullTextCondition);
+            String searchKeyword = informationPageRequest.getSearch().trim().replace(" ", "");
+            whereClause.and(information.title.trim().containsIgnoreCase(searchKeyword));
         }
 
+        long total = from(information)
+                .leftJoin(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryChild.parentZoneCategory.id.eq(zoneCategoryParent.id))
+                .leftJoin(category).on(category.id.eq(information.category.id))
+                .leftJoin(categoryParent).on(categoryParent.id.eq(category.parentCategory.id))
+                .join(image).on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .where(whereClause)
+                .distinct()
+                .fetchCount();
 
-        // ⚠ FullText 검색일 경우 count 쿼리는 native로 분기 처리
-        long total;
-        if (Objects.nonNull(searchKeyword)) {
-//            total = informationNativeRepository.countByFullTextSearch(searchKeyword);
-            List<Object[]> nativeResult = informationNativeRepository.searchInformationListNative(
-                    searchKeyword, userId, parentCategoryId,
-                    (int) pageable.getOffset(), pageable.getPageSize()
-            );
-
-            list = nativeResult.stream()
-                    .map(row -> new InformationBriefResponse(
-                            ((BigInteger) row[0]).longValue(), // information_id
-                            (String) row[1],                   // title
-                            (String) row[2],                   // zone parent
-                            (String) row[3],                   // zone child
-                            (String) row[4],                   // category name
-                            ((BigInteger) row[5]).intValue(),  // view_count
-                            (Boolean) row[6],                  // is_bookmarked
-                            (String) row[7],                   // image address
-                            ((BigInteger) row[8]).intValue(),  // great_count
-                            (Boolean) row[9]                   // is_great
-                    ))
-                    .toList();
-            total = list.size();
-
-
-        } else {
-            total = from(information)
-                    .leftJoin(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-                    .leftJoin(zoneCategoryParent).on(zoneCategoryChild.parentZoneCategory.id.eq(zoneCategoryParent.id))
-                    .leftJoin(category).on(category.id.eq(information.category.id))
-                    .leftJoin(categoryParent).on(categoryParent.id.eq(category.parentCategory.id))
-                    .join(image).on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
-                    .where(whereClause)
-                    .distinct()
-                    .fetchCount();
-
-             list = from(information)
-                    .leftJoin(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
-                    .leftJoin(zoneCategoryParent).on(zoneCategoryChild.parentZoneCategory.id.eq(zoneCategoryParent.id))
-                    .leftJoin(category).on(category.id.eq(information.category.id))
-                    .leftJoin(categoryParent).on(categoryParent.id.eq(category.parentCategory.id))
-                    .leftJoin(image).on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
-                    .leftJoin(bookMarkInformation).on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
-                    .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
-                    .where(whereClause)
-                    .groupBy(information.id, information.createdDate, information.viewCount, zoneCategoryChild.name, bookMarkInformation.id, image.address)
-                    .orderBy(getOrderSpecifiers(informationPageRequest.getSort()))
-                    .select(Projections.constructor(
-                            InformationBriefResponse.class,
-                            information.id,
-                            information.title,
-                            zoneCategoryParent.name,
-                            zoneCategoryChild.name,
-                            information.category.name,
-                            information.viewCount,
-                            isBookMarkBooleanExpression(bookMarkInformation),
-                            image.address,
-                            countGreatInformation(greatInformation),
-                            isGreatBooleanExpression(userId, greatInformation)
-                    ))
-                    .offset(pageable.getOffset())
-                    .limit(pageable.getPageSize())
-                    .fetch();
-        }
-
+        List<InformationBriefResponse> list = from(information)
+                .leftJoin(zoneCategoryChild).on(zoneCategoryChild.id.eq(information.zoneCategory.id))
+                .leftJoin(zoneCategoryParent).on(zoneCategoryChild.parentZoneCategory.id.eq(zoneCategoryParent.id))
+                .leftJoin(category).on(category.id.eq(information.category.id))
+                .leftJoin(categoryParent).on(categoryParent.id.eq(category.parentCategory.id))
+                .leftJoin(image).on(image.information.id.eq(information.id).and(image.imageStatus.eq(ImageStatus.THUMBNAIL)))
+                .leftJoin(bookMarkInformation).on(bookMarkInformation.information.id.eq(information.id).and(bookMarkInformation.user.id.eq(userId)))
+                .leftJoin(greatInformation).on(greatInformation.information.id.eq(information.id))
+                .where(whereClause)
+                .groupBy(information.id, information.createdDate, information.viewCount, zoneCategoryChild.name, bookMarkInformation.id, image.address)
+                .orderBy(getOrderSpecifiers(informationPageRequest.getSort()))
+                .select(Projections.constructor(
+                        InformationBriefResponse.class,
+                        information.id,
+                        information.title,
+                        zoneCategoryParent.name,
+                        zoneCategoryChild.name,
+                        information.category.name,
+                        information.viewCount,
+                        isBookMarkBooleanExpression(bookMarkInformation),
+                        image.address,
+                        countGreatInformation(greatInformation),
+                        isGreatBooleanExpression(userId, greatInformation)
+                )).offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+        log.info("정보 페이지 네이션 총 갯수 : " + total + "\n");
+        log.info("정보 들 : ");
+        log.info(list.toString());
         return new PageImpl<>(list, pageable, total);
-    }
-
-    private long getFullTextSearchCount(String keyword, Long parentCategoryId, Long zoneCategoryId, Long childCategoryId) {
-        StringBuilder query = new StringBuilder("SELECT COUNT(DISTINCT i.information_id) FROM information i ");
-        query.append("JOIN category c ON c.category_id = i.category_id ");
-        query.append("JOIN category p ON c.parent_category_id = p.category_id ");
-        query.append("JOIN zone_category z ON z.zone_category_id = i.zone_category_id ");
-        query.append("JOIN zone_category zp ON z.parent_zone_category_id = zp.zone_category_id ");
-        query.append("JOIN image img ON img.information_id = i.information_id AND img.image_status_id = 'THUMBNAIL' ");
-        query.append("WHERE MATCH(i.information_title) AGAINST (? IN BOOLEAN MODE) ");
-
-        if (parentCategoryId != null) query.append("AND p.category_id = ").append(parentCategoryId).append(" ");
-        if (childCategoryId != null) query.append("AND c.category_id = ").append(childCategoryId).append(" ");
-        if (zoneCategoryId != null) query.append("AND zp.zone_category_id = ").append(zoneCategoryId).append(" ");
-
-        Query nativeQuery = entityManager.createNativeQuery(query.toString());
-        nativeQuery.setParameter(1, keyword);
-        return ((Number) nativeQuery.getSingleResult()).longValue();
     }
 
     private OrderSpecifier<?> getOrderSpecifiers(String sort) {
@@ -259,7 +195,7 @@ public class InformationRepositoryImpl extends QuerydslRepositorySupport impleme
 
     @Override
     public Page<InformationBriefResponse> getInformationPageByTag(Pageable pageable, Long userId, Long
-            parentCategoryId,
+                                                                          parentCategoryId,
                                                                   InformationPageRequest informationPageRequest,
                                                                   String decodedTag) {
         BooleanBuilder whereClause = new BooleanBuilder();

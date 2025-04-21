@@ -10,10 +10,30 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import solitour_backend.solitour.category.entity.Category;
+import solitour_backend.solitour.information.dto.response.InformationBriefResponse;
 import solitour_backend.solitour.information_comment.entity.InformationComment;
 import solitour_backend.solitour.place.entity.Place;
 import solitour_backend.solitour.user.entity.User;
 import solitour_backend.solitour.zone_category.entity.ZoneCategory;
+
+@SqlResultSetMapping(
+        name = "InformationBriefMapping",
+        classes = @ConstructorResult(
+                targetClass = InformationBriefResponse.class,
+                columns = {
+                        @ColumnResult(name = "information_id", type = Long.class),
+                        @ColumnResult(name = "title", type = String.class),
+                        @ColumnResult(name = "parent_zone_name", type = String.class),
+                        @ColumnResult(name = "zone_name", type = String.class),
+                        @ColumnResult(name = "category_name", type = String.class),
+                        @ColumnResult(name = "view_count", type = Integer.class),
+                        @ColumnResult(name = "is_bookmarked", type = Boolean.class),
+                        @ColumnResult(name = "image_address", type = String.class),
+                        @ColumnResult(name = "like_count", type = Integer.class),
+                        @ColumnResult(name = "is_liked", type = Boolean.class),
+                }
+        )
+)
 
 @Entity
 @Getter
